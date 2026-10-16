@@ -1,0 +1,12 @@
+node_modules/
+dist/
+.env
+.env.local
+*.local
+
+# Editor/OS
+.DS_Store
+Thumbs.db
+
+# Claude local settings (may contain machine-specific permissions)
+.claude/settings.local.json
