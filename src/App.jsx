@@ -6,6 +6,15 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
+import "./login.css";
+import "./dashboard.css";
+import "./rh.css";
+import "./juridico.css";
+import "./marketing.css";
+import "./operacoes.css";
+import "./financeiro.css";
+import "./nav.css";
+import "./profile.css";
 
 const C = {
   red: "#D70D16",
@@ -225,7 +234,7 @@ const Icon = ({ name, size = 18, color = "currentColor", strokeWidth = 1.5 }) =>
     upload: <><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></>,
   };
   return (
-    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth={strokeWidth} strokeLinecap="round" strokeLinejoin="round">
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth={strokeWidth} strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" focusable="false">
       {paths[name]}
     </svg>
   );
@@ -237,7 +246,6 @@ function Login({ onLogin, usersDirectory }) {
   const [pass, setPass] = useState("");
   const [loading, setLoading] = useState(false);
   const [err, setErr] = useState("");
-  const mobile = useIsMobile();
   const demoAccounts = usersDirectory.filter(account => account.active).slice(0, 5);
 
   const submit = () => {
@@ -251,144 +259,77 @@ function Login({ onLogin, usersDirectory }) {
   };
 
   return (
-    <div style={{
-      minHeight: "100vh", display: "flex",
-      flexDirection: mobile ? "column" : "row",
-      background: "#FAFAFA", fontFamily: FONT_BODY,
-    }}>
-      {/* Left panel — red brand hero */}
-      <div style={{
-        flex: mobile ? "0 0 auto" : 1,
-        display: "flex", flexDirection: "column",
-        justifyContent: "center", alignItems: "center",
-        padding: mobile ? "64px 32px 48px" : "64px",
-        position: "relative", overflow: "hidden",
-        background: `linear-gradient(135deg, ${C.red} 0%, ${C.redDark || "#851811"} 100%)`,
-      }}>
-        {/* Decorative shapes */}
-        <div style={{
-          position: "absolute", width: 520, height: 520, borderRadius: "50%",
-          background: "rgba(255,255,255,0.06)",
-          top: "-120px", right: "-120px", pointerEvents: "none",
-        }} />
-        <div style={{
-          position: "absolute", width: 360, height: 360, borderRadius: "50%",
-          background: "rgba(0,0,0,0.12)",
-          bottom: "-80px", left: "-80px", pointerEvents: "none",
-        }} />
+    <div className="aef-login">
+      <section className="aef-login__brand" aria-label="Amor em Foco">
+        <img className="aef-login__logo" src="/logo-branco.png" alt="Amor em Foco" />
+        <div>
+          <p className="aef-login__statement">Organização a serviço do amor.</p>
+          <p className="aef-login__purpose">Plataforma interna de gestão.</p>
+        </div>
+      </section>
 
-        <div style={{ position: "relative", textAlign: "center", maxWidth: 420 }}>
-          <div style={{ margin: "0 auto 36px", width: mobile ? 160 : 260 }}>
-            <img src="/logo-branco.png" alt="Amor em Foco" style={{ width: "100%", filter: "drop-shadow(0 8px 24px rgba(0,0,0,0.25))" }} />
+      <main className="aef-login__main">
+        <div className="aef-login__panel">
+          <header>
+            <h1 className="aef-login__title">Entrar na plataforma</h1>
+            <p className="aef-login__sub">Acesso restrito por perfil, área e permissão.</p>
+          </header>
+
+          <div className="aef-login__fields">
+            {[
+              { id: "aef-login-email", label: "E-mail", type: "email", autoComplete: "username", value: email, set: setEmail, placeholder: "nome@amoremfoco.org" },
+              { id: "aef-login-senha", label: "Senha", type: "password", autoComplete: "current-password", value: pass, set: setPass, placeholder: "••••••••" },
+            ].map(f => (
+              <div key={f.label} className="aef-login__field">
+                <label className="aef-login__label" htmlFor={f.id}>{f.label}</label>
+                <input
+                  id={f.id} name={f.id} className="aef-login__input"
+                  type={f.type} value={f.value} placeholder={f.placeholder} autoComplete={f.autoComplete}
+                  aria-invalid={err ? "true" : undefined}
+                  aria-describedby={err ? "aef-login-erro" : undefined}
+                  onChange={e => { f.set(e.target.value); setErr(""); }}
+                  onKeyDown={e => e.key === "Enter" && submit()}
+                />
+              </div>
+            ))}
+
+            {err && (
+              <p id="aef-login-erro" className="aef-login__error" role="alert">{err}</p>
+            )}
+
+            <button type="button" className="aef-login__submit" onClick={submit} disabled={loading} aria-busy={loading}>
+              {loading ? "Entrando…" : "Entrar"}
+            </button>
           </div>
 
-          <p style={{
-            color: "rgba(255,255,255,0.95)", fontSize: 17, lineHeight: 1.7,
-            fontWeight: 500, margin: 0, letterSpacing: 0.2,
-          }}>
-            Plataforma interna de gestão.<br />Organização a serviço do amor.
+          <section className="aef-login__demo" aria-labelledby="aef-login-demo">
+            <h2 id="aef-login-demo" className="aef-login__demo-title">Ambiente de demonstração</h2>
+            <p className="aef-login__demo-note">
+              Senha temporária: <strong>amor123</strong>
+            </p>
+            <ul className="aef-login__profiles">
+              {demoAccounts.map(account => (
+                <li key={account.id}>
+                  <button
+                    type="button"
+                    className="aef-login__profile"
+                    aria-pressed={normalizeEmail(email) === normalizeEmail(account.email)}
+                    disabled={loading}
+                    onClick={() => { setEmail(account.email); setPass(account.password); setErr(""); }}
+                  >
+                    <span className="aef-login__profile-name">{account.name}</span>
+                    <span className="aef-login__profile-role">{ACCESS_PROFILES[account.profileId]?.label || "Perfil"}</span>
+                  </button>
+                </li>
+              ))}
+            </ul>
+          </section>
+
+          <p className="aef-login__help">
+            Problemas de acesso? Fale com o Super Admin ou ajuste o perfil do usuário.
           </p>
         </div>
-      </div>
-
-      {/* Right panel — light form */}
-      <div style={{
-        flex: mobile ? "1 1 auto" : "0 0 480px",
-        background: "#FFFFFF",
-        borderRadius: mobile ? "24px 24px 0 0" : 0,
-        marginTop: mobile ? -24 : 0,
-        display: "flex", flexDirection: "column", justifyContent: "center",
-        padding: mobile ? "40px 28px 48px" : "64px 56px",
-        boxShadow: mobile ? "none" : "-20px 0 60px rgba(0,0,0,0.05)",
-      }}>
-        <h2 style={{ fontSize: 26, fontWeight: 700, color: "#111111", letterSpacing: -0.5, margin: "0 0 8px", fontFamily: FONT_DISPLAY }}>
-          Entrar na plataforma
-        </h2>
-        <p style={{ color: "#6B6B6B", fontSize: 14, margin: "0 0 36px" }}>
-          Acesso restrito por perfil, area e permissao
-        </p>
-
-        <div style={{ display: "flex", flexDirection: "column", gap: 18 }}>
-          {[
-            { label: "E-mail", type: "email", value: email, set: setEmail, placeholder: "nome@amememfoco.org" },
-            { label: "Senha", type: "password", value: pass, set: setPass, placeholder: "••••••••" },
-          ].map(f => (
-            <div key={f.label}>
-              <label style={{ display: "block", fontSize: 12, fontWeight: 600, color: "#444", marginBottom: 8, letterSpacing: 0.3 }}>{f.label}</label>
-              <input
-                type={f.type} value={f.value} placeholder={f.placeholder}
-                onChange={e => { f.set(e.target.value); setErr(""); }}
-                onKeyDown={e => e.key === "Enter" && submit()}
-                style={{
-                  width: "100%", padding: "13px 16px",
-                  background: "#F5F5F7",
-                  border: "1px solid #E5E5EA",
-                  borderRadius: 10, fontSize: 15, color: "#111",
-                  outline: "none", boxSizing: "border-box",
-                  transition: "border-color 0.2s, background 0.2s",
-                  WebkitAppearance: "none",
-                }}
-                onFocus={e => { e.target.style.borderColor = C.red; e.target.style.background = "#FFFFFF"; }}
-                onBlur={e => { e.target.style.borderColor = "#E5E5EA"; e.target.style.background = "#F5F5F7"; }}
-              />
-            </div>
-          ))}
-
-          {err && (
-            <div style={{ background: "rgba(215,13,22,0.08)", border: "1px solid rgba(215,13,22,0.25)", borderRadius: 8, padding: "10px 14px", color: C.red, fontSize: 13, fontWeight: 500 }}>
-              {err}
-            </div>
-          )}
-
-          <button
-            onClick={submit} disabled={loading}
-            style={{
-              background: loading ? "rgba(215,13,22,0.6)" : C.red,
-              color: C.white, border: "none", borderRadius: 10,
-              padding: "14px", fontSize: 15, fontWeight: 600,
-              cursor: loading ? "not-allowed" : "pointer",
-              marginTop: 8, letterSpacing: 0.2,
-              transition: "background 0.2s, transform 0.1s",
-              boxShadow: "0 6px 16px rgba(215,13,22,0.25)",
-            }}
-            onMouseDown={e => { if (!loading) e.currentTarget.style.transform = "scale(0.98)"; }}
-            onMouseUp={e => e.currentTarget.style.transform = "scale(1)"}
-          >
-            {loading ? "Entrando..." : "Entrar"}
-          </button>
-
-          <div style={{
-            marginTop: 8, padding: "14px 14px 12px",
-            background: "#FAFAFA", border: `1px solid ${C.border}`, borderRadius: 12,
-          }}>
-            <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: 1.1, color: C.textSecondary, textTransform: "uppercase", marginBottom: 8 }}>
-              Ambiente de demonstracao
-            </div>
-            <div style={{ fontSize: 12, color: C.textSecondary, lineHeight: 1.5, marginBottom: 10 }}>
-              Senha temporaria: <strong style={{ color: C.text }}>amor123</strong>
-            </div>
-            <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
-              {demoAccounts.map(account => (
-                <button
-                  key={account.id}
-                  onClick={() => { setEmail(account.email); setPass(account.password); setErr(""); }}
-                  style={{
-                    border: `1px solid ${C.border}`, background: C.white, color: C.text,
-                    borderRadius: 999, padding: "7px 10px", fontSize: 11, cursor: "pointer",
-                    fontFamily: FONT_BODY,
-                  }}
-                >
-                  {(ACCESS_PROFILES[account.profileId]?.label || "Perfil")} · {account.name.split(" ")[0]}
-                </button>
-              ))}
-            </div>
-          </div>
-        </div>
-
-        <p style={{ textAlign: "center", marginTop: 28, fontSize: 12, color: "#999" }}>
-          Problemas de acesso? Fale com o Super Admin ou ajuste o perfil do usuario.
-        </p>
-      </div>
+      </main>
     </div>
   );
 }
@@ -423,91 +364,52 @@ function getDefaultModule(user) {
 
 function Sidebar({ active, setActive, user, onOpenProfile, navItems }) {
   return (
-    <div style={{
-      width: 248, background: C.white,
-      display: "flex", flexDirection: "column",
-      height: "100vh", position: "fixed", left: 0, top: 0, zIndex: 100,
-      fontFamily: FONT_BODY,
-      borderRight: `1px solid ${C.border}`,
-    }}>
-      {/* Logo */}
-      <div style={{ padding: "26px 22px 22px" }}>
-        <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-          <div style={{ width: 38, height: 38, flexShrink: 0 }}>
-            <img src="/logo-vermelha.png" alt="Amor em Foco" style={{ width: "100%", height: "100%", objectFit: "contain" }} />
-          </div>
-          <div>
-            <div style={{ color: C.text, fontWeight: 700, fontSize: 16, letterSpacing: 0.5, fontFamily: FONT_DISPLAY }}>AEF Hub</div>
-            <div style={{ color: C.textTertiary, fontSize: 10, letterSpacing: 1.5, textTransform: "uppercase" }}>Amor em Foco</div>
-          </div>
+    <aside className="aef-nav" aria-label="Módulos">
+      <div className="aef-nav__brand">
+        <img className="aef-nav__logo" src="/logo-vermelha.png" alt="" />
+        <div>
+          <div className="aef-nav__wordmark">AEF Hub</div>
+          <div className="aef-nav__org">Amor em Foco</div>
         </div>
       </div>
 
-      <div style={{ height: 1, background: C.borderLight, margin: "0 16px" }} />
-
-      {/* Nav */}
-      <nav style={{ flex: 1, padding: "18px 12px" }}>
-        <div style={{ fontSize: 10, color: C.textTertiary, letterSpacing: 2, textTransform: "uppercase", padding: "0 12px", marginBottom: 10, fontWeight: 600 }}>Menu</div>
-        {navItems.map(it => {
-          const isActive = active === it.id;
-          return (
-            <button key={it.id} onClick={() => setActive(it.id)} style={{
-              width: "100%", display: "flex", alignItems: "center", gap: 12,
-              padding: "11px 14px", borderRadius: 10, border: "none",
-              background: isActive ? C.red : "transparent",
-              color: isActive ? C.white : C.textSecondary,
-              cursor: "pointer", marginBottom: 4, textAlign: "left",
-              fontSize: 14, fontWeight: isActive ? 600 : 500,
-              transition: "all 0.15s",
-              boxShadow: isActive ? "0 6px 16px rgba(215,13,22,0.25)" : "none",
-            }}
-              onMouseEnter={e => { if (!isActive) e.currentTarget.style.background = C.borderLight; }}
-              onMouseLeave={e => { if (!isActive) e.currentTarget.style.background = "transparent"; }}
-            >
-              <Icon name={it.icon} size={17} color={isActive ? C.white : C.textSecondary} strokeWidth={isActive ? 2 : 1.6} />
-              {it.label}
-            </button>
-          );
-        })}
+      <nav aria-label="Menu principal" style={{ flex: 1, display: "flex", minHeight: 0 }}>
+        <ul className="aef-nav__list">
+          {navItems.map(it => {
+            const isActive = active === it.id;
+            return (
+              <li key={it.id}>
+                <button type="button" className="aef-nav__item" aria-current={isActive ? "page" : undefined} onClick={() => setActive(it.id)}>
+                  <span className="aef-nav__icon" aria-hidden="true"><Icon name={it.icon} size={18} strokeWidth={isActive ? 2 : 1.6} /></span>
+                  {it.label}
+                </button>
+              </li>
+            );
+          })}
+        </ul>
       </nav>
 
-      {/* User */}
-      <div style={{ height: 1, background: C.borderLight, margin: "0 16px" }} />
-      <div onClick={onOpenProfile} style={{ padding: "16px", display: "flex", alignItems: "center", gap: 10, cursor: "pointer", transition: "background 0.15s", borderRadius: 10 }}
-        onMouseEnter={e => e.currentTarget.style.background = C.borderLight}
-        onMouseLeave={e => e.currentTarget.style.background = "transparent"}
-      >
-        <div style={{ width: 34, height: 34, borderRadius: "50%", background: C.red, display: "flex", alignItems: "center", justifyContent: "center", color: C.white, fontWeight: 700, fontSize: 12, flexShrink: 0 }}>{user.initials}</div>
-        <div style={{ flex: 1, overflow: "hidden" }}>
-          <div style={{ color: C.text, fontSize: 13, fontWeight: 600, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{user.name}</div>
-          <div style={{ color: C.textTertiary, fontSize: 11 }}>{user.position} · {user.profileLabel}</div>
-        </div>
-        <Icon name="chevronRight" size={14} color={C.textTertiary} />
-      </div>
-    </div>
+      <button type="button" className="aef-nav__user" onClick={onOpenProfile} aria-label={"Abrir perfil de " + user.name}>
+        <span className="aef-nav__avatar" aria-hidden="true">{user.initials}</span>
+        <span className="aef-nav__user-main">
+          <span className="aef-nav__user-name">{user.name}</span>
+          <span className="aef-nav__user-role">{user.position}</span>
+          <span className="aef-nav__user-role">{user.profileLabel}</span>
+        </span>
+        <span className="aef-nav__chev" aria-hidden="true"><Icon name="chevronRight" size={14} /></span>
+      </button>
+    </aside>
   );
 }
 
 // ─── BOTTOM NAV ───────────────────────────────────────────────────────────────
 function BottomNav({ active, setActive, navItems }) {
   return (
-    <nav style={{
-      position: "fixed", bottom: 0, left: 0, right: 0, zIndex: 200,
-      background: "rgba(0,0,0,0.92)", backdropFilter: "blur(20px)",
-      display: "flex", borderTop: "1px solid rgba(255,255,255,0.08)",
-      paddingBottom: "env(safe-area-inset-bottom, 0px)",
-      fontFamily: FONT_BODY,
-    }}>
+    <nav className="aef-bottom" aria-label="Menu principal">
       {navItems.map(it => (
-        <button key={it.id} onClick={() => setActive(it.id)} style={{
-          flex: 1, display: "flex", flexDirection: "column", alignItems: "center",
-          justifyContent: "center", padding: "12px 4px 10px", border: "none",
-          background: "transparent", cursor: "pointer", gap: 4,
-        }}>
-          <Icon name={it.icon} size={20} color={active === it.id ? C.red : "rgba(255,255,255,0.3)"} strokeWidth={active === it.id ? 2 : 1.5} />
-          <span style={{ fontSize: 9, color: active === it.id ? C.red : "rgba(255,255,255,0.3)", fontWeight: active === it.id ? 600 : 400, letterSpacing: 0.5, textTransform: "uppercase" }}>
-            {it.id === "operacoes" ? "Ops" : it.label}
-          </span>
+        <button key={it.id} type="button" className="aef-bottom__item" aria-current={active === it.id ? "page" : undefined} onClick={() => setActive(it.id)}>
+          <span aria-hidden="true"><Icon name={it.icon} size={20} strokeWidth={active === it.id ? 2 : 1.6} /></span>
+          <span className="aef-bottom__label">{it.id === "operacoes" ? "Ops" : it.label}</span>
         </button>
       ))}
     </nav>
@@ -517,14 +419,9 @@ function BottomNav({ active, setActive, navItems }) {
 function AccessNotice({ message }) {
   if (!message) return null;
   return (
-    <div style={{
-      marginBottom: 18, padding: "12px 14px",
-      borderRadius: 12, border: "1px solid rgba(180,83,9,0.25)",
-      background: "rgba(245,158,11,0.10)", color: "#92400E",
-      fontSize: 13, fontWeight: 600,
-    }}>
+    <p className="aef-notice" role="status">
       {message}
-    </div>
+    </p>
   );
 }
 
@@ -922,37 +819,39 @@ function BalanceCard({ onClick, mobile }) {
   }, []);
 
   return (
-    <Card className="relative h-full overflow-hidden border-0 text-white shadow-xl shadow-red-900/20" style={{ background: `linear-gradient(135deg, ${C.red} 0%, ${C.redDark} 100%)` }}>
-      <div className="pointer-events-none absolute -right-16 -top-24 h-64 w-64 rounded-full bg-white/10" />
-      <CardContent className={mobile ? "p-4" : "p-5"}>
-        <div className="flex items-start justify-between gap-3">
-          <div className="flex items-center gap-3"><div className="flex h-9 w-9 items-center justify-center rounded-xl bg-white/15"><Icon name="dollar" size={16} color={C.white} strokeWidth={2} /></div><div><div className="text-xs font-bold text-white">Resumo financeiro</div><div className="mt-0.5 flex items-center gap-1.5 text-[9px] font-medium text-white/70"><span className="h-1.5 w-1.5 rounded-full bg-emerald-300" />Atualizado agora</div></div></div>
-          <Button type="button" variant="ghost" size="sm" aria-label={visible ? "Ocultar valores financeiros" : "Mostrar valores financeiros"} onClick={() => setVisible(value => !value)} className="h-8 gap-1.5 rounded-lg bg-white/10 px-2 text-[10px] text-white hover:bg-white/20 hover:text-white"><Icon name="eye" size={13} color={C.white} />{visible ? "Ocultar" : "Mostrar"}</Button>
+    <div className="aef-dash__balance">
+      <div className="aef-dash__balance-head">
+        <div>
+          <h2 className="aef-dash__balance-title">Resumo financeiro</h2>
+          <p className="aef-dash__balance-note">Atualizado agora</p>
         </div>
-        <div className="mt-4">
-          {loading ? <div className="h-8 w-36 animate-pulse rounded-lg bg-white/15" /> : <div className="text-2xl font-bold tracking-[-0.04em] text-white">{visible ? saldo : "R$ ••••••"}</div>}
-        </div>
-        <div className="mt-4 flex items-end justify-between gap-3 border-t border-white/15 pt-3">
-          <div className="flex gap-5">
-            <div><div className="text-[8px] font-bold uppercase tracking-wider text-white/60">Entradas</div><div className="mt-1 text-[11px] font-bold text-emerald-200">{visible ? entrada : "••••••"}</div></div>
-            <div><div className="text-[8px] font-bold uppercase tracking-wider text-white/60">Saídas</div><div className="mt-1 text-[11px] font-bold text-red-200">{visible ? saida : "••••••"}</div></div>
-          </div>
-          <Button type="button" variant="ghost" size="sm" onClick={onClick} className="h-8 shrink-0 gap-1 rounded-lg px-2 text-[10px] font-semibold text-white hover:bg-white/10 hover:text-white">Financeiro <Icon name="arrowRight" size={12} color={C.white} /></Button>
-        </div>
-      </CardContent>
-    </Card>
+        <button type="button" className="aef-dash__btn aef-dash__btn--on-accent" aria-label={visible ? "Ocultar valores financeiros" : "Mostrar valores financeiros"} aria-pressed={visible} onClick={() => setVisible(value => !value)}>
+          <span aria-hidden="true"><Icon name="eye" size={15} /></span>{visible ? "Ocultar" : "Mostrar"}
+        </button>
+      </div>
+      <div className="aef-dash__amount" aria-live="polite" aria-busy={loading}>
+        {loading ? <span className="aef-dash__skeleton" aria-label="Carregando saldo" /> : <span>{visible ? saldo : "R$ ••••••"}</span>}
+      </div>
+      <div className="aef-dash__flows">
+        <dl className="aef-dash__flow-list">
+          <div className="aef-dash__flow aef-dash__flow--in"><dt>Entradas</dt><dd>{visible ? entrada : "••••••"}</dd></div>
+          <div className="aef-dash__flow aef-dash__flow--out"><dt>Saídas</dt><dd>{visible ? saida : "••••••"}</dd></div>
+        </dl>
+        <button type="button" className="aef-dash__btn aef-dash__btn--on-accent" onClick={onClick}>Abrir Financeiro</button>
+      </div>
+    </div>
   );
 }
 
 const MURAL_TIPOS = {
-  acao_iniciada: { icon: "settings", cor: "#15803D", bg: "rgba(34,197,94,0.12)", label: "Ação" },
-  votacao: { icon: "shield", cor: "#B45309", bg: "rgba(245,158,11,0.14)", label: "Votação" },
-  fotos: { icon: "camera", cor: "#1D4ED8", bg: "rgba(29,78,216,0.10)", label: "Marketing" },
-  doc: { icon: "file", cor: "#D70D16", bg: "rgba(215,13,22,0.10)", label: "Jurídico" },
-  voluntario: { icon: "users", cor: "#7E22CE", bg: "rgba(126,34,206,0.10)", label: "RH" },
-  acao_concluida: { icon: "check", cor: "#6E6E73", bg: "#F2F2F7", label: "Ação" },
-  doacao: { icon: "dollar", cor: "#0D7A3F", bg: "rgba(13,122,63,0.10)", label: "Financeiro" },
-  demanda_marketing: { icon: "camera", cor: "#0D9488", bg: "rgba(13,148,136,0.10)", label: "Marketing" },
+  acao_iniciada: { icon: "settings", tone: "green", label: "Ação" },
+  votacao: { icon: "shield", tone: "amber", label: "Votação" },
+  fotos: { icon: "camera", tone: "blue", label: "Marketing" },
+  doc: { icon: "file", tone: "red", label: "Jurídico" },
+  voluntario: { icon: "users", tone: "purple", label: "RH" },
+  acao_concluida: { icon: "check", tone: "neutral", label: "Ação" },
+  doacao: { icon: "dollar", tone: "green", label: "Financeiro" },
+  demanda_marketing: { icon: "camera", tone: "teal", label: "Marketing" },
 };
 
 const MURAL_EVENTOS = [
@@ -1238,61 +1137,51 @@ function Mural({ mobile }) {
   const restantes = eventosMural.length - limite;
 
   return (
-    <Card className="h-full overflow-hidden border-border/80 shadow-sm">
-      <div className="flex items-center justify-between border-b border-border/70 px-4 py-3.5 sm:px-5">
-        <div className="flex items-center gap-2.5"><div className="flex h-8 w-8 items-center justify-center rounded-xl bg-red-50"><Icon name="home" size={14} color={C.red} /></div><div><h2 className="text-sm font-bold tracking-tight text-foreground" style={{ fontFamily: FONT_DISPLAY }}>Mural</h2><p className="text-[10px] text-muted-foreground">Movimentações de todos os setores</p></div></div>
-        <Badge variant="secondary" className="rounded-full text-[10px] font-semibold">{eventosMural.length} atividades</Badge>
+    <div className="aef-dash__panel aef-dash__mural">
+      <div className="aef-dash__mural-head">
+        <div>
+          <h2 className="aef-dash__h2">Mural</h2>
+          <p className="aef-dash__hint">Movimentações de todos os setores</p>
+        </div>
+        <span className="aef-dash__aside">{eventosMural.length} atividades</span>
       </div>
-      <div style={{ maxHeight: mobile ? "none" : 480, overflowY: mobile ? "visible" : "auto" }}>
-        {visiveis.map((ev, i) => {
+      <ul className={mobile ? "aef-dash__feed" : "aef-dash__feed aef-dash__feed--scroll"}>
+        {visiveis.map((ev) => {
           const cfg = MURAL_TIPOS[ev.tipo] || MURAL_TIPOS.doc;
           const clicavel = ev.tipo === "votacao" && VOTACAO_DETALHES[ev.id];
           return (
-            <div key={ev.id} onClick={clicavel ? () => setVotacaoAberta(ev.id) : undefined} style={{
-              padding: mobile ? "10px 16px" : "14px 22px",
-              display: "flex", alignItems: "center", gap: mobile ? 10 : 12,
-              borderBottom: i < visiveis.length - 1 ? `1px solid ${C.borderLight}` : "none",
-              cursor: clicavel ? "pointer" : "default",
-              transition: "background 0.15s",
-            }}
-              onMouseEnter={clicavel ? (e) => e.currentTarget.style.background = C.bg : undefined}
-              onMouseLeave={clicavel ? (e) => e.currentTarget.style.background = "transparent" : undefined}
-            >
-              <div style={{ width: mobile ? 32 : 36, height: mobile ? 32 : 36, borderRadius: 10, background: cfg.bg, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
-                <Icon name={cfg.icon} size={mobile ? 13 : 15} color={cfg.cor} strokeWidth={2} />
+            <li key={ev.id} className="aef-dash__event" data-tone={cfg.tone} data-clickable={clicavel ? "true" : undefined} onClick={clicavel ? () => setVotacaoAberta(ev.id) : undefined}>
+              <span className="aef-dash__icon" aria-hidden="true"><Icon name={cfg.icon} size={18} strokeWidth={2} /></span>
+              <div>
+                <p className="aef-dash__event-text">
+                  <span className="aef-dash__event-who">{ev.autor}</span>
+                  <span className="aef-dash__event-verb"> {ev.texto} </span>
+                  <span className="aef-dash__event-what">{ev.alvo}</span>
+                </p>
+                <p className="aef-dash__event-sector">{cfg.label}</p>
               </div>
-              <div style={{ flex: 1, minWidth: 0 }}>
-                <div style={{ fontSize: mobile ? 13 : 13.5, color: C.text, lineHeight: 1.4, overflow: "hidden", display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical" }}>
-                  <span style={{ fontWeight: 700 }}>{ev.autor}</span>
-                  <span style={{ color: C.textSecondary }}> {ev.texto} </span>
-                  <span style={{ fontWeight: 600 }}>{ev.alvo}</span>
-                </div>
-                <div style={{ marginTop: 2, fontSize: 11, color: C.textTertiary }}>
-                  <span style={{ color: cfg.cor, fontWeight: 600, letterSpacing: 0.4, textTransform: "uppercase", fontSize: 10 }}>{cfg.label}</span>
-                  <span> · {ev.tempo}</span>
-                </div>
+              <div className="aef-dash__event-side">
+                <span className="aef-dash__event-time">{ev.tempo}</span>
+                {clicavel && (
+                  <button type="button" className="aef-dash__btn aef-dash__btn--vote" onClick={(e) => { e.stopPropagation(); setVotacaoAberta(ev.id); }}>Votar</button>
+                )}
               </div>
-              {clicavel && (
-                <span style={{ fontSize: 11, fontWeight: 700, color: "#B45309", background: "rgba(245,158,11,0.14)", padding: "5px 10px", borderRadius: 10, flexShrink: 0, letterSpacing: 0.3, textTransform: "uppercase" }}>
-                  Votar
-                </span>
-              )}
-            </div>
+            </li>
           );
         })}
-      </div>
+      </ul>
       {mobile && restantes > 0 && (
-        <Button variant="ghost" onClick={() => setExpandido(true)} className="h-11 w-full rounded-none border-t border-border/70 text-xs text-primary hover:text-primary">
+        <button type="button" className="aef-dash__btn aef-dash__btn--quiet" onClick={() => setExpandido(true)}>
           Ver mais {restantes} {restantes === 1 ? "atividade" : "atividades"}
-        </Button>
+        </button>
       )}
       {mobile && expandido && (
-        <Button variant="ghost" onClick={() => setExpandido(false)} className="h-11 w-full rounded-none border-t border-border/70 text-xs text-muted-foreground">
+        <button type="button" className="aef-dash__btn aef-dash__btn--quiet aef-dash__btn--muted" onClick={() => setExpandido(false)}>
           Mostrar menos
-        </Button>
+        </button>
       )}
       {votacaoAberta && <ModalVotacao eventoId={votacaoAberta} onClose={() => setVotacaoAberta(null)} />}
-    </Card>
+    </div>
   );
 }
 
@@ -1303,47 +1192,64 @@ function Dashboard({ setActive, mobile, user }) {
   const saudacao = hora < 12 ? "Bom dia" : hora < 18 ? "Boa tarde" : "Boa noite";
   const firstName = user?.name?.split(" ")[0] || "Eder";
 
+  const indicadores = [
+    { icon: "users", tone: "green", label: "Voluntários", value: "134", sub: "+12 mês", area: "rh" },
+    { icon: "settings", tone: "amber", label: "Ações", value: "3", sub: "este mês", area: "operacoes" },
+    { icon: "dollar", tone: "red", label: "Doadores", value: "47", sub: "ativos", area: "financeiro" },
+    { icon: "camera", tone: "blue", label: "Posts", value: "8", sub: "publicados", area: "marketing" },
+    { icon: "eye", tone: "purple", label: "Views site", value: "12,4k", sub: "+18%", area: "marketing" },
+    { icon: "eye", tone: "teal", label: "Views redes", value: "8,7k", sub: "+24%", area: "marketing" },
+  ];
+
   return (
-    <div className="space-y-6" style={{ fontFamily: FONT_BODY }}>
+    <div className="aef-dash">
       <header>
-        <h1 className="text-[28px] font-bold leading-tight tracking-[-0.03em] text-foreground sm:text-[34px]" style={{ fontFamily: FONT_DISPLAY }}>{saudacao}, {firstName}</h1>
-        <p className="mt-1 text-xs capitalize text-muted-foreground">{today}</p>
+        <h1 className="aef-dash__title">{saudacao}, {firstName}</h1>
+        <p className="aef-dash__date">{today}</p>
       </header>
 
-      <section aria-label="Resumo financeiro">
-        <BalanceCard onClick={() => setActive("financeiro")} mobile={mobile} />
-      </section>
+      <div className="aef-dash__top">
+        <section aria-label="Resumo financeiro">
+          <BalanceCard onClick={() => setActive("financeiro")} mobile={mobile} />
+        </section>
 
-      <section aria-labelledby="dashboard-actions">
-        <div className="mb-3"><h2 id="dashboard-actions" className="text-sm font-bold text-foreground">Ações em andamento</h2><p className="mt-0.5 text-[10px] text-muted-foreground">Acompanhe as operações que estão sendo executadas.</p></div>
-        <div className="grid gap-3 lg:grid-cols-2">
-          <Card className="relative overflow-hidden border-primary/20 shadow-sm transition-colors hover:border-primary/35">
-            <div className="h-1 bg-primary" />
-            <CardContent className="p-4 sm:p-5">
-              <div className="flex items-start justify-between gap-3">
-                <div className="flex items-center gap-3"><div className="flex h-9 w-9 items-center justify-center rounded-xl bg-red-50"><Icon name="settings" size={16} color={C.red} /></div><div><Badge className="rounded-full bg-red-50 px-2 py-0.5 text-[8px] font-bold uppercase tracking-wider text-primary hover:bg-red-50"><span className="mr-1.5 h-1.5 w-1.5 rounded-full bg-primary" />Em andamento</Badge><div className="mt-1 text-[9px] text-muted-foreground">Operação ativa</div></div></div>
-                <span className="text-[10px] font-semibold text-primary">8 tarefas pendentes</span>
-              </div>
-              <div className="mt-4 flex items-end justify-between gap-4">
-                <div><h3 className="text-lg font-bold tracking-tight text-foreground" style={{ fontFamily: FONT_DISPLAY }}>Café de Rua</h3><div className="mt-1 flex items-center gap-1.5 text-[10px] text-muted-foreground"><Icon name="calendar" size={12} color={C.textTertiary} />26 de abril</div></div>
-                <Button onClick={() => setActive("operacoes")} size="sm" className="h-9 shrink-0 gap-1.5 rounded-xl px-3 text-[11px] shadow-sm shadow-primary/20">Ver POP <Icon name="arrowRight" size={12} color={C.white} /></Button>
-              </div>
-              <div className="mt-4 h-1.5 overflow-hidden rounded-full bg-red-100"><div className="h-full w-[62%] rounded-full bg-primary" /></div>
-            </CardContent>
-          </Card>
-        </div>
-      </section>
+        <section className="aef-dash__panel aef-dash__action" aria-labelledby="dashboard-actions">
+          <h2 id="dashboard-actions" className="aef-dash__h2">Ações em andamento</h2>
+          <div className="aef-dash__action-head">
+            <p><span className="aef-dash__state" role="status">Em andamento</span> <span className="aef-dash__state-note">Operação ativa</span></p>
+            <span className="aef-dash__pending">8 tarefas pendentes</span>
+          </div>
+          <div>
+            <h3 className="aef-dash__action-title">Café de Rua</h3>
+            <p className="aef-dash__when"><span aria-hidden="true"><Icon name="calendar" size={14} /></span>26 de abril</p>
+          </div>
+          <div className="aef-dash__progress" role="progressbar" aria-label="Progresso da ação" aria-valuemin={0} aria-valuemax={100} aria-valuenow={62}><span style={{ width: "62%" }} /></div>
+          <div className="aef-dash__action-foot">
+            <p className="aef-dash__hint">Acompanhe as operações que estão sendo executadas.</p>
+            <button type="button" className="aef-dash__btn aef-dash__btn--primary" onClick={() => setActive("operacoes")}>Ver POP</button>
+          </div>
+        </section>
+      </div>
 
-      <section aria-labelledby="dashboard-indicators">
-        <div className="mb-3 flex items-end justify-between gap-3"><div><h2 id="dashboard-indicators" className="text-sm font-bold text-foreground">Indicadores principais</h2><p className="mt-0.5 text-[10px] text-muted-foreground">Selecione um card para abrir a área responsável.</p></div><Badge variant="outline" className="hidden rounded-full text-[9px] font-semibold text-muted-foreground sm:inline-flex">Atualização automática</Badge></div>
-        <div className="grid grid-cols-2 gap-2.5 lg:grid-cols-3 2xl:grid-cols-6">
-          <StatCard icon="users" tone="green" label="Voluntários" value="134" sub="+12 mês" onClick={() => setActive("rh")} />
-          <StatCard icon="settings" tone="amber" label="Ações" value="3" sub="este mês" onClick={() => setActive("operacoes")} />
-          <StatCard icon="dollar" tone="red" label="Doadores" value="47" sub="ativos" onClick={() => setActive("financeiro")} />
-          <StatCard icon="camera" tone="blue" label="Posts" value="8" sub="publicados" onClick={() => setActive("marketing")} />
-          <StatCard icon="eye" tone="purple" label="Views site" value="12,4k" sub="+18%" onClick={() => setActive("marketing")} />
-          <StatCard icon="eye" tone="teal" label="Views redes" value="8,7k" sub="+24%" onClick={() => setActive("marketing")} />
+      <section className="aef-dash__section" aria-labelledby="dashboard-indicators">
+        <div className="aef-dash__section-head">
+          <div>
+            <h2 id="dashboard-indicators" className="aef-dash__h2">Indicadores principais</h2>
+            <p className="aef-dash__hint">Selecione um indicador para abrir a área responsável.</p>
+          </div>
+          <span className="aef-dash__aside">Atualização automática</span>
         </div>
+        <ul className="aef-dash__figures">
+          {indicadores.map(item => (
+            <li key={item.label}>
+              <button type="button" className="aef-dash__figure" data-tone={item.tone} aria-label={"Abrir " + item.label + ": " + item.value + " " + item.sub} onClick={() => setActive(item.area)}>
+                <span className="aef-dash__figure-label"><span className="aef-dash__icon" aria-hidden="true"><Icon name={item.icon} size={16} strokeWidth={2} /></span>{item.label}</span>
+                <span className="aef-dash__figure-value">{item.value}</span>
+                <span className="aef-dash__figure-sub">{item.sub}</span>
+              </button>
+            </li>
+          ))}
+        </ul>
       </section>
 
       <section aria-label="Mural de atividades">
@@ -1432,116 +1338,76 @@ const areaCfg = {
   "Alimentação": { bg: "#FDF4FF", text: "#7E22CE" },
 };
 
-function RHPersonCard({ person }) {
+const RH_AREA_TONE = { "Saúde": "red", "Jurídico": "blue", "Operações": "green", "Logística": "orange", "Alimentação": "purple" };
+const rhTone = area => RH_AREA_TONE[area] || "red";
+
+function RHPersonRow({ person }) {
+  const status = person.penalizado
+    ? { label: "Requer atenção", tone: "red" }
+    : person.novato
+      ? { label: "Novo cadastro", tone: "blue" }
+      : person.verified
+        ? { label: "Verificado", tone: "green" }
+        : { label: "Cadastro pendente", tone: "neutral" };
   return (
-    <Card className="group relative overflow-hidden border-border/80 bg-card shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:border-primary/20 hover:shadow-lg hover:shadow-black/5">
-      <div className="absolute inset-x-0 top-0 h-1" style={{ background: areaCfg[person.area]?.text || C.red }} />
-      <CardContent className="p-0">
-        <div className="p-5 pb-4">
-          <div className="flex items-start gap-3.5">
-            <div className="relative flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-primary to-red-800 text-sm font-bold text-primary-foreground shadow-sm shadow-primary/20">
-              {person.initials}
-              {person.verified && <span className="absolute -bottom-1 -right-1 flex h-[18px] w-[18px] items-center justify-center rounded-full border-2 border-white bg-emerald-500"><Icon name="check" size={9} color={C.white} strokeWidth={3} /></span>}
-            </div>
-            <div className="min-w-0 flex-1">
-              <div className="truncate text-[15px] font-bold tracking-[-0.01em] text-foreground">{person.name}</div>
-              <div className="mt-0.5 truncate text-xs text-muted-foreground">{person.formation}</div>
-              <div className="mt-2 flex flex-wrap gap-1.5">
-                {person.penalizado ? (
-                  <Badge variant="destructive" className="rounded-full px-2 py-0.5 text-[9px] font-bold">Requer atenção</Badge>
-                ) : person.novato ? (
-                  <Badge variant="secondary" className="rounded-full bg-blue-50 px-2 py-0.5 text-[9px] font-bold text-blue-700 hover:bg-blue-50">Novo cadastro</Badge>
-                ) : person.verified ? (
-                  <Badge variant="secondary" className="rounded-full bg-emerald-50 px-2 py-0.5 text-[9px] font-bold text-emerald-700 hover:bg-emerald-50">Verificado</Badge>
-                ) : (
-                  <Badge variant="outline" className="rounded-full px-2 py-0.5 text-[9px] font-bold text-muted-foreground">Cadastro pendente</Badge>
-                )}
-              </div>
-            </div>
-          </div>
-          <div className="mt-4 flex items-center gap-2 text-[11px] text-muted-foreground">
-            <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-muted"><Icon name="users" size={12} color={C.textTertiary} /></div>
-            <span className="truncate">{person.telefone}</span>
-          </div>
-          {person.penalizado && person.motivoPenalidade && <div className="mt-3 rounded-lg border border-red-100 bg-red-50 px-3 py-2 text-[10px] font-medium leading-relaxed text-red-700">{person.motivoPenalidade}</div>}
-        </div>
-        <div className="flex items-center justify-between border-t border-border/70 bg-muted/35 px-5 py-3">
-          <Badge variant="outline" className="rounded-full border-0 px-2.5 py-1 text-[10px] font-bold" style={{ background: areaCfg[person.area]?.bg || C.bg, color: areaCfg[person.area]?.text || C.textSecondary }}>{person.area}</Badge>
-          <div className="flex items-baseline gap-1"><span className="text-xl font-bold tracking-tight text-foreground">{person.actions}</span><span className="text-[10px] font-medium text-muted-foreground">ações</span></div>
-        </div>
-      </CardContent>
-    </Card>
+    <li className="aef-rh__row">
+      <div className="min-w-0">
+        <div className="aef-rh__row-name">{person.name}</div>
+        <div className="aef-rh__row-sub">{person.formation}</div>
+      </div>
+      <span className="aef-rh__status" data-tone={status.tone}>{status.label}</span>
+      <span className="aef-rh__sector" data-tone={rhTone(person.area)}>{person.area}</span>
+      <span className="aef-rh__row-cell">{person.telefone}</span>
+      <span className="aef-rh__row-count"><strong>{person.actions}</strong><span>ações</span></span>
+      {person.penalizado && person.motivoPenalidade && <p className="aef-rh__row-alert">{person.motivoPenalidade}</p>}
+    </li>
   );
 }
 
-function RHPartnerCard({ partner }) {
+function RHPartnerRow({ partner }) {
   const statusCfg = {
-    recorrente: { label: "Parceiro recorrente", color: "text-emerald-700", bg: "bg-emerald-50" },
-    ativo: { label: "Parceria ativa", color: "text-blue-700", bg: "bg-blue-50" },
-    historico: { label: "Histórico", color: "text-zinc-600", bg: "bg-zinc-100" },
+    recorrente: { label: "Parceiro recorrente", tone: "green" },
+    ativo: { label: "Parceria ativa", tone: "blue" },
+    historico: { label: "Histórico", tone: "neutral" },
   }[partner.status];
-  const tone = areaCfg[partner.segment] || { bg: "#FFF1F2", text: C.red };
   return (
-    <Card className="group relative overflow-hidden border-border/80 bg-card shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:border-primary/20 hover:shadow-lg hover:shadow-black/5">
-      <div className="absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-zinc-900 via-primary to-red-700" />
-      <CardContent className="p-0">
-        <div className="p-5 pb-4">
-          <div className="flex items-start gap-3.5">
-            <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-zinc-900 text-sm font-bold tracking-wide text-white shadow-sm">{partner.initials}</div>
-            <div className="min-w-0 flex-1">
-              <div className="truncate text-[15px] font-bold tracking-[-0.01em] text-foreground">{partner.name}</div>
-              <div className="mt-0.5 text-xs text-muted-foreground">{partner.contribution}</div>
-              <div className="mt-2 flex flex-wrap gap-1.5">
-                <Badge variant="secondary" className={`rounded-full px-2 py-0.5 text-[9px] font-bold ${statusCfg.bg} ${statusCfg.color}`}>{statusCfg.label}</Badge>
-                <Badge variant="outline" className="rounded-full px-2 py-0.5 text-[9px] font-bold text-muted-foreground">desde {partner.since}</Badge>
-              </div>
-            </div>
-          </div>
-          <div className="mt-4 grid grid-cols-[auto_1fr] items-center gap-x-2 gap-y-1 text-[11px] text-muted-foreground">
-            <div className="row-span-2 flex h-7 w-7 items-center justify-center rounded-lg bg-muted"><Icon name="building" size={13} color={C.textTertiary} /></div>
-            <span className="truncate font-semibold text-foreground/80">{partner.contact}</span>
-            <span className="truncate">{partner.phone}</span>
-          </div>
-          <div className="mt-3 rounded-lg border border-border/70 bg-muted/40 px-3 py-2 text-[10px] text-muted-foreground"><b className="text-foreground/75">Última ação:</b> {partner.lastAction}</div>
-        </div>
-        <div className="flex items-center justify-between border-t border-border/70 bg-muted/35 px-5 py-3">
-          <Badge variant="outline" className="rounded-full border-0 px-2.5 py-1 text-[10px] font-bold" style={{ background: tone.bg, color: tone.text }}>{partner.segment}</Badge>
-          <div className="flex items-baseline gap-1"><span className="text-xl font-bold tracking-tight text-foreground">{partner.partnerships}</span><span className="text-[10px] font-medium text-muted-foreground">parcerias</span></div>
-        </div>
-      </CardContent>
-    </Card>
+    <li className="aef-rh__row">
+      <div className="min-w-0">
+        <div className="aef-rh__row-name">{partner.name}</div>
+        <div className="aef-rh__row-sub">{partner.contribution}</div>
+      </div>
+      <div className="min-w-0">
+        <div className="aef-rh__status" data-tone={statusCfg.tone}>{statusCfg.label}</div>
+        <div className="aef-rh__row-sub">desde {partner.since}</div>
+      </div>
+      <span className="aef-rh__sector" data-tone={rhTone(partner.segment)}>{partner.segment}</span>
+      <div className="min-w-0">
+        <div className="aef-rh__row-cell">{partner.contact}</div>
+        <div className="aef-rh__row-sub">{partner.phone}</div>
+      </div>
+      <span className="aef-rh__row-count"><strong>{partner.partnerships}</strong><span>parcerias</span></span>
+      <p className="aef-rh__row-extra">Última ação: {partner.lastAction}</p>
+    </li>
   );
 }
 
-function RHMemberCard({ member }) {
+function RHMemberRow({ member }) {
   const profile = ACCESS_PROFILES[member.profileId] || ACCESS_PROFILES.marketing;
   const moduleCount = member.allowedModules?.length || 0;
   return (
-    <Card className="group overflow-hidden border-border/80 bg-card shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:border-primary/20 hover:shadow-lg hover:shadow-black/5">
-      <CardContent className="p-0">
-        <div className="p-5">
-          <div className="flex items-start gap-3.5">
-            <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-primary text-sm font-bold tracking-wide text-white shadow-sm">{member.initials || getInitials(member.name)}</div>
-            <div className="min-w-0 flex-1">
-              <div className="truncate text-[15px] font-bold tracking-[-0.01em] text-foreground">{member.name}</div>
-              <div className="mt-0.5 truncate text-xs text-muted-foreground">{member.position || profile.label}</div>
-              <div className="mt-2 flex flex-wrap gap-1.5">
-                <Badge variant="secondary" className="rounded-full bg-red-50 px-2 py-0.5 text-[9px] font-bold text-primary hover:bg-red-50">{profile.label}</Badge>
-                <Badge variant="outline" className={`rounded-full px-2 py-0.5 text-[9px] font-bold ${member.active ? "border-emerald-200 bg-emerald-50 text-emerald-700" : "border-zinc-200 bg-zinc-100 text-zinc-600"}`}>{member.active ? "Acesso ativo" : "Acesso inativo"}</Badge>
-              </div>
-            </div>
-          </div>
-          <div className="mt-4 rounded-xl border border-border/70 bg-muted/35 p-3">
-            <div className="flex items-center gap-2 text-[11px] font-semibold text-foreground/80"><Icon name="users" size={13} color={C.textTertiary} />{member.department || profile.department}</div>
-            <div className="mt-2 truncate text-[10px] text-muted-foreground">{member.email}</div>
-          </div>
-        </div>
-        <div className="flex items-center justify-between border-t border-border/70 bg-muted/35 px-5 py-3">
-          <span className="text-[10px] font-semibold text-muted-foreground">Membro da organização</span>
-          <span className="text-[10px] font-bold text-foreground">{moduleCount} {moduleCount === 1 ? "área liberada" : "áreas liberadas"}</span>
-        </div>
-      </CardContent>
-    </Card>
+    <li className="aef-rh__row">
+      <div className="min-w-0">
+        <div className="aef-rh__row-name">{member.name}</div>
+        <div className="aef-rh__row-sub">{member.position || profile.label}</div>
+      </div>
+      <div className="min-w-0">
+        <div className="aef-rh__status" data-tone="red">{profile.label}</div>
+        <div className="aef-rh__status" data-tone={member.active ? "green" : "neutral"}>{member.active ? "Acesso ativo" : "Acesso inativo"}</div>
+      </div>
+      <span className="aef-rh__row-cell">{member.department || profile.department}</span>
+      <span className="aef-rh__row-cell">{member.email}</span>
+      <span className="aef-rh__row-count"><strong>{moduleCount}</strong><span>{moduleCount === 1 ? "área liberada" : "áreas liberadas"}</span></span>
+    </li>
   );
 }
 
@@ -1567,70 +1433,80 @@ function RHNetwork({ mobile, members = [] }) {
     (!normalizedSearch || [member.name, member.email, member.position, member.department, ACCESS_PROFILES[member.profileId]?.label].filter(Boolean).some(value => value.toLowerCase().includes(normalizedSearch)))
   );
   const totalResults = filteredPeople.length + filteredPartners.length + filteredMembers.length;
-  const totalActions = volunteers.reduce((sum, person) => sum + person.actions, 0);
   const totalPartnerships = RH_PARTNERS.reduce((sum, partner) => sum + partner.partnerships, 0);
-  const cardGridStyle = { display: "grid", gridTemplateColumns: mobile ? "1fr" : "repeat(auto-fill, minmax(290px, 1fr))", gap: 14 };
+  const entityTypes = [["todos", "Todos"], ["pessoas", "Pessoas"], ["empresas", "Empresas"], ["membros", "Membros"]];
 
   return (
-    <div style={{ fontFamily: FONT_BODY }}>
-      <div className="mb-6 flex items-start justify-between gap-3">
+    <div>
+      <div className="aef-rh__head">
         <div>
-          <div className="mb-2 flex items-center gap-2"><Badge variant="secondary" className="rounded-full bg-red-50 px-2.5 py-1 text-[9px] font-bold uppercase tracking-wider text-primary hover:bg-red-50">Acervo de relacionamentos</Badge></div>
-          <h1 style={{ fontSize: mobile ? 24 : 30, fontWeight: 700, color: C.text, letterSpacing: -0.6, margin: "0 0 4px", fontFamily: FONT_DISPLAY }}>Rede Amor em Foco</h1>
-          <p className="text-sm text-muted-foreground">Voluntários, membros, empresas e instituições que constroem a história da organização.</p>
+          <h1 className="aef-rh__title">Rede Amor em Foco</h1>
+          <p className="aef-rh__desc">Voluntários, membros, empresas e instituições que constroem a história da organização.</p>
         </div>
-        <Button aria-label="Novo cadastro" className="shrink-0 rounded-xl shadow-sm shadow-primary/20"><Icon name="plus" size={15} color={C.white} /> <span className={mobile ? "hidden" : "inline"}>Novo cadastro</span></Button>
+        <button type="button" aria-label="Novo cadastro" className="aef-rh__btn aef-rh__btn--primary"><span aria-hidden="true"><Icon name="plus" size={15} /></span>{!mobile && "Novo cadastro"}</button>
       </div>
 
-      <div className="mb-5 grid grid-cols-2 gap-2.5 lg:grid-cols-4">
+      <ul className="aef-rh__figures aef-rh__figures--4">
         {[
-          ["Pessoas", volunteers.length, "users", "#D70D16"],
-          ["Empresas e parceiros", RH_PARTNERS.length, "building", "#111827"],
-          ["Membros da organização", members.length, "shield", "#B45309"],
-          ["Parcerias realizadas", totalPartnerships, "check", "#15803D"],
-        ].map(([label, value, icon, color]) => (
-          <Card key={label} className="border-border/80 shadow-sm"><CardContent className="flex items-center gap-3 p-4"><div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl" style={{ background: `${color}12` }}><Icon name={icon} size={16} color={color} /></div><div><div className="text-xl font-bold leading-none text-foreground">{value}</div><div className="mt-1 text-[10px] font-semibold text-muted-foreground">{label}</div></div></CardContent></Card>
+          ["Pessoas", volunteers.length],
+          ["Empresas e parceiros", RH_PARTNERS.length],
+          ["Membros da organização", members.length],
+          ["Parcerias realizadas", totalPartnerships],
+        ].map(([label, value]) => (
+          <li key={label} className="aef-rh__figure"><span className="aef-rh__figure-label">{label}</span><span className="aef-rh__figure-value">{value}</span></li>
         ))}
+      </ul>
+
+      <div className="aef-rh__panel aef-rh__toolbar">
+        <div className="aef-rh__toolbar-top">
+          <div className="aef-rh__segments" role="group" aria-label="Tipo de vínculo">
+            {entityTypes.map(([value, label]) => (
+              <button key={value} type="button" className="aef-rh__segment" aria-pressed={entityType === value} onClick={() => { setEntityType(value); setFilter("Todos"); }}>{label}</button>
+            ))}
+          </div>
+          <div className="aef-rh__search">
+            <span className="aef-rh__search-icon" aria-hidden="true"><Icon name="search" size={15} /></span>
+            <input className="aef-rh__input" type="search" aria-label="Buscar na rede" value={search} onChange={event => setSearch(event.target.value)} placeholder="Buscar pessoa, empresa, área ou atuação…" />
+          </div>
+        </div>
+        <div className="aef-rh__chips" role="group" aria-label="Filtrar por área">
+          {filters.map(item => <button key={item} type="button" className="aef-rh__chip" aria-pressed={filter === item} onClick={() => setFilter(item)}>{item}</button>)}
+        </div>
       </div>
 
-      <Card className="mb-5 border-border/80 shadow-sm">
-        <CardContent className="p-3.5">
-          <div className="flex flex-col gap-3 lg:flex-row lg:items-center">
-            <Tabs value={entityType} onValueChange={value => { setEntityType(value); setFilter("Todos"); }} className="shrink-0">
-              <TabsList className="grid w-full grid-cols-4 lg:w-[410px]"><TabsTrigger value="todos">Todos</TabsTrigger><TabsTrigger value="pessoas">Pessoas</TabsTrigger><TabsTrigger value="empresas">Empresas</TabsTrigger><TabsTrigger value="membros">Membros</TabsTrigger></TabsList>
-            </Tabs>
-            <div className="relative min-w-0 flex-1"><div className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2"><Icon name="search" size={15} color={C.textTertiary} /></div><Input value={search} onChange={event => setSearch(event.target.value)} placeholder="Buscar pessoa, empresa, área ou atuação..." className="h-10 rounded-xl border-border/80 bg-background pl-9 shadow-none focus-visible:ring-primary" /></div>
-          </div>
-          <div className="mt-3 flex gap-1.5 overflow-x-auto pb-1">
-            {filters.map(item => <Button key={item} variant={filter === item ? "default" : "outline"} size="sm" onClick={() => setFilter(item)} className="h-7 shrink-0 rounded-full px-3 text-[10px] font-semibold shadow-none">{item}</Button>)}
-          </div>
-        </CardContent>
-      </Card>
-
-      <div className="mb-4 flex items-center justify-between"><div className="text-xs font-semibold text-muted-foreground">{totalResults} registro(s) encontrado(s)</div>{filter !== "Todos" && <Button variant="ghost" size="sm" onClick={() => setFilter("Todos")} className="h-7 text-[10px] text-primary">Limpar filtro</Button>}</div>
+      <div className="aef-rh__results" aria-live="polite">
+        <span>{totalResults} registro(s) encontrado(s)</span>
+        {filter !== "Todos" && <button type="button" className="aef-rh__btn aef-rh__btn--link" onClick={() => setFilter("Todos")}>Limpar filtro</button>}
+      </div>
 
       {filteredPartners.length > 0 && (
-        <section className={filteredPeople.length || filteredMembers.length ? "mb-8" : ""}>
-          <div className="mb-3 flex items-center gap-2"><div className="flex h-7 w-7 items-center justify-center rounded-lg bg-zinc-900"><Icon name="building" size={13} color={C.white} /></div><div><h2 className="text-sm font-bold text-foreground">Empresas e parceiros</h2><p className="text-[10px] text-muted-foreground">Instituições que apoiam ações, estrutura e alcance.</p></div></div>
-          <div style={cardGridStyle}>{filteredPartners.map(partner => <RHPartnerCard key={partner.id} partner={partner} />)}</div>
+        <section className="aef-rh__group">
+          <div className="aef-rh__group-head"><h2 className="aef-rh__h2">Empresas e parceiros</h2><p className="aef-rh__hint">Instituições que apoiam ações, estrutura e alcance.</p></div>
+          <ul className="aef-rh__panel aef-rh__rows">{filteredPartners.map(partner => <RHPartnerRow key={partner.id} partner={partner} />)}</ul>
         </section>
       )}
 
       {filteredMembers.length > 0 && (
-        <section className={filteredPeople.length ? "mb-8" : ""}>
-          <div className="mb-3 flex items-center gap-2"><div className="flex h-7 w-7 items-center justify-center rounded-lg bg-amber-600"><Icon name="shield" size={13} color={C.white} /></div><div><h2 className="text-sm font-bold text-foreground">Membros da organização</h2><p className="text-[10px] text-muted-foreground">Equipe interna com identidade institucional e acesso ao AEF Hub.</p></div></div>
-          <div style={cardGridStyle}>{filteredMembers.map(member => <RHMemberCard key={member.id} member={member} />)}</div>
+        <section className="aef-rh__group">
+          <div className="aef-rh__group-head"><h2 className="aef-rh__h2">Membros da organização</h2><p className="aef-rh__hint">Equipe interna com identidade institucional e acesso ao AEF Hub.</p></div>
+          <ul className="aef-rh__panel aef-rh__rows">{filteredMembers.map(member => <RHMemberRow key={member.id} member={member} />)}</ul>
         </section>
       )}
 
       {filteredPeople.length > 0 && (
-        <section>
-          <div className="mb-3 flex items-center gap-2"><div className="flex h-7 w-7 items-center justify-center rounded-lg bg-primary"><Icon name="users" size={13} color={C.white} /></div><div><h2 className="text-sm font-bold text-foreground">Pessoas da rede</h2><p className="text-[10px] text-muted-foreground">Voluntários e profissionais que participaram da trajetória.</p></div></div>
-          <div style={cardGridStyle}>{filteredPeople.map(person => <RHPersonCard key={person.telefone} person={person} />)}</div>
+        <section className="aef-rh__group">
+          <div className="aef-rh__group-head"><h2 className="aef-rh__h2">Pessoas da rede</h2><p className="aef-rh__hint">Voluntários e profissionais que participaram da trajetória.</p></div>
+          <ul className="aef-rh__panel aef-rh__rows">{filteredPeople.map(person => <RHPersonRow key={person.telefone} person={person} />)}</ul>
         </section>
       )}
 
-      {totalResults === 0 && <Card className="border-dashed"><CardContent className="flex min-h-48 flex-col items-center justify-center text-center"><Icon name="search" size={22} color={C.textTertiary} /><div className="mt-3 text-sm font-bold text-foreground">Nenhum vínculo encontrado</div><p className="mt-1 text-xs text-muted-foreground">Tente outro nome, área ou tipo de relacionamento.</p></CardContent></Card>}
+      {totalResults === 0 && (
+        <div className="aef-rh__panel aef-rh__empty">
+          <span className="aef-rh__empty-icon" aria-hidden="true"><Icon name="search" size={22} /></span>
+          <h2 className="aef-rh__h2">Nenhum vínculo encontrado</h2>
+          <p className="aef-rh__desc">Tente outro nome, área ou tipo de relacionamento.</p>
+        </div>
+      )}
     </div>
   );
 }
@@ -1647,12 +1523,32 @@ const RH_CRITERIA_LABELS = {
   clareza: "Clareza das orientações", suporte: "Suporte da equipe",
 };
 
-function RHSectionTitle({ eyebrow, title, description, action }) {
+function RHSectionTitle({ title, description, action, flag }) {
   return (
-    <div className="mb-5 flex items-start justify-between gap-3">
-      <div><div className="mb-1 text-[9px] font-bold uppercase tracking-[0.14em] text-primary">{eyebrow}</div><h1 className="text-2xl font-bold tracking-tight text-foreground" style={{ fontFamily: FONT_DISPLAY }}>{title}</h1><p className="mt-1 text-xs text-muted-foreground">{description}</p></div>
+    <div className="aef-rh__head">
+      <div>
+        <div className="aef-rh__title-row">
+          <h1 className="aef-rh__title">{title}</h1>
+          {flag && <span className="aef-rh__flag"><span aria-hidden="true"><Icon name="lock" size={12} /></span>{flag}</span>}
+        </div>
+        <p className="aef-rh__desc">{description}</p>
+      </div>
       {action}
     </div>
+  );
+}
+
+function RHFigures({ items }) {
+  return (
+    <ul className={`aef-rh__figures aef-rh__figures--${items.length}`}>
+      {items.map(item => (
+        <li key={item.label} className="aef-rh__figure" data-tone={item.tone}>
+          <span className="aef-rh__figure-label">{item.label}</span>
+          <span className="aef-rh__figure-value">{item.value}</span>
+          {item.detail && <span className="aef-rh__figure-detail">{item.detail}</span>}
+        </li>
+      ))}
+    </ul>
   );
 }
 
@@ -1673,30 +1569,74 @@ function RHOverview({ attendance, feedbacks, occurrences, onNavigate, mobile }) 
 
   return (
     <div>
-      <RHSectionTitle eyebrow="Gestão de pessoas" title="Painel do RH" description="Indicadores de vínculo, presença e acompanhamento da rede de voluntários." />
-      <div className="mb-5 grid grid-cols-2 gap-2.5 lg:grid-cols-4">
-        {[
-          ["Ativos", active, "Participaram ao menos uma vez", "#15803D", "users"],
-          ["Novos cadastros", newVolunteers, "Aguardando integração", "#1D4ED8", "plus"],
-          ["Inativos", inactive, "Sem participação registrada", "#6E6E73", "clock"],
-          ["Frequência", `${attendanceRate}%`, `${absences} faltas registradas`, "#D70D16", "check"],
-        ].map(([label, value, detail, color, icon]) => (
-          <Card key={label} className="border-border/80 shadow-sm"><CardContent className={mobile ? "p-3" : "p-4"}><div className="mb-3 flex items-center justify-between"><div className="text-[9px] font-bold uppercase tracking-wider text-muted-foreground">{label}</div><div className="flex h-7 w-7 items-center justify-center rounded-lg" style={{ background: `${color}12` }}><Icon name={icon} size={13} color={color} /></div></div><div className="text-2xl font-bold tracking-tight text-foreground">{value}</div><div className="mt-1 text-[10px] text-muted-foreground">{detail}</div></CardContent></Card>
-        ))}
+      <RHSectionTitle title="Painel do RH" description="Indicadores de vínculo, presença e acompanhamento da rede de voluntários." />
+      <RHFigures items={[
+        { label: "Ativos", value: active, detail: "Participaram ao menos uma vez" },
+        { label: "Novos cadastros", value: newVolunteers, detail: "Aguardando integração" },
+        { label: "Inativos", value: inactive, detail: "Sem participação registrada" },
+        { label: "Frequência", value: `${attendanceRate}%`, detail: `${absences} faltas registradas` },
+      ]} />
+
+      <div className="aef-rh__grid aef-rh__grid--wide">
+        <section className="aef-rh__panel aef-rh__panel--pad">
+          <div className="aef-rh__panel-head">
+            <div><h2 className="aef-rh__h2">Frequência por ação</h2><p className="aef-rh__hint">Presenças sobre confirmações</p></div>
+            <button type="button" className="aef-rh__btn aef-rh__btn--link" onClick={() => onNavigate("participacao")}>Ver participação</button>
+          </div>
+          <ul className="aef-rh__bars">
+            {attendance.slice(0, 4).map(item => {
+              const rate = Math.round((item.present / item.confirmed) * 100);
+              return (
+                <li key={item.id} className="aef-rh__bar-row">
+                  <span className="aef-rh__bar-label">{item.action}</span>
+                  <span className="aef-rh__bar-value">{rate}%</span>
+                  <span className="aef-rh__track" role="presentation"><span style={{ width: `${rate}%` }} /></span>
+                </li>
+              );
+            })}
+          </ul>
+        </section>
+
+        <section className="aef-rh__panel" aria-label="Pendências">
+          <ul className="aef-rh__followups">
+            <li className="aef-rh__followup">
+              <div><p className="aef-rh__figure-label">Feedbacks pendentes</p><p className="aef-rh__followup-value">{feedbackPending}</p></div>
+              <button type="button" className="aef-rh__btn aef-rh__btn--outline" onClick={() => onNavigate("feedbacks")}>Avaliar</button>
+            </li>
+            <li className="aef-rh__followup" data-tone={openOccurrences ? "red" : undefined}>
+              <div><p className="aef-rh__figure-label">Ocorrências abertas</p><p className="aef-rh__followup-value">{openOccurrences}</p></div>
+              <button type="button" className="aef-rh__btn aef-rh__btn--outline" onClick={() => onNavigate("ocorrencias")}>Acompanhar</button>
+            </li>
+          </ul>
+        </section>
       </div>
 
-      <div className="grid gap-4 lg:grid-cols-[1.3fr_0.7fr]">
-        <Card className="border-border/80 shadow-sm"><CardContent className="p-5"><div className="mb-4 flex items-center justify-between"><div><h2 className="text-sm font-bold">Frequência por ação</h2><p className="text-[10px] text-muted-foreground">Presenças sobre confirmações</p></div><Button variant="ghost" size="sm" onClick={() => onNavigate("participacao")} className="text-[10px] text-primary">Ver participação</Button></div><div className="space-y-3">{attendance.slice(0, 4).map(item => { const rate = Math.round((item.present / item.confirmed) * 100); return <div key={item.id}><div className="mb-1.5 flex items-center justify-between gap-3"><div className="truncate text-[11px] font-semibold text-foreground">{item.action}</div><div className="shrink-0 text-[10px] font-bold text-muted-foreground">{rate}%</div></div><div className="h-1.5 overflow-hidden rounded-full bg-muted"><div className="h-full rounded-full bg-primary" style={{ width: `${rate}%` }} /></div></div>; })}</div></CardContent></Card>
-
-        <div className="grid gap-4">
-          <Card className="border-border/80 shadow-sm"><CardContent className="p-4"><div className="flex items-center justify-between"><div><div className="text-[9px] font-bold uppercase tracking-wider text-muted-foreground">Feedbacks pendentes</div><div className="mt-1 text-2xl font-bold">{feedbackPending}</div></div><Button size="sm" variant="outline" onClick={() => onNavigate("feedbacks")} className="rounded-lg text-[10px]">Avaliar</Button></div></CardContent></Card>
-          <Card className={`border-border/80 shadow-sm ${openOccurrences ? "border-red-200" : ""}`}><CardContent className="p-4"><div className="flex items-center justify-between"><div><div className="text-[9px] font-bold uppercase tracking-wider text-muted-foreground">Ocorrências abertas</div><div className="mt-1 text-2xl font-bold text-red-700">{openOccurrences}</div></div><Button size="sm" variant="outline" onClick={() => onNavigate("ocorrencias")} className="rounded-lg text-[10px]">Acompanhar</Button></div></CardContent></Card>
-        </div>
-      </div>
-
-      <div className="mt-4 grid gap-4 lg:grid-cols-2">
-        <Card className="border-border/80 shadow-sm"><CardContent className="p-5"><h2 className="mb-4 text-sm font-bold">Participação por setor</h2><div className="space-y-3">{sectorData.slice(0, 6).map(([sector, value]) => <div key={sector} className="grid grid-cols-[90px_1fr_28px] items-center gap-2"><span className="truncate text-[10px] font-semibold text-muted-foreground">{sector}</span><div className="h-1.5 rounded-full bg-muted"><div className="h-full rounded-full" style={{ width: `${(value / maxSector) * 100}%`, background: areaCfg[sector]?.text || C.red }} /></div><span className="text-right text-[10px] font-bold">{value}</span></div>)}</div></CardContent></Card>
-        <Card className="border-border/80 shadow-sm"><CardContent className="p-5"><h2 className="mb-4 text-sm font-bold">Maior participação</h2><div className="space-y-2.5">{topPeople.map((person, index) => <div key={person.telefone} className="flex items-center gap-3"><div className="flex h-7 w-7 items-center justify-center rounded-lg bg-muted text-[10px] font-bold text-muted-foreground">{index + 1}</div><div className="min-w-0 flex-1"><div className="truncate text-[11px] font-semibold">{person.name}</div><div className="text-[9px] text-muted-foreground">{person.area}</div></div><Badge variant="secondary" className="rounded-full text-[9px]">{person.actions} ações</Badge></div>)}</div><p className="mt-4 border-t pt-3 text-[9px] leading-relaxed text-muted-foreground">Indicador usado para reconhecimento, nunca para punição ou comparação isolada.</p></CardContent></Card>
+      <div className="aef-rh__grid aef-rh__grid--half">
+        <section className="aef-rh__panel aef-rh__panel--pad">
+          <h2 className="aef-rh__h2" style={{ marginBottom: "var(--space-md)" }}>Participação por setor</h2>
+          <ul className="aef-rh__bars">
+            {sectorData.slice(0, 6).map(([sector, value]) => (
+              <li key={sector} className="aef-rh__bar-row aef-rh__bar-row--sector" data-tone={rhTone(sector)}>
+                <span className="aef-rh__bar-label">{sector}</span>
+                <span className="aef-rh__track" role="presentation"><span style={{ width: `${(value / maxSector) * 100}%` }} /></span>
+                <span className="aef-rh__bar-value">{value}</span>
+              </li>
+            ))}
+          </ul>
+        </section>
+        <section className="aef-rh__panel aef-rh__panel--pad">
+          <h2 className="aef-rh__h2" style={{ marginBottom: "var(--space-xs)" }}>Maior participação</h2>
+          <ol className="aef-rh__rank">
+            {topPeople.map((person, index) => (
+              <li key={person.telefone}>
+                <span className="aef-rh__rank-pos">{index + 1}</span>
+                <div className="min-w-0"><div className="aef-rh__rank-name">{person.name}</div><div className="aef-rh__sector" data-tone={rhTone(person.area)}>{person.area}</div></div>
+                <span className="aef-rh__rank-count">{person.actions} ações</span>
+              </li>
+            ))}
+          </ol>
+          <p className="aef-rh__note">Indicador usado para reconhecimento, nunca para punição ou comparação isolada.</p>
+        </section>
       </div>
     </div>
   );
@@ -1706,9 +1646,37 @@ function RHParticipation({ attendance }) {
   const totalPresent = attendance.reduce((sum, item) => sum + item.present, 0);
   const totalAbsent = attendance.reduce((sum, item) => sum + item.absent, 0);
   return (
-    <div><RHSectionTitle eyebrow="Operações + RH" title="Participação e frequência" description="Presença, falta e justificativa registradas por ação, incluindo o organizador." />
-      <div className="mb-4 grid grid-cols-3 gap-2.5">{[["Presenças", totalPresent, "#15803D"], ["Faltas", totalAbsent, "#D70D16"], ["Justificadas", attendance.reduce((s, i) => s + i.justified, 0), "#B45309"]].map(([label, value, color]) => <Card key={label} className="border-border/80"><CardContent className="p-4"><div className="text-[9px] font-bold uppercase text-muted-foreground">{label}</div><div className="mt-1 text-2xl font-bold" style={{ color }}>{value}</div></CardContent></Card>)}</div>
-      <div className="grid gap-3">{attendance.map(item => { const rate = Math.round((item.present / item.confirmed) * 100); return <Card key={item.id} className="border-border/80 shadow-sm"><CardContent className="p-4"><div className="flex flex-col justify-between gap-3 sm:flex-row sm:items-center"><div><div className="text-sm font-bold">{item.action}</div><div className="mt-1 text-[10px] text-muted-foreground">{marketingDateLabel(item.date)} · {item.sector} · Organização: {item.organizer}</div></div><div className="flex flex-wrap gap-1.5"><Badge className="rounded-full bg-emerald-50 text-[9px] text-emerald-700 hover:bg-emerald-50">{item.present} presentes</Badge><Badge className="rounded-full bg-red-50 text-[9px] text-red-700 hover:bg-red-50">{item.absent} faltas</Badge><Badge variant="outline" className="rounded-full text-[9px]">{item.justified} justificadas</Badge></div></div><div className="mt-4 flex items-center gap-3"><div className="h-1.5 flex-1 rounded-full bg-muted"><div className="h-full rounded-full bg-primary" style={{ width: `${rate}%` }} /></div><span className="text-[10px] font-bold">{rate}%</span></div><div className="mt-3 flex items-center justify-between border-t border-border/70 pt-3"><span className="text-[10px] text-muted-foreground">Organizador presente</span><Badge variant={item.organizerPresent ? "secondary" : "destructive"} className={item.organizerPresent ? "rounded-full bg-emerald-50 text-[9px] text-emerald-700" : "rounded-full text-[9px]"}>{item.organizerPresent ? "Sim" : "Não"}</Badge></div></CardContent></Card>; })}</div>
+    <div>
+      <RHSectionTitle title="Participação e frequência" description="Presença, falta e justificativa registradas por ação, incluindo o organizador." />
+      <RHFigures items={[
+        { label: "Presenças", value: totalPresent, tone: "green" },
+        { label: "Faltas", value: totalAbsent, tone: "red" },
+        { label: "Justificadas", value: attendance.reduce((s, i) => s + i.justified, 0), tone: "amber" },
+      ]} />
+      <div className="aef-rh__panel aef-rh__table-wrap">
+        <table className="aef-rh__table">
+          <thead>
+            <tr><th scope="col">Ação</th><th scope="col">Setor</th><th scope="col">Organização</th><th scope="col" className="num">Presentes</th><th scope="col" className="num">Faltas</th><th scope="col" className="num">Justificadas</th><th scope="col">Frequência</th><th scope="col">Organizador presente</th></tr>
+          </thead>
+          <tbody>
+            {attendance.map(item => {
+              const rate = Math.round((item.present / item.confirmed) * 100);
+              return (
+                <tr key={item.id}>
+                  <td><div className="aef-rh__table-action">{item.action}</div><div className="aef-rh__table-sub">{marketingDateLabel(item.date)}</div></td>
+                  <td><span className="aef-rh__sector" data-tone={rhTone(item.sector)}>{item.sector}</span></td>
+                  <td>{item.organizer}</td>
+                  <td className="num" data-tone="green"><span className="aef-rh__status">{item.present}</span></td>
+                  <td className="num" data-tone="red"><span className="aef-rh__status">{item.absent}</span></td>
+                  <td className="num">{item.justified}</td>
+                  <td><div className="aef-rh__rate"><span className="aef-rh__track" role="presentation"><span style={{ width: `${rate}%` }} /></span><span className="aef-rh__bar-value">{rate}%</span></div></td>
+                  <td><span className="aef-rh__status" data-tone={item.organizerPresent ? "green" : "red"}>{item.organizerPresent ? "Sim" : "Não"}</span></td>
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
+      </div>
     </div>
   );
 }
@@ -1721,10 +1689,50 @@ function RHFeedbacks({ feedbacks, onAdd }) {
   const organizerScores = feedbacks.filter(item => item.type === "organizador").flatMap(item => Object.values(item.scores));
   const average = organizerScores.length ? (organizerScores.reduce((a, b) => a + b, 0) / organizerScores.length).toFixed(1) : "—";
   return (
-    <div><RHSectionTitle eyebrow="Escuta e desenvolvimento" title="Feedbacks pós-ação" description="Avaliação do organizador e percepção do próprio voluntário sobre a experiência." action={<Button onClick={() => setShowForm(value => !value)} className="rounded-xl text-xs"><Icon name="plus" size={14} color={C.white} /> Nova avaliação</Button>} />
-      <div className="mb-4 grid grid-cols-3 gap-2.5">{[["Avaliações", feedbacks.length], ["Média geral", average], ["Do voluntário", feedbacks.filter(item => item.type === "voluntario").length]].map(([label, value]) => <Card key={label} className="border-border/80"><CardContent className="p-4"><div className="text-[9px] font-bold uppercase text-muted-foreground">{label}</div><div className="mt-1 text-2xl font-bold">{value}</div></CardContent></Card>)}</div>
-      {showForm && <Card className="mb-4 border-primary/20 shadow-sm"><CardContent className="p-5"><form onSubmit={submit}><div className="mb-4 grid gap-3 sm:grid-cols-3"><div><Label className="text-[10px]">Tipo</Label><select value={draft.type} onChange={event => setDraft(prev => ({ ...prev, type: event.target.value, scores: {} }))} className="mt-1 h-9 w-full rounded-md border border-input bg-background px-3 text-xs"><option value="organizador">Organizador avalia</option><option value="voluntario">Voluntário avalia a ação</option></select></div><div><Label className="text-[10px]">Ação</Label><select value={draft.action} onChange={event => setDraft(prev => ({ ...prev, action: event.target.value }))} className="mt-1 h-9 w-full rounded-md border border-input bg-background px-3 text-xs">{RH_ATTENDANCE_SEED.map(item => <option key={item.id}>{item.action}</option>)}</select></div><div><Label className="text-[10px]">Voluntário</Label><select value={draft.volunteer} onChange={event => setDraft(prev => ({ ...prev, volunteer: event.target.value }))} className="mt-1 h-9 w-full rounded-md border border-input bg-background px-3 text-xs">{volunteers.map(item => <option key={item.telefone}>{item.name}</option>)}</select></div></div><div className="grid gap-3 sm:grid-cols-2">{criteria.map(key => <label key={key} className="rounded-lg border border-border/70 bg-muted/30 p-3"><div className="mb-2 flex justify-between text-[10px] font-semibold"><span>{RH_CRITERIA_LABELS[key]}</span><span>{draft.scores[key] || 4}/5</span></div><input type="range" min="1" max="5" value={draft.scores[key] || 4} onChange={event => setDraft(prev => ({ ...prev, scores: { ...prev.scores, [key]: Number(event.target.value) } }))} className="w-full accent-red-600" /></label>)}</div><div className="mt-4"><Label className="text-[10px]">Observação</Label><Textarea value={draft.note} onChange={event => setDraft(prev => ({ ...prev, note: event.target.value }))} placeholder="Contexto útil para desenvolvimento e acompanhamento..." className="mt-1 text-xs" /></div><div className="mt-4 flex justify-end gap-2"><Button type="button" variant="outline" onClick={() => setShowForm(false)} className="text-xs">Cancelar</Button><Button type="submit" className="text-xs">Salvar avaliação</Button></div></form></CardContent></Card>}
-      <div className="grid gap-3">{feedbacks.map(item => { const values = Object.values(item.scores); const avg = (values.reduce((a, b) => a + b, 0) / values.length).toFixed(1); return <Card key={item.id} className="border-border/80 shadow-sm"><CardContent className="p-4"><div className="flex items-start justify-between gap-3"><div><div className="text-sm font-bold">{item.volunteer}</div><div className="mt-1 text-[10px] text-muted-foreground">{item.action} · {marketingDateLabel(item.date)} · por {item.evaluator}</div></div><Badge variant={item.type === "voluntario" ? "secondary" : "outline"} className="rounded-full text-[9px]">{item.type === "voluntario" ? "Experiência da ação" : `Média ${avg}`}</Badge></div>{item.note && <p className="mt-3 rounded-lg bg-muted/50 px-3 py-2 text-[11px] leading-relaxed text-muted-foreground">{item.note}</p>}</CardContent></Card>; })}</div>
+    <div>
+      <RHSectionTitle title="Feedbacks pós-ação" description="Avaliação do organizador e percepção do próprio voluntário sobre a experiência." action={<button type="button" aria-expanded={showForm} onClick={() => setShowForm(value => !value)} className="aef-rh__btn aef-rh__btn--primary"><span aria-hidden="true"><Icon name="plus" size={14} /></span>Nova avaliação</button>} />
+      <RHFigures items={[
+        { label: "Avaliações", value: feedbacks.length },
+        { label: "Média geral", value: average },
+        { label: "Do voluntário", value: feedbacks.filter(item => item.type === "voluntario").length },
+      ]} />
+      {showForm && (
+        <form onSubmit={submit} className="aef-rh__panel aef-rh__panel--pad aef-rh__form">
+          <div className="aef-rh__form-grid aef-rh__form-grid--3">
+            <div className="aef-rh__field"><label className="aef-rh__label" htmlFor="rh-fb-tipo">Tipo</label><select id="rh-fb-tipo" value={draft.type} onChange={event => setDraft(prev => ({ ...prev, type: event.target.value, scores: {} }))} className="aef-rh__select"><option value="organizador">Organizador avalia</option><option value="voluntario">Voluntário avalia a ação</option></select></div>
+            <div className="aef-rh__field"><label className="aef-rh__label" htmlFor="rh-fb-acao">Ação</label><select id="rh-fb-acao" value={draft.action} onChange={event => setDraft(prev => ({ ...prev, action: event.target.value }))} className="aef-rh__select">{RH_ATTENDANCE_SEED.map(item => <option key={item.id}>{item.action}</option>)}</select></div>
+            <div className="aef-rh__field"><label className="aef-rh__label" htmlFor="rh-fb-voluntario">Voluntário</label><select id="rh-fb-voluntario" value={draft.volunteer} onChange={event => setDraft(prev => ({ ...prev, volunteer: event.target.value }))} className="aef-rh__select">{volunteers.map(item => <option key={item.telefone}>{item.name}</option>)}</select></div>
+          </div>
+          <div className="aef-rh__form-grid aef-rh__form-grid--2 aef-rh__form-section">
+            {criteria.map(key => (
+              <label key={key} className="aef-rh__score">
+                <span className="aef-rh__score-head"><span>{RH_CRITERIA_LABELS[key]}</span><span>{draft.scores[key] || 4}/5</span></span>
+                <input type="range" min="1" max="5" value={draft.scores[key] || 4} onChange={event => setDraft(prev => ({ ...prev, scores: { ...prev.scores, [key]: Number(event.target.value) } }))} className="aef-rh__range" />
+              </label>
+            ))}
+          </div>
+          <div className="aef-rh__field aef-rh__form-section"><label className="aef-rh__label" htmlFor="rh-fb-obs">Observação</label><textarea id="rh-fb-obs" value={draft.note} onChange={event => setDraft(prev => ({ ...prev, note: event.target.value }))} placeholder="Contexto útil para desenvolvimento e acompanhamento…" className="aef-rh__textarea" /></div>
+          <div className="aef-rh__form-actions"><button type="button" onClick={() => setShowForm(false)} className="aef-rh__btn aef-rh__btn--outline">Cancelar</button><button type="submit" className="aef-rh__btn aef-rh__btn--primary">Salvar avaliação</button></div>
+        </form>
+      )}
+      <ul className="aef-rh__panel aef-rh__records">
+        {feedbacks.map(item => {
+          const values = Object.values(item.scores);
+          const avg = (values.reduce((a, b) => a + b, 0) / values.length).toFixed(1);
+          return (
+            <li key={item.id} className="aef-rh__record">
+              <div className="aef-rh__record-head">
+                <div>
+                  <div className="aef-rh__record-name">{item.volunteer}</div>
+                  <div className="aef-rh__meta"><span>{item.action}</span><span>{marketingDateLabel(item.date)}</span><span>por {item.evaluator}</span></div>
+                </div>
+                <span className="aef-rh__status" data-tone={item.type === "voluntario" ? "blue" : "neutral"}>{item.type === "voluntario" ? "Experiência da ação" : `Média ${avg}`}</span>
+              </div>
+              {item.note && <p className="aef-rh__record-text">{item.note}</p>}
+            </li>
+          );
+        })}
+      </ul>
     </div>
   );
 }
@@ -1732,13 +1740,54 @@ function RHFeedbacks({ feedbacks, onAdd }) {
 function RHOccurrences({ occurrences, onAdd, canAccess }) {
   const [showForm, setShowForm] = useState(false);
   const [draft, setDraft] = useState({ volunteer: volunteers[0].name, action: RH_ATTENDANCE_SEED[0].action, type: "Ausência sem aviso", description: "", actionTaken: "", status: "aberta", recurrence: 1 });
-  if (!canAccess) return <Card className="border-amber-200 bg-amber-50/50"><CardContent className="flex min-h-72 flex-col items-center justify-center p-8 text-center"><div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-amber-100"><Icon name="lock" size={20} color="#B45309" /></div><h2 className="mt-4 text-base font-bold">Acesso restrito ao RH</h2><p className="mt-2 max-w-sm text-xs leading-relaxed text-muted-foreground">Ocorrências contêm informações confidenciais e só podem ser consultadas por perfis de RH e Super Admin.</p></CardContent></Card>;
+  if (!canAccess) return (
+    <div className="aef-rh__panel aef-rh__empty">
+      <span className="aef-rh__empty-icon" aria-hidden="true"><Icon name="lock" size={22} /></span>
+      <h2 className="aef-rh__h2">Acesso restrito ao RH</h2>
+      <p className="aef-rh__desc">Ocorrências contêm informações confidenciais e só podem ser consultadas por perfis de RH e Super Admin.</p>
+    </div>
+  );
   const submit = event => { event.preventDefault(); if (!draft.description.trim()) return; onAdd(draft); setDraft(prev => ({ ...prev, description: "", actionTaken: "" })); setShowForm(false); };
+  const statusTone = { aberta: "red", acompanhamento: "amber", encerrada: "green" };
   return (
-    <div><RHSectionTitle eyebrow="Confidencial" title="Registro de ocorrências" description="Acompanhamento restrito de condutas, providências e reincidências." action={<Button onClick={() => setShowForm(value => !value)} className="rounded-xl text-xs"><Icon name="plus" size={14} color={C.white} /> Registrar</Button>} />
-      <div className="mb-4 grid grid-cols-3 gap-2.5">{[["Em aberto", occurrences.filter(item => item.status === "aberta").length, "#D70D16"], ["Acompanhamento", occurrences.filter(item => item.status === "acompanhamento").length, "#B45309"], ["Encerradas", occurrences.filter(item => item.status === "encerrada").length, "#15803D"]].map(([label, value, color]) => <Card key={label} className="border-border/80"><CardContent className="p-4"><div className="text-[9px] font-bold uppercase text-muted-foreground">{label}</div><div className="mt-1 text-2xl font-bold" style={{ color }}>{value}</div></CardContent></Card>)}</div>
-      {showForm && <Card className="mb-4 border-primary/20"><CardContent className="p-5"><form onSubmit={submit}><div className="grid gap-3 sm:grid-cols-3"><div><Label className="text-[10px]">Voluntário</Label><select value={draft.volunteer} onChange={event => setDraft(prev => ({ ...prev, volunteer: event.target.value }))} className="mt-1 h-9 w-full rounded-md border border-input bg-background px-3 text-xs">{volunteers.map(item => <option key={item.telefone}>{item.name}</option>)}</select></div><div><Label className="text-[10px]">Ação</Label><select value={draft.action} onChange={event => setDraft(prev => ({ ...prev, action: event.target.value }))} className="mt-1 h-9 w-full rounded-md border border-input bg-background px-3 text-xs">{RH_ATTENDANCE_SEED.map(item => <option key={item.id}>{item.action}</option>)}</select></div><div><Label className="text-[10px]">Tipo</Label><Input value={draft.type} onChange={event => setDraft(prev => ({ ...prev, type: event.target.value }))} className="mt-1 h-9 text-xs" /></div></div><div className="mt-3"><Label className="text-[10px]">Descrição</Label><Textarea required value={draft.description} onChange={event => setDraft(prev => ({ ...prev, description: event.target.value }))} className="mt-1 text-xs" /></div><div className="mt-3"><Label className="text-[10px]">Providência tomada</Label><Textarea value={draft.actionTaken} onChange={event => setDraft(prev => ({ ...prev, actionTaken: event.target.value }))} className="mt-1 text-xs" /></div><div className="mt-4 flex justify-end gap-2"><Button type="button" variant="outline" onClick={() => setShowForm(false)} className="text-xs">Cancelar</Button><Button type="submit" className="text-xs">Salvar ocorrência</Button></div></form></CardContent></Card>}
-      <div className="grid gap-3">{occurrences.map(item => <Card key={item.id} className="border-border/80 shadow-sm"><CardContent className="p-4"><div className="flex items-start justify-between gap-3"><div><div className="text-sm font-bold">{item.volunteer}</div><div className="mt-1 text-[10px] text-muted-foreground">{item.type} · {item.action} · {marketingDateLabel(item.date)}</div></div><Badge variant={item.status === "aberta" ? "destructive" : "secondary"} className="rounded-full text-[9px] capitalize">{item.status}</Badge></div><p className="mt-3 text-[11px] leading-relaxed text-muted-foreground">{item.description}</p><div className="mt-3 grid gap-2 rounded-lg bg-muted/50 p-3 text-[10px] text-muted-foreground sm:grid-cols-2"><div><b className="text-foreground/75">Registrado por:</b> {item.registeredBy}</div><div><b className="text-foreground/75">Reincidência:</b> {item.recurrence} registro(s)</div><div className="sm:col-span-2"><b className="text-foreground/75">Providência:</b> {item.actionTaken || "Aguardando definição"}</div></div></CardContent></Card>)}</div>
+    <div>
+      <RHSectionTitle flag="Confidencial" title="Registro de ocorrências" description="Acompanhamento restrito de condutas, providências e reincidências." action={<button type="button" aria-expanded={showForm} onClick={() => setShowForm(value => !value)} className="aef-rh__btn aef-rh__btn--primary"><span aria-hidden="true"><Icon name="plus" size={14} /></span>Registrar</button>} />
+      <RHFigures items={[
+        { label: "Em aberto", value: occurrences.filter(item => item.status === "aberta").length, tone: "red" },
+        { label: "Acompanhamento", value: occurrences.filter(item => item.status === "acompanhamento").length, tone: "amber" },
+        { label: "Encerradas", value: occurrences.filter(item => item.status === "encerrada").length, tone: "green" },
+      ]} />
+      {showForm && (
+        <form onSubmit={submit} className="aef-rh__panel aef-rh__panel--pad aef-rh__form">
+          <div className="aef-rh__form-grid aef-rh__form-grid--3">
+            <div className="aef-rh__field"><label className="aef-rh__label" htmlFor="rh-oc-voluntario">Voluntário</label><select id="rh-oc-voluntario" value={draft.volunteer} onChange={event => setDraft(prev => ({ ...prev, volunteer: event.target.value }))} className="aef-rh__select">{volunteers.map(item => <option key={item.telefone}>{item.name}</option>)}</select></div>
+            <div className="aef-rh__field"><label className="aef-rh__label" htmlFor="rh-oc-acao">Ação</label><select id="rh-oc-acao" value={draft.action} onChange={event => setDraft(prev => ({ ...prev, action: event.target.value }))} className="aef-rh__select">{RH_ATTENDANCE_SEED.map(item => <option key={item.id}>{item.action}</option>)}</select></div>
+            <div className="aef-rh__field"><label className="aef-rh__label" htmlFor="rh-oc-tipo">Tipo</label><input id="rh-oc-tipo" value={draft.type} onChange={event => setDraft(prev => ({ ...prev, type: event.target.value }))} className="aef-rh__input" /></div>
+          </div>
+          <div className="aef-rh__field aef-rh__form-section"><label className="aef-rh__label" htmlFor="rh-oc-descricao">Descrição</label><textarea id="rh-oc-descricao" required value={draft.description} onChange={event => setDraft(prev => ({ ...prev, description: event.target.value }))} className="aef-rh__textarea" /></div>
+          <div className="aef-rh__field aef-rh__form-section"><label className="aef-rh__label" htmlFor="rh-oc-providencia">Providência tomada</label><textarea id="rh-oc-providencia" value={draft.actionTaken} onChange={event => setDraft(prev => ({ ...prev, actionTaken: event.target.value }))} className="aef-rh__textarea" /></div>
+          <div className="aef-rh__form-actions"><button type="button" onClick={() => setShowForm(false)} className="aef-rh__btn aef-rh__btn--outline">Cancelar</button><button type="submit" className="aef-rh__btn aef-rh__btn--primary">Salvar ocorrência</button></div>
+        </form>
+      )}
+      <ul className="aef-rh__panel aef-rh__records">
+        {occurrences.map(item => (
+          <li key={item.id} className="aef-rh__record">
+            <div className="aef-rh__record-head">
+              <div>
+                <div className="aef-rh__record-name">{item.volunteer}</div>
+                <div className="aef-rh__meta"><span>{item.type}</span><span>{item.action}</span><span>{marketingDateLabel(item.date)}</span></div>
+              </div>
+              <span className="aef-rh__status aef-rh__status--cap" data-tone={statusTone[item.status] || "neutral"}>{item.status}</span>
+            </div>
+            <p className="aef-rh__record-text">{item.description}</p>
+            <dl className="aef-rh__details">
+              <div><dt>Registrado por:</dt><dd>{item.registeredBy}</dd></div>
+              <div><dt>Reincidência:</dt><dd>{item.recurrence} registro(s)</dd></div>
+              <div className="aef-rh__details-wide"><dt>Providência:</dt><dd>{item.actionTaken || "Aguardando definição"}</dd></div>
+            </dl>
+          </li>
+        ))}
+      </ul>
     </div>
   );
 }
@@ -1757,8 +1806,15 @@ function RH({ mobile, user, users, onSaveUser, onToggleUserStatus, onResetUsers 
   const addOccurrence = draft => setOccurrences(prev => [{ id: Date.now(), ...draft, registeredBy: user?.name || "RH", date: marketingDateKey(new Date()) }, ...prev]);
   const sections = [["visao", "Visão geral"], ["rede", "Rede"], ["participacao", "Participação"], ["feedbacks", "Feedbacks"], ["ocorrencias", "Ocorrências"], ...(canManageAccess ? [["acessos", "Membros & acessos"]] : [])];
   return (
-    <div>
-      <div className="mb-6 overflow-x-auto border-b border-border"><div className="flex min-w-max gap-1">{sections.map(([id, label]) => <button key={id} onClick={() => setSection(id)} className={`relative flex items-center gap-1 rounded-t-md px-3 py-2.5 text-xs font-semibold outline-none transition-colors focus-visible:bg-muted ${section === id ? "text-foreground" : "text-muted-foreground hover:text-foreground"}`}>{label}{id === "ocorrencias" && !canAccessOccurrences && <Icon name="lock" size={10} color={C.textTertiary} />}{section === id && <span className="absolute inset-x-2 bottom-0 h-0.5 rounded-full bg-primary" />}</button>)}</div></div>
+    <div className="aef-rh">
+      <nav className="aef-rh__tabs" aria-label="Seções do RH">
+        {sections.map(([id, label]) => (
+          <button key={id} type="button" onClick={() => setSection(id)} aria-current={section === id ? "page" : undefined} className="aef-rh__tab">
+            {label}
+            {id === "ocorrencias" && !canAccessOccurrences && <span aria-label="restrito"><Icon name="lock" size={12} /></span>}
+          </button>
+        ))}
+      </nav>
       {section === "visao" && <RHOverview attendance={attendance} feedbacks={feedbacks} occurrences={occurrences} onNavigate={setSection} mobile={mobile} />}
       {section === "rede" && <RHNetwork mobile={mobile} members={users} />}
       {section === "participacao" && <RHParticipation attendance={attendance} />}
@@ -1848,28 +1904,25 @@ const tipoCfg = {
   "Social":      { bg: "#F0FDF4", text: "#166534" },
 };
 
+const OPS_STATUS_TONE = { "em andamento": "amber", "concluída": "green", "planejamento": "blue" };
+const OPS_TIPO_TONE = { "Café de Rua": "orange", "Saúde": "red", "Orfanato": "purple", "Jurídico": "blue", "Social": "green" };
+const OPS_AREA_TONE = { "Saúde": "red", "Jurídico": "blue", "Operações": "green", "Logística": "orange", "Alimentação": "purple" };
+
 function TaskRow({ task, onToggle }) {
   const done = task.status === "concluído";
   return (
-    <div style={{
-      display: "flex", alignItems: "center", gap: 12, padding: "11px 0",
-      borderBottom: `1px solid ${C.borderLight}`,
-    }}>
-      <button onClick={onToggle} style={{
-        width: 20, height: 20, borderRadius: 6, border: `1.5px solid ${done ? "#22C55E" : C.border}`,
-        background: done ? "#22C55E" : C.surface, display: "flex", alignItems: "center",
-        justifyContent: "center", cursor: "pointer", flexShrink: 0, transition: "all 0.15s",
-      }}>
-        {done && <Icon name="check" size={11} color={C.white} strokeWidth={3} />}
+    <li className="aef-ops__task" data-done={done ? "true" : undefined}>
+      <button type="button" className="aef-ops__check" aria-pressed={done} aria-label={(done ? "Desmarcar " : "Concluir ") + task.item} onClick={onToggle}>
+        {done && <Icon name="check" size={12} strokeWidth={3} />}
       </button>
-      <div style={{ flex: 1 }}>
-        <div style={{ fontSize: 13, color: done ? C.textTertiary : C.text, fontWeight: 500, textDecoration: done ? "line-through" : "none" }}>{task.item}</div>
-        {task.qtd && <div style={{ fontSize: 11, color: C.textTertiary, marginTop: 1 }}>{task.qtd}</div>}
+      <div className="aef-ops__task-main">
+        <div className="aef-ops__task-name">{task.item}</div>
+        {task.qtd && task.qtd !== "—" && <div className="aef-ops__task-qty">{task.qtd}</div>}
       </div>
-      <div style={{ fontSize: 12, color: task.responsavel ? C.textSecondary : C.red, fontWeight: task.responsavel ? 400 : 600, flexShrink: 0 }}>
+      <div className="aef-ops__task-owner" data-missing={task.responsavel ? undefined : "true"}>
         {task.responsavel || "Sem responsável"}
       </div>
-    </div>
+    </li>
   );
 }
 
@@ -1877,30 +1930,20 @@ function POPSection({ title, tasks, onToggle }) {
   const [open, setOpen] = useState(true);
   const done = tasks.filter(t => t.status === "concluído").length;
   return (
-    <div style={{ marginBottom: 8 }}>
-      <button onClick={() => setOpen(o => !o)} style={{
-        width: "100%", display: "flex", alignItems: "center", justifyContent: "space-between",
-        padding: "12px 0", background: "none", border: "none", cursor: "pointer",
-        borderBottom: open ? `1px solid ${C.border}` : "none",
-      }}>
-        <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-          <span style={{ fontSize: 13, fontWeight: 700, color: C.text, letterSpacing: -0.2 }}>{title}</span>
-          <span style={{
-            fontSize: 11, fontWeight: 600, padding: "2px 8px", borderRadius: 20,
-            background: done === tasks.length ? "#F0FDF4" : C.bg,
-            color: done === tasks.length ? "#166534" : C.textTertiary,
-          }}>{done}/{tasks.length}</span>
-        </div>
-        <div style={{ transform: open ? "rotate(90deg)" : "rotate(0deg)", transition: "transform 0.2s" }}>
-          <Icon name="chevronRight" size={14} color={C.textTertiary} />
-        </div>
+    <div className="aef-ops__pop-section">
+      <button type="button" className="aef-ops__pop-toggle" aria-expanded={open} onClick={() => setOpen(o => !o)}>
+        <span className="aef-ops__pop-title">
+          {title}
+          <span className="aef-ops__pop-count" data-tone={done === tasks.length ? "green" : undefined}>{done}/{tasks.length}</span>
+        </span>
+        <span className="aef-ops__chev" aria-hidden="true"><Icon name="chevronRight" size={16} /></span>
       </button>
       {open && (
-        <div style={{ paddingTop: 4 }}>
+        <ul className="aef-ops__tasks">
           {tasks.map((t, i) => (
             <TaskRow key={i} task={t} onToggle={() => onToggle(i)} />
           ))}
-        </div>
+        </ul>
       )}
     </div>
   );
@@ -2007,69 +2050,68 @@ function AcaoDetail({ acao, onBack, mobile, user }) {
     { key: "marketing", label: "Marketing" },
   ] : [];
 
+  const detailTabs = [["pop", "POP"], ["voluntarios", "Voluntários"], ["inscricoes", `Inscrições${inscricoes.inscritos.length > 0 ? ` (${inscricoes.inscritos.length})` : ""}`], ["sorteio", "Sorteio"], ["pix", "PIX da ação"]];
+  const renderDrawList = (titulo, lista, tom, vazio) => (
+    <div className="aef-ops__draw-list" data-tone={tom}>
+      <div className="aef-ops__draw-head"><span>{titulo} ({lista.length})</span></div>
+      <ul className="aef-ops__people aef-ops__draw-body">
+        {lista.length === 0 ? (
+          <li className="aef-ops__draw-empty">{vazio}</li>
+        ) : lista.map((v, i) => (
+          <li key={v.name} className="aef-ops__person" data-tone={tom}>
+            <span className="aef-ops__num">{i + 1}.</span>
+            <div className="aef-ops__person-main">
+              <div className="aef-ops__person-name">{v.name}{v.novato && <span className="aef-ops__tag" data-tone="green">Novato</span>}</div>
+              {v.telefone && <div className="aef-ops__hint" style={{ marginTop: 0 }}>{v.telefone}</div>}
+            </div>
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+
   return (
-    <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', sans-serif" }}>
-      {/* Back */}
-      <button onClick={onBack} style={{
-        display: "flex", alignItems: "center", gap: 6, background: "none", border: "none",
-        cursor: "pointer", color: C.textSecondary, fontSize: 13, fontWeight: 500,
-        padding: 0, marginBottom: 20,
-      }}>
-        <svg width={16} height={16} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
-          <polyline points="15 18 9 12 15 6"/>
-        </svg>
+    <div className="aef-ops">
+      <button type="button" className="aef-ops__back" onClick={onBack}>
+        <span className="aef-ops__flip" aria-hidden="true"><Icon name="chevronRight" size={16} /></span>
         Operações
       </button>
 
-      {/* Header */}
-      <div style={{ marginBottom: 24 }}>
-        <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 12, marginBottom: 8 }}>
-          <div>
-            <h1 style={{ fontSize: mobile ? 22 : 26, fontWeight: 700, color: C.text, letterSpacing: -0.5, margin: "0 0 6px", fontFamily: FONT_DISPLAY }}>{acao.nome}</h1>
-            <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
-              <span style={{ padding: "3px 10px", borderRadius: 6, fontSize: 11, fontWeight: 600, background: tipoCfg[acao.tipo]?.bg || C.bg, color: tipoCfg[acao.tipo]?.text || C.textSecondary }}>{acao.tipo}</span>
-              <div style={{ display: "flex", alignItems: "center", gap: 5, background: statusCfgOp[acao.status]?.bg, padding: "3px 10px", borderRadius: 20 }}>
-                <div style={{ width: 6, height: 6, borderRadius: "50%", background: statusCfgOp[acao.status]?.dot }} />
-                <span style={{ fontSize: 11, fontWeight: 600, color: statusCfgOp[acao.status]?.text }}>{acao.status}</span>
-              </div>
+      <header>
+        <div className="aef-ops__detail-head">
+          <div style={{ minWidth: 0 }}>
+            <h1 className="aef-ops__title">{acao.nome}</h1>
+            <div className="aef-ops__labels">
+              <span className="aef-ops__tone" data-tone={OPS_TIPO_TONE[acao.tipo] || "neutral"}>{acao.tipo}</span>
+              <span className="aef-ops__tone aef-ops__cap" data-tone={OPS_STATUS_TONE[acao.status] || "neutral"}>{acao.status}</span>
             </div>
           </div>
-          <div style={{ textAlign: "right", flexShrink: 0 }}>
-            <div style={{ fontSize: 12, color: C.textTertiary }}>{acao.data}</div>
-            <div style={{ fontSize: 12, color: C.textSecondary, marginTop: 2 }}>{acao.voluntarios} voluntários</div>
+          <div className="aef-ops__detail-facts">
+            <span>{acao.data}</span>
+            <span>{acao.voluntarios} voluntários</span>
           </div>
         </div>
 
-        {/* Progress bar */}
         {pop && (
-          <div style={{ marginTop: 16 }}>
-            <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 6 }}>
-              <span style={{ fontSize: 12, color: C.textSecondary }}>Progresso do POP</span>
-              <span style={{ fontSize: 12, fontWeight: 700, color: progress === 100 ? "#22C55E" : C.text }}>{progress}%</span>
-            </div>
-            <div style={{ height: 6, background: C.bg, borderRadius: 99, overflow: "hidden" }}>
-              <div style={{ height: "100%", width: `${progress}%`, background: progress === 100 ? "#22C55E" : C.red, borderRadius: 99, transition: "width 0.4s ease" }} />
-            </div>
-            <div style={{ fontSize: 11, color: C.textTertiary, marginTop: 5 }}>{doneTasks} de {totalTasks} tarefas concluídas</div>
+          <div className="aef-ops__progress" data-tone={progress === 100 ? "green" : undefined}>
+            <div className="aef-ops__progress-head"><span>Progresso do POP</span><strong>{progress}%</strong></div>
+            <div className="aef-ops__track" role="progressbar" aria-label="Progresso do POP" aria-valuemin={0} aria-valuemax={100} aria-valuenow={progress}><span style={{ width: `${progress}%` }} /></div>
+            <div className="aef-ops__hint" style={{ marginTop: 0 }}>{doneTasks} de {totalTasks} tarefas concluídas</div>
           </div>
         )}
-      </div>
+      </header>
 
-      {/* Tabs */}
-      <div style={{ display: "flex", gap: 4, marginBottom: 20, borderBottom: `1px solid ${C.border}`, paddingBottom: 0, overflowX: "auto" }}>
-        {[["pop", "POP"], ["voluntarios", "Voluntários"], ["inscricoes", `Inscrições${inscricoes.inscritos.length > 0 ? ` (${inscricoes.inscritos.length})` : ""}`], ["sorteio", sorteioStored ? "Sorteio ✓" : "Sorteio"], ["pix", "PIX da ação"]].map(([id, label]) => (
-          <button key={id} onClick={() => setTab(id)} style={{
-            padding: "8px 16px", background: "none", border: "none", cursor: "pointer",
-            fontSize: 14, fontWeight: tab === id ? 600 : 400,
-            color: tab === id ? C.text : C.textTertiary,
-            borderBottom: tab === id ? `2px solid ${C.red}` : "2px solid transparent",
-            marginBottom: -1, transition: "all 0.15s", whiteSpace: "nowrap",
-          }}>{label}</button>
+      <nav className="aef-ops__tabs" aria-label="Seções da ação">
+        {detailTabs.map(([id, label]) => (
+          <button key={id} type="button" className="aef-ops__tab" aria-current={tab === id ? "page" : undefined} onClick={() => setTab(id)}>
+            {label}
+            {id === "sorteio" && sorteioStored && <span className="aef-ops__tab-check" aria-label="realizado"><Icon name="check" size={13} strokeWidth={2.5} /></span>}
+          </button>
         ))}
-      </div>
+      </nav>
 
       {tab === "pop" && pop && (
-        <div style={{ background: C.surface, borderRadius: 16, border: `1px solid ${C.border}`, padding: "8px 20px 4px" }}>
+        <div className="aef-ops__panel aef-ops__pop">
           {sections.map(s => (
             <POPSection
               key={s.key}
@@ -2082,105 +2124,55 @@ function AcaoDetail({ acao, onBack, mobile, user }) {
       )}
 
       {tab === "voluntarios" && (
-        <div style={{ background: C.surface, borderRadius: 16, border: `1px solid ${C.border}`, overflow: "hidden" }}>
+        <ul className="aef-ops__panel aef-ops__people">
           {volunteers.slice(0, acao.voluntarios).map((v, i) => (
-            <div key={i} style={{
-              display: "flex", alignItems: "center", justifyContent: "space-between",
-              padding: "14px 20px", borderBottom: i < acao.voluntarios - 1 ? `1px solid ${C.borderLight}` : "none",
-            }}>
-              <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-                <div style={{ width: 36, height: 36, borderRadius: 10, background: C.red, display: "flex", alignItems: "center", justifyContent: "center", color: C.white, fontWeight: 700, fontSize: 12, flexShrink: 0 }}>{v.initials}</div>
-                <div>
-                  <div style={{ fontWeight: 600, fontSize: 14, color: C.text }}>{v.name}</div>
-                  <div style={{ fontSize: 12, color: C.textSecondary }}>{v.formation}</div>
-                </div>
+            <li key={i} className="aef-ops__person">
+              <div className="aef-ops__person-main">
+                <div className="aef-ops__person-name">{v.name}</div>
+                <div className="aef-ops__hint" style={{ marginTop: 0 }}>{v.formation}</div>
               </div>
-              <span style={{ padding: "3px 10px", borderRadius: 6, fontSize: 11, fontWeight: 600, background: areaCfg[v.area]?.bg || C.bg, color: areaCfg[v.area]?.text || C.textSecondary }}>{v.area}</span>
-            </div>
+              <span className="aef-ops__tone" data-tone={OPS_AREA_TONE[v.area] || "red"}>{v.area}</span>
+            </li>
           ))}
-        </div>
+        </ul>
       )}
 
       {tab === "pop" && !pop && (
-        <div style={{ background: C.surface, borderRadius: 16, border: `1px solid ${C.border}`, padding: "32px", textAlign: "center" }}>
-          <div style={{ color: C.textTertiary, fontSize: 14 }}>POP ainda não cadastrado para esta ação.</div>
+        <div className="aef-ops__panel aef-ops__empty">
+          <p className="aef-ops__hint">POP ainda não cadastrado para esta ação.</p>
         </div>
       )}
 
       {tab === "sorteio" && (
-        <div style={{ background: C.surface, borderRadius: 16, border: `1px solid ${C.border}`, padding: mobile ? "20px" : "28px" }}>
+        <div className="aef-ops__panel aef-ops__panel--pad">
           {sorteioStored ? (
-            <>
-              <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 12, marginBottom: 18, flexWrap: "wrap" }}>
+            <div className="aef-ops__stack">
+              <div className="aef-ops__status-row">
                 <div>
-                  <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 6 }}>
-                    <Icon name="check" size={16} color="#15803D" strokeWidth={2.5} />
-                    <span style={{ fontSize: 13, fontWeight: 700, color: "#15803D" }}>Sorteio realizado</span>
-                  </div>
-                  <div style={{ fontSize: 13, color: C.textSecondary }}>
-                    {sorteioStored.resultado.sorteados.length} sorteados · {sorteioStored.resultado.reserva.length} reserva · gerado em {sorteioStored.resultado.geradaEm}
+                  <p className="aef-ops__ok"><span aria-hidden="true"><Icon name="check" size={16} strokeWidth={2.5} /></span>Sorteio realizado</p>
+                  <div className="aef-ops__meta" style={{ marginTop: "var(--space-2xs)" }}>
+                    <span>{sorteioStored.resultado.sorteados.length} sorteados</span>
+                    <span>{sorteioStored.resultado.reserva.length} reserva</span>
+                    <span>gerado em {sorteioStored.resultado.geradaEm}</span>
                   </div>
                   {sorteioStored.resultado.geradoPor && (
-                    <div style={{ fontSize: 12, color: C.textTertiary, marginTop: 4, display: "flex", alignItems: "center", gap: 6 }}>
-                      <Icon name="users" size={12} color={C.textTertiary} />
-                      Gerado por <b style={{ color: C.text, fontWeight: 600 }}>{sorteioStored.resultado.geradoPor}</b>
-                    </div>
+                    <p className="aef-ops__hint">Gerado por <strong style={{ color: "var(--color-ink)", fontWeight: 600 }}>{sorteioStored.resultado.geradoPor}</strong></p>
                   )}
                 </div>
-                <button onClick={() => setShowSorteio(true)} style={{
-                  background: C.white, color: C.text, border: `1px solid ${C.border}`, borderRadius: 10,
-                  padding: "9px 16px", fontSize: 13, fontWeight: 600, cursor: "pointer",
-                }}>Abrir / Refazer</button>
+                <button type="button" className="aef-ops__btn aef-ops__btn--outline" onClick={() => setShowSorteio(true)}>Abrir / Refazer</button>
               </div>
-              <div style={{ display: "grid", gridTemplateColumns: mobile ? "1fr" : "1fr 1fr", gap: 14 }}>
-                <div style={{ border: `1.5px solid rgba(34,197,94,0.3)`, background: "rgba(34,197,94,0.04)", borderRadius: 12, overflow: "hidden" }}>
-                  <div style={{ padding: "10px 14px", borderBottom: `1px solid rgba(34,197,94,0.2)`, fontSize: 12, fontWeight: 700, color: "#15803D", letterSpacing: 0.4, textTransform: "uppercase" }}>
-                    Sorteados ({sorteioStored.resultado.sorteados.length})
-                  </div>
-                  {sorteioStored.resultado.sorteados.map((v, i) => (
-                    <div key={v.name} style={{ padding: "8px 14px", display: "flex", alignItems: "center", gap: 10, borderTop: i === 0 ? "none" : `1px solid rgba(34,197,94,0.12)` }}>
-                      <span style={{ fontSize: 11, fontWeight: 700, color: "#15803D", width: 20 }}>{i + 1}.</span>
-                      <div style={{ flex: 1, minWidth: 0 }}>
-                        <div style={{ fontSize: 13, color: C.text, fontWeight: 600 }}>{v.name}{v.novato && <span style={{ marginLeft: 6, fontSize: 9, fontWeight: 700, color: "#15803D", background: "rgba(34,197,94,0.14)", padding: "1px 6px", borderRadius: 6, textTransform: "uppercase" }}>Novato</span>}</div>
-                        {v.telefone && <div style={{ fontSize: 11, color: C.textSecondary }}>{v.telefone}</div>}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-                <div style={{ border: `1.5px solid ${C.border}`, background: C.bg, borderRadius: 12, overflow: "hidden" }}>
-                  <div style={{ padding: "10px 14px", borderBottom: `1px solid ${C.border}`, fontSize: 12, fontWeight: 700, color: C.textSecondary, letterSpacing: 0.4, textTransform: "uppercase" }}>
-                    Reserva ({sorteioStored.resultado.reserva.length})
-                  </div>
-                  {sorteioStored.resultado.reserva.length === 0 ? (
-                    <div style={{ padding: 14, fontSize: 12, color: C.textTertiary, textAlign: "center" }}>Sem reserva</div>
-                  ) : sorteioStored.resultado.reserva.map((v, i) => (
-                    <div key={v.name} style={{ padding: "8px 14px", display: "flex", alignItems: "center", gap: 10, borderTop: i === 0 ? "none" : `1px solid ${C.borderLight}` }}>
-                      <span style={{ fontSize: 11, fontWeight: 700, color: C.textSecondary, width: 20 }}>{i + 1}.</span>
-                      <div style={{ flex: 1, minWidth: 0 }}>
-                        <div style={{ fontSize: 13, color: C.text, fontWeight: 600 }}>{v.name}{v.novato && <span style={{ marginLeft: 6, fontSize: 9, fontWeight: 700, color: "#15803D", background: "rgba(34,197,94,0.12)", padding: "1px 6px", borderRadius: 6, textTransform: "uppercase" }}>Novato</span>}</div>
-                        {v.telefone && <div style={{ fontSize: 11, color: C.textSecondary }}>{v.telefone}</div>}
-                      </div>
-                    </div>
-                  ))}
-                </div>
+              <div className="aef-ops__draw">
+                {renderDrawList("Sorteados", sorteioStored.resultado.sorteados, "green", "Sem sorteados")}
+                {renderDrawList("Reserva", sorteioStored.resultado.reserva, undefined, "Sem reserva")}
               </div>
-            </>
+            </div>
           ) : (
-            <div style={{ textAlign: "center", padding: "20px 0" }}>
-              <div style={{ width: 56, height: 56, borderRadius: 16, background: C.bg, display: "inline-flex", alignItems: "center", justifyContent: "center", marginBottom: 16 }}>
-                <Icon name="users" size={24} color={C.textTertiary} strokeWidth={1.8} />
-              </div>
-              <h3 style={{ fontSize: 17, fontWeight: 700, color: C.text, margin: "0 0 6px", fontFamily: FONT_DISPLAY }}>Nenhum sorteio realizado</h3>
-              <p style={{ fontSize: 13, color: C.textSecondary, maxWidth: 360, margin: "0 auto 18px", lineHeight: 1.5 }}>
-                Sorteie a equipe desta ação a partir do banco de voluntários do RH. Os telefones serão incluídos automaticamente.
-              </p>
-              <button onClick={() => setShowSorteio(true)} style={{
-                background: C.red, color: C.white, border: "none", borderRadius: 10,
-                padding: "11px 22px", fontSize: 14, fontWeight: 700, cursor: "pointer",
-                display: "inline-flex", alignItems: "center", gap: 8,
-                boxShadow: "0 6px 16px rgba(215,13,22,0.22)",
-              }}>
-                <Icon name="users" size={15} color={C.white} strokeWidth={2} />
+            <div className="aef-ops__empty">
+              <span className="aef-ops__empty-icon" aria-hidden="true"><Icon name="users" size={24} strokeWidth={1.8} /></span>
+              <h3 className="aef-ops__h2">Nenhum sorteio realizado</h3>
+              <p className="aef-ops__hint">Sorteie a equipe desta ação a partir do banco de voluntários do RH. Os telefones serão incluídos automaticamente.</p>
+              <button type="button" className="aef-ops__btn aef-ops__btn--primary" onClick={() => setShowSorteio(true)} style={{ marginTop: "var(--space-xs)" }}>
+                <span aria-hidden="true"><Icon name="users" size={15} strokeWidth={2} /></span>
                 Realizar sorteio
               </button>
             </div>
@@ -2189,205 +2181,191 @@ function AcaoDetail({ acao, onBack, mobile, user }) {
       )}
 
       {tab === "inscricoes" && (
-        <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
-          {/* Status + Link */}
-          <div style={{ background: C.surface, borderRadius: 16, border: `1px solid ${C.border}`, padding: mobile ? "18px" : "22px" }}>
-            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, marginBottom: 16, flexWrap: "wrap" }}>
-              <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                <span style={{ width: 10, height: 10, borderRadius: "50%", background: inscricoes.status === "aberta" ? "#22C55E" : C.textTertiary, boxShadow: inscricoes.status === "aberta" ? "0 0 0 3px rgba(34,197,94,0.2)" : "none" }} />
-                <div>
-                  <div style={{ fontSize: 14, fontWeight: 700, color: C.text }}>
-                    {inscricoes.status === "aberta" ? "Inscrições abertas" : "Inscrições fechadas"}
-                  </div>
-                  <div style={{ fontSize: 12, color: C.textTertiary }}>
-                    {inscricoes.inscritos.length} {inscricoes.inscritos.length === 1 ? "pessoa inscrita" : "pessoas inscritas"}
-                  </div>
-                </div>
+        <div className="aef-ops__stack">
+          <section className="aef-ops__panel aef-ops__panel--pad aef-ops__stack">
+            <div className="aef-ops__status-row">
+              <div>
+                <h2 className="aef-ops__h2" data-tone={inscricoes.status === "aberta" ? "green" : undefined} style={{ color: "var(--tone, var(--color-ink))" }}>
+                  {inscricoes.status === "aberta" ? "Inscrições abertas" : "Inscrições fechadas"}
+                </h2>
+                <p className="aef-ops__hint">
+                  {inscricoes.inscritos.length} {inscricoes.inscritos.length === 1 ? "pessoa inscrita" : "pessoas inscritas"}
+                </p>
               </div>
               {inscricoes.status === "aberta" ? (
-                <button onClick={fecharInscricoes} style={{ padding: "8px 14px", background: C.white, color: C.textSecondary, border: `1px solid ${C.border}`, borderRadius: 10, fontSize: 13, fontWeight: 600, cursor: "pointer" }}>Fechar inscrições</button>
+                <button type="button" className="aef-ops__btn aef-ops__btn--outline" onClick={fecharInscricoes}>Fechar inscrições</button>
               ) : (
-                <button onClick={abrirInscricoes} style={{ padding: "9px 16px", background: C.red, color: C.white, border: "none", borderRadius: 10, fontSize: 13, fontWeight: 700, cursor: "pointer", boxShadow: "0 6px 16px rgba(215,13,22,0.22)" }}>Abrir inscrições</button>
+                <button type="button" className="aef-ops__btn aef-ops__btn--primary" onClick={abrirInscricoes}>Abrir inscrições</button>
               )}
             </div>
 
             {inscricoes.status === "aberta" && (
               <>
-                <div style={{ fontSize: 11, fontWeight: 600, color: C.textSecondary, letterSpacing: 0.5, textTransform: "uppercase", marginBottom: 8 }}>Link para o grupo do WhatsApp</div>
-                <div style={{ display: "flex", gap: 8, marginBottom: 14, flexWrap: "wrap" }}>
-                  <div style={{ flex: 1, minWidth: 220, padding: "11px 14px", border: `1px solid ${C.border}`, borderRadius: 10, fontSize: 13, color: C.text, background: C.bg, fontFamily: "monospace", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-                    {linkInscricao}
+                <div className="aef-ops__field">
+                  <span className="aef-ops__label">Link para o grupo do WhatsApp</span>
+                  <div className="aef-ops__copy-row">
+                    <div className="aef-ops__value">{linkInscricao}</div>
+                    <button type="button" className="aef-ops__btn aef-ops__btn--outline" data-done={copiadoLink ? "true" : undefined} onClick={copiarLink} aria-live="polite">
+                      {copiadoLink ? "Copiado" : "Copiar link"}
+                    </button>
+                    <button type="button" className="aef-ops__btn aef-ops__btn--outline" onClick={() => setShowPreview(true)}>
+                      <span aria-hidden="true"><Icon name="eye" size={14} /></span> Ver página
+                    </button>
                   </div>
-                  <button onClick={copiarLink} style={{ padding: "11px 16px", background: copiadoLink ? "#15803D" : C.text, color: C.white, border: "none", borderRadius: 10, fontSize: 13, fontWeight: 600, cursor: "pointer", whiteSpace: "nowrap" }}>
-                    {copiadoLink ? "✓ Copiado" : "Copiar link"}
-                  </button>
-                  <button onClick={() => setShowPreview(true)} style={{ padding: "11px 16px", background: C.white, color: C.text, border: `1px solid ${C.border}`, borderRadius: 10, fontSize: 13, fontWeight: 600, cursor: "pointer", whiteSpace: "nowrap", display: "flex", alignItems: "center", gap: 6 }}>
-                    <Icon name="eye" size={14} color={C.text} /> Ver página
-                  </button>
                 </div>
-                <div style={{ display: "flex", gap: 14, alignItems: "center", padding: "12px 14px", background: C.bg, borderRadius: 10, marginBottom: 14 }}>
-                  <img alt="QR Code" src={`https://api.qrserver.com/v1/create-qr-code/?size=110x110&data=${encodeURIComponent(linkInscricao)}`} style={{ width: 90, height: 90, borderRadius: 6, background: C.white, padding: 4 }} />
-                  <div style={{ fontSize: 12, color: C.textSecondary, lineHeight: 1.5 }}>
+                <div className="aef-ops__qr-row">
+                  <img className="aef-ops__qr" alt="QR Code" src={`https://api.qrserver.com/v1/create-qr-code/?size=110x110&data=${encodeURIComponent(linkInscricao)}`} />
+                  <p>
                     Compartilhe o link no grupo ou cole o QR Code num story.<br />
                     Inscrições serão registradas em tempo real nesta página.
-                  </div>
+                  </p>
                 </div>
 
-                <button onClick={() => setShowEditor(s => !s)} style={{
-                  width: "100%", padding: "11px 14px", background: showEditor ? C.bg : C.white,
-                  color: C.text, border: `1px solid ${C.border}`, borderRadius: 10,
-                  fontSize: 13, fontWeight: 600, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "space-between",
-                }}>
-                  <span style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                    <Icon name="settings" size={14} color={C.text} />
+                <button type="button" className="aef-ops__disclosure" aria-expanded={showEditor} onClick={() => setShowEditor(s => !s)}>
+                  <span className="aef-ops__disclosure-label">
+                    <span aria-hidden="true"><Icon name="settings" size={14} /></span>
                     Personalizar página (foto + descrição)
                   </span>
-                  <span style={{ color: C.textTertiary, fontSize: 12 }}>{showEditor ? "▲" : "▼"}</span>
+                  <span className="aef-ops__chev" aria-hidden="true"><Icon name="chevronRight" size={14} /></span>
                 </button>
 
                 {showEditor && (
-                  <div style={{ marginTop: 12, padding: "16px", border: `1px solid ${C.border}`, borderRadius: 10, background: C.white }}>
-                    <div style={{ fontSize: 11, fontWeight: 600, color: C.textSecondary, letterSpacing: 0.5, textTransform: "uppercase", marginBottom: 8 }}>Foto de capa</div>
-                    {inscricoes.imagem ? (
-                      <div style={{ position: "relative", marginBottom: 14 }}>
-                        <img src={inscricoes.imagem} alt="Capa" style={{ width: "100%", maxHeight: 200, objectFit: "cover", borderRadius: 10, display: "block" }} />
-                        <div style={{ display: "flex", gap: 8, marginTop: 8 }}>
-                          <label style={{ flex: 1, padding: "9px", background: C.white, color: C.text, border: `1px solid ${C.border}`, borderRadius: 8, fontSize: 12, fontWeight: 600, cursor: "pointer", textAlign: "center" }}>
-                            Trocar imagem
-                            <input type="file" accept="image/*" onChange={(e) => handleImagemUpload(e.target.files?.[0])} style={{ display: "none" }} />
-                          </label>
-                          <button onClick={removerImagem} style={{ padding: "9px 14px", background: C.white, color: C.red, border: `1px solid ${C.border}`, borderRadius: 8, fontSize: 12, fontWeight: 600, cursor: "pointer" }}>Remover</button>
+                  <div className="aef-ops__editor">
+                    <div className="aef-ops__field">
+                      <span className="aef-ops__label">Foto de capa</span>
+                      {inscricoes.imagem ? (
+                        <div>
+                          <img className="aef-ops__cover" src={inscricoes.imagem} alt="Capa" />
+                          <div className="aef-ops__row-btns">
+                            <label className="aef-ops__btn aef-ops__btn--outline aef-ops__btn--grow aef-ops__file-label">
+                              Trocar imagem
+                              <input className="aef-ops__file" type="file" accept="image/*" onChange={(e) => handleImagemUpload(e.target.files?.[0])} />
+                            </label>
+                            <button type="button" className="aef-ops__btn aef-ops__btn--outline" style={{ color: "var(--color-accent)" }} onClick={removerImagem}>Remover</button>
+                          </div>
                         </div>
-                      </div>
-                    ) : (
-                      <label style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "26px 16px", border: `2px dashed ${C.border}`, borderRadius: 10, cursor: "pointer", background: C.bg, marginBottom: 14 }}>
-                        <Icon name="camera" size={22} color={C.textTertiary} strokeWidth={1.8} />
-                        <div style={{ fontSize: 13, fontWeight: 600, color: C.text, marginTop: 8 }}>Adicionar foto de capa</div>
-                        <div style={{ fontSize: 11, color: C.textTertiary, marginTop: 3 }}>JPG ou PNG, até 4 MB</div>
-                        <input type="file" accept="image/*" onChange={(e) => handleImagemUpload(e.target.files?.[0])} style={{ display: "none" }} />
-                      </label>
-                    )}
+                      ) : (
+                        <label className="aef-ops__drop">
+                          <span className="aef-ops__empty-icon" aria-hidden="true"><Icon name="camera" size={22} strokeWidth={1.8} /></span>
+                          <span className="aef-ops__h3">Adicionar foto de capa</span>
+                          <span className="aef-ops__hint" style={{ marginTop: 0 }}>JPG ou PNG, até 4 MB</span>
+                          <input className="aef-ops__file" type="file" accept="image/*" onChange={(e) => handleImagemUpload(e.target.files?.[0])} />
+                        </label>
+                      )}
+                    </div>
 
-                    <div style={{ fontSize: 11, fontWeight: 600, color: C.textSecondary, letterSpacing: 0.5, textTransform: "uppercase", marginBottom: 8 }}>Descrição da ação</div>
-                    <textarea
-                      value={inscricoes.descricao}
-                      onChange={(e) => atualizarDescricao(e.target.value)}
-                      placeholder="Conte o que vai acontecer nesta ação. Quem vai ser atendido, onde, qual o horário, se tem treinamento obrigatório, materiais que o voluntário precisa levar..."
-                      rows={6}
-                      style={{ width: "100%", padding: "11px 14px", border: `1px solid ${C.border}`, borderRadius: 10, fontSize: 13, color: C.text, outline: "none", boxSizing: "border-box", fontFamily: FONT_BODY, lineHeight: 1.5, resize: "vertical" }}
-                    />
-                    <div style={{ fontSize: 11, color: C.textTertiary, marginTop: 6 }}>
-                      Aparece em destaque na página pública, antes do formulário. Pode usar emojis e quebras de linha.
+                    <div className="aef-ops__field">
+                      <label className="aef-ops__label" htmlFor={`ops-desc-${acao.id}`}>Descrição da ação</label>
+                      <textarea
+                        id={`ops-desc-${acao.id}`}
+                        className="aef-ops__textarea"
+                        value={inscricoes.descricao}
+                        onChange={(e) => atualizarDescricao(e.target.value)}
+                        placeholder="Conte o que vai acontecer nesta ação. Quem vai ser atendido, onde, qual o horário, se tem treinamento obrigatório, materiais que o voluntário precisa levar…"
+                        rows={6}
+                      />
+                      <p className="aef-ops__hint">Aparece em destaque na página pública, antes do formulário. Pode usar emojis e quebras de linha.</p>
                     </div>
                   </div>
                 )}
               </>
             )}
-          </div>
+          </section>
 
-          {/* Lista de inscritos */}
-          <div style={{ background: C.surface, borderRadius: 16, border: `1px solid ${C.border}`, overflow: "hidden" }}>
-            <div style={{ padding: "14px 20px", borderBottom: `1px solid ${C.borderLight}`, display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-              <span style={{ fontSize: 14, fontWeight: 700, color: C.text }}>Inscritos ({inscricoes.inscritos.length})</span>
+          <section className="aef-ops__panel">
+            <div className="aef-ops__panel-head">
+              <h2 className="aef-ops__h3">Inscritos ({inscricoes.inscritos.length})</h2>
               {inscricoes.inscritos.length > 0 && (
-                <button onClick={() => setShowSorteio(true)} style={{ padding: "7px 14px", background: C.red, color: C.white, border: "none", borderRadius: 8, fontSize: 12, fontWeight: 700, cursor: "pointer", display: "flex", alignItems: "center", gap: 6 }}>
-                  <Icon name="users" size={13} color={C.white} strokeWidth={2} />
+                <button type="button" className="aef-ops__btn aef-ops__btn--primary" onClick={() => setShowSorteio(true)}>
+                  <span aria-hidden="true"><Icon name="users" size={13} strokeWidth={2} /></span>
                   Sortear destes
                 </button>
               )}
             </div>
             {inscricoes.inscritos.length === 0 ? (
-              <div style={{ padding: "32px 20px", textAlign: "center" }}>
-                <div style={{ fontSize: 13, color: C.textSecondary }}>
+              <div className="aef-ops__empty">
+                <p className="aef-ops__hint">
                   {inscricoes.status === "aberta" ? "Aguardando inscrições. Compartilhe o link acima." : "Abra as inscrições para receber voluntários."}
-                </div>
+                </p>
               </div>
-            ) : inscricoes.inscritos.map((i, idx) => (
-              <div key={i.id} style={{ padding: "12px 20px", display: "flex", alignItems: "center", gap: 12, borderTop: idx === 0 ? "none" : `1px solid ${C.borderLight}` }}>
-                <div style={{ width: 32, height: 32, borderRadius: "50%", background: C.bg, color: C.textSecondary, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 11, fontWeight: 700, flexShrink: 0 }}>
-                  {i.nome.split(" ").map(p => p[0]).slice(0, 2).join("").toUpperCase()}
-                </div>
-                <div style={{ flex: 1, minWidth: 0 }}>
-                  <div style={{ display: "flex", alignItems: "center", gap: 6, flexWrap: "wrap" }}>
-                    <span style={{ fontSize: 14, fontWeight: 600, color: C.text }}>{i.nome}</span>
-                    {i.novato && <span style={{ fontSize: 9, fontWeight: 700, color: "#15803D", background: "rgba(34,197,94,0.12)", padding: "1px 6px", borderRadius: 6, letterSpacing: 0.4, textTransform: "uppercase" }}>Novato</span>}
-                  </div>
-                  <div style={{ fontSize: 12, color: C.textTertiary, marginTop: 1 }}>
-                    {i.idade && `${i.idade} anos · `}{i.telefone}
-                    {i.ultimaAcao && ` · ${i.ultimaAcao}`}
-                    {i.emergencia && ` · emerg.: ${i.emergencia}`}
-                  </div>
-                </div>
-                <button onClick={() => removerInscrito(i.id)} title="Remover" style={{ width: 30, height: 30, borderRadius: 8, border: `1px solid ${C.border}`, background: C.white, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center" }}>
-                  <Icon name="trash" size={13} color={C.red} />
-                </button>
-              </div>
-            ))}
-          </div>
+            ) : (
+              <ul className="aef-ops__people">
+                {inscricoes.inscritos.map((i) => (
+                  <li key={i.id} className="aef-ops__person">
+                    <div className="aef-ops__person-main">
+                      <div className="aef-ops__person-name">{i.nome}{i.novato && <span className="aef-ops__tag" data-tone="green">Novato</span>}</div>
+                      <div className="aef-ops__meta">
+                        {i.idade && <span>{i.idade} anos</span>}
+                        <span>{i.telefone}</span>
+                        {i.ultimaAcao && <span>{i.ultimaAcao}</span>}
+                        {i.emergencia && <span>emerg.: {i.emergencia}</span>}
+                      </div>
+                    </div>
+                    <button type="button" className="aef-ops__icon-btn" title="Remover" aria-label={"Remover " + i.nome} onClick={() => removerInscrito(i.id)}>
+                      <Icon name="trash" size={14} />
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </section>
         </div>
       )}
 
       {tab === "pix" && (
-        <div style={{ background: C.surface, borderRadius: 16, border: `1px solid ${C.border}`, padding: mobile ? "20px" : "28px" }}>
+        <div className="aef-ops__panel aef-ops__panel--pad">
           {pixData ? (
-            <>
-              <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 12, marginBottom: 18, flexWrap: "wrap" }}>
+            <div className="aef-ops__stack">
+              <div className="aef-ops__status-row">
                 <div>
-                  <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 6 }}>
-                    <Icon name="check" size={16} color="#15803D" strokeWidth={2.5} />
-                    <span style={{ fontSize: 13, fontWeight: 700, color: "#15803D" }}>PIX da ação configurado</span>
-                  </div>
-                  <div style={{ fontSize: 13, color: C.textSecondary }}>
-                    Todo PIX recebido com este txid será vinculado automaticamente à ação.
-                  </div>
-                  <div style={{ fontSize: 11, color: C.textTertiary, marginTop: 4 }}>Criado em {pixData.criadoEm}</div>
+                  <p className="aef-ops__ok"><span aria-hidden="true"><Icon name="check" size={16} strokeWidth={2.5} /></span>PIX da ação configurado</p>
+                  <p className="aef-ops__hint">Todo PIX recebido com este txid será vinculado automaticamente à ação.</p>
+                  <p className="aef-ops__hint">Criado em {pixData.criadoEm}</p>
                 </div>
-                <button onClick={() => { if (confirm("Regenerar PIX? O txid antigo deixará de funcionar.")) gerarPix(); }} style={{ padding: "9px 14px", background: C.white, color: C.text, border: `1px solid ${C.border}`, borderRadius: 10, fontSize: 13, fontWeight: 600, cursor: "pointer" }}>Regenerar</button>
+                <button type="button" className="aef-ops__btn aef-ops__btn--outline" onClick={() => { if (confirm("Regenerar PIX? O txid antigo deixará de funcionar.")) gerarPix(); }}>Regenerar</button>
               </div>
 
-              <div style={{ display: "grid", gridTemplateColumns: mobile ? "1fr" : "auto 1fr", gap: 20, alignItems: "start" }}>
-                <div style={{ background: C.white, padding: 12, borderRadius: 12, border: `1px solid ${C.border}`, justifySelf: mobile ? "center" : "start" }}>
-                  <img alt="QR Code PIX" src={`https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(pixData.payload)}`} style={{ width: 180, height: 180, display: "block" }} />
+              <div className="aef-ops__pix">
+                <div className="aef-ops__pix-qr">
+                  <img alt="QR Code PIX" src={`https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(pixData.payload)}`} />
                 </div>
-                <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-                  <div>
-                    <label style={{ fontSize: 11, fontWeight: 700, color: C.textSecondary, letterSpacing: 0.5, textTransform: "uppercase" }}>Chave PIX</label>
-                    <div style={{ display: "flex", gap: 8, marginTop: 4 }}>
-                      <div style={{ flex: 1, padding: "10px 12px", border: `1px solid ${C.border}`, borderRadius: 10, fontSize: 13, color: C.text, background: C.bg }}>{pixData.chave}</div>
-                      <button onClick={() => copiarPix("chave", pixData.chave)} style={{ padding: "10px 14px", background: copiadoPix === "chave" ? "#15803D" : C.text, color: C.white, border: "none", borderRadius: 10, fontSize: 12, fontWeight: 600, cursor: "pointer" }}>{copiadoPix === "chave" ? "✓" : "Copiar"}</button>
+                <div className="aef-ops__stack">
+                  <div className="aef-ops__field">
+                    <span className="aef-ops__label">Chave PIX</span>
+                    <div className="aef-ops__copy-row">
+                      <div className="aef-ops__value">{pixData.chave}</div>
+                      <button type="button" className="aef-ops__btn aef-ops__btn--outline" data-done={copiadoPix === "chave" ? "true" : undefined} onClick={() => copiarPix("chave", pixData.chave)}>{copiadoPix === "chave" ? "Copiado" : "Copiar"}</button>
                     </div>
                   </div>
-                  <div>
-                    <label style={{ fontSize: 11, fontWeight: 700, color: C.textSecondary, letterSpacing: 0.5, textTransform: "uppercase" }}>Identificador (txid)</label>
-                    <div style={{ display: "flex", gap: 8, marginTop: 4 }}>
-                      <div style={{ flex: 1, padding: "10px 12px", border: `1px solid ${C.border}`, borderRadius: 10, fontSize: 13, color: C.text, background: C.bg, fontFamily: "monospace" }}>{pixData.txid}</div>
-                      <button onClick={() => copiarPix("txid", pixData.txid)} style={{ padding: "10px 14px", background: copiadoPix === "txid" ? "#15803D" : C.text, color: C.white, border: "none", borderRadius: 10, fontSize: 12, fontWeight: 600, cursor: "pointer" }}>{copiadoPix === "txid" ? "✓" : "Copiar"}</button>
+                  <div className="aef-ops__field">
+                    <span className="aef-ops__label">Identificador (txid)</span>
+                    <div className="aef-ops__copy-row">
+                      <div className="aef-ops__value aef-ops__value--code">{pixData.txid}</div>
+                      <button type="button" className="aef-ops__btn aef-ops__btn--outline" data-done={copiadoPix === "txid" ? "true" : undefined} onClick={() => copiarPix("txid", pixData.txid)}>{copiadoPix === "txid" ? "Copiado" : "Copiar"}</button>
                     </div>
                   </div>
-                  <div>
-                    <label style={{ fontSize: 11, fontWeight: 700, color: C.textSecondary, letterSpacing: 0.5, textTransform: "uppercase" }}>PIX Copia e Cola</label>
-                    <div style={{ display: "flex", gap: 8, marginTop: 4 }}>
-                      <div style={{ flex: 1, padding: "10px 12px", border: `1px solid ${C.border}`, borderRadius: 10, fontSize: 11, color: C.textSecondary, background: C.bg, fontFamily: "monospace", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{pixData.payload}</div>
-                      <button onClick={() => copiarPix("payload", pixData.payload)} style={{ padding: "10px 14px", background: copiadoPix === "payload" ? "#15803D" : C.text, color: C.white, border: "none", borderRadius: 10, fontSize: 12, fontWeight: 600, cursor: "pointer", whiteSpace: "nowrap" }}>{copiadoPix === "payload" ? "✓" : "Copiar"}</button>
+                  <div className="aef-ops__field">
+                    <span className="aef-ops__label">PIX Copia e Cola</span>
+                    <div className="aef-ops__copy-row">
+                      <div className="aef-ops__value aef-ops__value--muted">{pixData.payload}</div>
+                      <button type="button" className="aef-ops__btn aef-ops__btn--outline" data-done={copiadoPix === "payload" ? "true" : undefined} onClick={() => copiarPix("payload", pixData.payload)}>{copiadoPix === "payload" ? "Copiado" : "Copiar"}</button>
                     </div>
                   </div>
-                  <div style={{ padding: "12px 14px", background: "rgba(245,158,11,0.10)", borderRadius: 10, fontSize: 12, color: "#92400E", lineHeight: 1.5 }}>
-                    💡 Coloque o QR Code no story / status do WhatsApp. Quando alguém doar, o Hub avisa no Mural e contabiliza esta ação automaticamente.
-                  </div>
+                  <p className="aef-ops__note aef-ops__note--amber">
+                    Coloque o QR Code no story ou status do WhatsApp. Quando alguém doar, o Hub avisa no Mural e contabiliza esta ação automaticamente.
+                  </p>
                 </div>
               </div>
-            </>
+            </div>
           ) : (
-            <div style={{ textAlign: "center", padding: "20px 0" }}>
-              <div style={{ width: 56, height: 56, borderRadius: 16, background: C.bg, display: "inline-flex", alignItems: "center", justifyContent: "center", marginBottom: 16 }}>
-                <Icon name="dollar" size={24} color={C.textTertiary} strokeWidth={1.8} />
-              </div>
-              <h3 style={{ fontSize: 17, fontWeight: 700, color: C.text, margin: "0 0 6px", fontFamily: FONT_DISPLAY }}>Crie um PIX exclusivo para esta ação</h3>
-              <p style={{ fontSize: 13, color: C.textSecondary, maxWidth: 420, margin: "0 auto 18px", lineHeight: 1.5 }}>
+            <div className="aef-ops__empty">
+              <span className="aef-ops__empty-icon" aria-hidden="true"><Icon name="dollar" size={24} strokeWidth={1.8} /></span>
+              <h3 className="aef-ops__h2">Crie um PIX exclusivo para esta ação</h3>
+              <p className="aef-ops__hint">
                 Cada PIX recebido com este identificador será vinculado automaticamente à ação <b>{acao.nome}</b>. Você verá quanto a ação arrecadou separado do caixa geral.
               </p>
-              <button onClick={gerarPix} style={{ background: C.red, color: C.white, border: "none", borderRadius: 10, padding: "11px 22px", fontSize: 14, fontWeight: 700, cursor: "pointer", display: "inline-flex", alignItems: "center", gap: 8, boxShadow: "0 6px 16px rgba(215,13,22,0.22)" }}>
-                <Icon name="dollar" size={15} color={C.white} strokeWidth={2} />
+              <button type="button" className="aef-ops__btn aef-ops__btn--primary" onClick={gerarPix} style={{ marginTop: "var(--space-xs)" }}>
+                <span aria-hidden="true"><Icon name="dollar" size={15} strokeWidth={2} /></span>
                 Gerar PIX da ação
               </button>
             </div>
@@ -2435,101 +2413,96 @@ function PreviewPaginaInscricao({ acao, linkInscricao, imagem, descricao, onClos
   };
 
   return (
-    <div onClick={onClose} style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.6)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 600, padding: 12 }}>
-      <div onClick={(e) => e.stopPropagation()} style={{ width: "100%", maxWidth: 420, fontFamily: FONT_BODY, maxHeight: "94vh", display: "flex", flexDirection: "column" }}>
-        <div style={{ background: C.text, color: "rgba(255,255,255,0.7)", padding: "8px 14px", borderRadius: "12px 12px 0 0", fontSize: 11, display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-          <span style={{ fontFamily: "monospace" }}>🔒 {linkInscricao}</span>
-          <button onClick={onClose} style={{ background: "rgba(255,255,255,0.1)", border: "none", color: C.white, width: 22, height: 22, borderRadius: 6, cursor: "pointer", fontSize: 12 }}>×</button>
+    <div className="aef-ops aef-ops__scrim aef-ops__scrim--center" onClick={onClose}>
+      <div className="aef-ops__dialog aef-ops__dialog--public" role="dialog" aria-modal="true" aria-labelledby="ops-public-title" onClick={(e) => e.stopPropagation()}>
+        <div className="aef-ops__dialog-head">
+          <div style={{ minWidth: 0 }}>
+            <p className="aef-ops__h3">Prévia da página pública</p>
+            <p className="aef-ops__url">{linkInscricao}</p>
+          </div>
+          <button type="button" className="aef-ops__btn aef-ops__btn--outline" onClick={onClose}>Fechar</button>
         </div>
-        <div style={{ background: C.white, borderRadius: "0 0 12px 12px", overflowY: "auto" }}>
+        <div className="aef-ops__dialog-body" style={{ padding: 0 }}>
           {imagem && (
-            <div style={{ width: "100%", aspectRatio: "16 / 9", overflow: "hidden", background: C.bg }}>
-              <img src={imagem} alt={acao.nome} style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }} />
+            <div className="aef-ops__public-cover">
+              <img src={imagem} alt={acao.nome} />
             </div>
           )}
-          <div style={{ padding: 28 }}>
-            <div style={{ textAlign: "center", marginBottom: 22 }}>
-              <div style={{ width: 56, height: 56, borderRadius: "50%", background: C.red, color: C.white, display: "inline-flex", alignItems: "center", justifyContent: "center", fontSize: 22, fontWeight: 700, fontFamily: FONT_DISPLAY, marginBottom: 10 }}>♥</div>
-              <h2 style={{ fontSize: 20, fontWeight: 700, color: C.text, margin: "0 0 4px", fontFamily: FONT_DISPLAY }}>Amor em Foco</h2>
-              <p style={{ fontSize: 13, color: C.textSecondary, margin: 0 }}>Inscrição de voluntário</p>
+          <div className="aef-ops__dialog-body aef-ops__stack">
+            <div className="aef-ops__public-brand">
+              <img className="aef-ops__public-logo" src="/logo-vermelha.png" alt="" />
+              <h2 id="ops-public-title" className="aef-ops__dialog-title">Amor em Foco</h2>
+              <p className="aef-ops__hint" style={{ marginTop: 0 }}>Inscrição de voluntário</p>
             </div>
 
-            <div style={{ background: "rgba(215,13,22,0.05)", border: `1px solid rgba(215,13,22,0.15)`, borderRadius: 10, padding: "12px 14px", marginBottom: 16 }}>
-              <div style={{ fontSize: 11, fontWeight: 700, color: C.red, letterSpacing: 0.5, textTransform: "uppercase", marginBottom: 3 }}>{acao.tipo}</div>
-              <div style={{ fontSize: 15, fontWeight: 700, color: C.text }}>{acao.nome}</div>
-              <div style={{ fontSize: 12, color: C.textSecondary, marginTop: 4 }}>📅 {acao.data}</div>
+            <div className="aef-ops__public-action">
+              <span className="aef-ops__public-type">{acao.tipo}</span>
+              <span className="aef-ops__h3">{acao.nome}</span>
+              <span className="aef-ops__meta-item aef-ops__hint" style={{ marginTop: 0 }}><span aria-hidden="true"><Icon name="calendar" size={13} /></span>{acao.data}</span>
             </div>
 
             {!enviado && (
-              <div style={{ fontSize: 13.5, color: C.text, lineHeight: 1.6, marginBottom: 22, padding: "16px 18px", background: C.bg, borderRadius: 12, whiteSpace: "pre-wrap" }}>
-                {descricao && descricao.trim()
-                  ? descricao
-                  : <span style={{ color: C.textSecondary }}>Iremos servir café da manhã para pessoas em situação de rua em Belém. <b>Treinamento online obrigatório</b> antes da ação — data e link serão enviados a quem for sorteado.</span>}
-              </div>
+              descricao && descricao.trim()
+                ? <div className="aef-ops__public-desc">{descricao}</div>
+                : <div className="aef-ops__public-desc" data-placeholder="true">Iremos servir café da manhã para pessoas em situação de rua em Belém. <b>Treinamento online obrigatório</b> antes da ação, com data e link enviados a quem for sorteado.</div>
             )}
 
           {enviado ? (
-            <div style={{ textAlign: "center", padding: "10px 0" }}>
-              <div style={{ width: 56, height: 56, borderRadius: "50%", background: "rgba(34,197,94,0.12)", display: "inline-flex", alignItems: "center", justifyContent: "center", marginBottom: 12 }}>
-                <Icon name="check" size={26} color="#15803D" strokeWidth={2.5} />
-              </div>
-              <h3 style={{ fontSize: 17, fontWeight: 700, color: C.text, margin: "0 0 6px", fontFamily: FONT_DISPLAY }}>Inscrição confirmada!</h3>
-              <p style={{ fontSize: 13, color: C.textSecondary, margin: "0 0 18px" }}>O resultado do sorteio será divulgado no grupo. Obrigado por se voluntariar 💛</p>
-              <button onClick={onClose} style={{ padding: "10px 22px", background: C.red, color: C.white, border: "none", borderRadius: 10, fontSize: 13, fontWeight: 600, cursor: "pointer" }}>Fechar</button>
+            <div className="aef-ops__public-done" role="status">
+              <span className="aef-ops__public-done-icon" aria-hidden="true"><Icon name="check" size={32} strokeWidth={2.5} /></span>
+              <h3 className="aef-ops__dialog-title">Inscrição confirmada!</h3>
+              <p className="aef-ops__hint">O resultado do sorteio será divulgado no grupo. Obrigado por se voluntariar.</p>
+              <button type="button" className="aef-ops__btn aef-ops__btn--primary" onClick={onClose}>Fechar</button>
             </div>
           ) : (
             <>
-              <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
-                <div>
-                  <label style={{ display: "block", fontSize: 11, fontWeight: 600, color: C.textSecondary, marginBottom: 6, letterSpacing: 0.4, textTransform: "uppercase" }}>Nome completo *</label>
-                  <input type="text" value={form.nome} onChange={e => setForm(p => ({ ...p, nome: e.target.value }))} placeholder="Seu nome" style={{ width: "100%", padding: "11px 14px", border: `1px solid ${C.border}`, borderRadius: 10, fontSize: 14, color: C.text, outline: "none", boxSizing: "border-box", fontFamily: FONT_BODY }} />
+              <div className="aef-ops__form">
+                <div className="aef-ops__field">
+                  <label className="aef-ops__label" htmlFor="ops-pub-nome">Nome completo *</label>
+                  <input id="ops-pub-nome" className="aef-ops__input" type="text" autoComplete="name" value={form.nome} onChange={e => setForm(p => ({ ...p, nome: e.target.value }))} placeholder="Seu nome" />
                 </div>
-                <div>
-                  <label style={{ display: "block", fontSize: 11, fontWeight: 600, color: C.textSecondary, marginBottom: 6, letterSpacing: 0.4, textTransform: "uppercase" }}>Idade *</label>
-                  <input type="number" min={12} max={100} value={form.idade} onChange={e => setForm(p => ({ ...p, idade: e.target.value }))} placeholder="Sua idade" style={{ width: "100%", padding: "11px 14px", border: `1px solid ${C.border}`, borderRadius: 10, fontSize: 14, color: C.text, outline: "none", boxSizing: "border-box", fontFamily: FONT_BODY }} />
+                <div className="aef-ops__field">
+                  <label className="aef-ops__label" htmlFor="ops-pub-idade">Idade *</label>
+                  <input id="ops-pub-idade" className="aef-ops__input" type="number" min={12} max={100} value={form.idade} onChange={e => setForm(p => ({ ...p, idade: e.target.value }))} placeholder="Sua idade" />
                 </div>
-                <div>
-                  <label style={{ display: "block", fontSize: 11, fontWeight: 600, color: C.textSecondary, marginBottom: 6, letterSpacing: 0.4, textTransform: "uppercase" }}>Você já participou de alguma ação do Amor em Foco? *</label>
-                  <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+                <div className="aef-ops__field">
+                  <span className="aef-ops__label" id="ops-pub-exp">Você já participou de alguma ação do Amor em Foco? *</span>
+                  <div className="aef-ops__choices" role="radiogroup" aria-labelledby="ops-pub-exp">
                     {EXPERIENCIA_OPCOES.map(opt => {
                       const ativo = form.experiencia === opt.id;
                       return (
-                        <button key={opt.id} onClick={() => setForm(p => ({ ...p, experiencia: opt.id }))} style={{ textAlign: "left", padding: "11px 14px", borderRadius: 10, border: `1.5px solid ${ativo ? C.red : C.border}`, background: ativo ? "rgba(215,13,22,0.06)" : C.white, color: ativo ? C.red : C.textSecondary, fontSize: 13, fontWeight: ativo ? 700 : 500, cursor: "pointer", fontFamily: FONT_BODY, display: "flex", alignItems: "center", gap: 10 }}>
-                          <span style={{ width: 16, height: 16, borderRadius: "50%", border: `2px solid ${ativo ? C.red : C.border}`, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
-                            {ativo && <span style={{ width: 8, height: 8, borderRadius: "50%", background: C.red }} />}
-                          </span>
+                        <button key={opt.id} type="button" role="radio" aria-checked={ativo} className="aef-ops__choice" onClick={() => setForm(p => ({ ...p, experiencia: opt.id }))}>
+                          <span className="aef-ops__radio" aria-hidden="true" />
                           {opt.label}
                         </button>
                       );
                     })}
                   </div>
                 </div>
-                <div>
-                  <label style={{ display: "block", fontSize: 11, fontWeight: 600, color: C.textSecondary, marginBottom: 6, letterSpacing: 0.4, textTransform: "uppercase" }}>Seu contato (WhatsApp) *</label>
-                  <input type="tel" value={form.telefone} onChange={e => setForm(p => ({ ...p, telefone: e.target.value }))} placeholder="(91) 9XXXX-XXXX" style={{ width: "100%", padding: "11px 14px", border: `1px solid ${C.border}`, borderRadius: 10, fontSize: 14, color: C.text, outline: "none", boxSizing: "border-box", fontFamily: FONT_BODY }} />
+                <div className="aef-ops__field">
+                  <label className="aef-ops__label" htmlFor="ops-pub-tel">Seu contato (WhatsApp) *</label>
+                  <input id="ops-pub-tel" className="aef-ops__input" type="tel" autoComplete="tel" value={form.telefone} onChange={e => setForm(p => ({ ...p, telefone: e.target.value }))} placeholder="(91) 9XXXX-XXXX" />
                 </div>
-                <div>
-                  <label style={{ display: "block", fontSize: 11, fontWeight: 600, color: C.textSecondary, marginBottom: 6, letterSpacing: 0.4, textTransform: "uppercase" }}>Contato de emergência *</label>
-                  <input type="tel" value={form.emergencia} onChange={e => setForm(p => ({ ...p, emergencia: e.target.value }))} placeholder="Familiar ou pessoa próxima" style={{ width: "100%", padding: "11px 14px", border: `1px solid ${C.border}`, borderRadius: 10, fontSize: 14, color: C.text, outline: "none", boxSizing: "border-box", fontFamily: FONT_BODY }} />
+                <div className="aef-ops__field">
+                  <label className="aef-ops__label" htmlFor="ops-pub-emerg">Contato de emergência *</label>
+                  <input id="ops-pub-emerg" className="aef-ops__input" type="tel" value={form.emergencia} onChange={e => setForm(p => ({ ...p, emergencia: e.target.value }))} placeholder="Familiar ou pessoa próxima" />
                 </div>
-                <div style={{ padding: "12px 14px", background: C.bg, borderRadius: 10 }}>
-                  <div style={{ fontSize: 11, fontWeight: 700, color: C.textSecondary, letterSpacing: 0.4, textTransform: "uppercase", marginBottom: 6 }}>Termo de compromisso</div>
-                  <p style={{ fontSize: 12, color: C.textSecondary, lineHeight: 1.5, margin: "0 0 10px" }}>
+                <div className="aef-ops__note aef-ops__stack" style={{ gap: "var(--space-xs)" }}>
+                  <span className="aef-ops__label">Termo de compromisso</span>
+                  <p>
                     Declaro que participarei do treinamento online obrigatório, comparecerei à ação no horário marcado, seguirei as orientações da diretoria e estou ciente de que minha inscrição não garante a vaga (será definida por sorteio).
                   </p>
-                  <label style={{ display: "flex", alignItems: "center", gap: 8, cursor: "pointer", fontSize: 13, color: C.text, fontWeight: 600 }}>
-                    <input type="checkbox" checked={form.termo} onChange={e => setForm(p => ({ ...p, termo: e.target.checked }))} style={{ cursor: "pointer" }} />
+                  <label className="aef-ops__checkline">
+                    <input type="checkbox" checked={form.termo} onChange={e => setForm(p => ({ ...p, termo: e.target.checked }))} />
                     Sim, concordo.
                   </label>
                 </div>
               </div>
-              {erro && (
-                <div style={{ marginTop: 14, padding: "10px 12px", background: "rgba(215,13,22,0.08)", color: C.red, borderRadius: 8, fontSize: 13 }}>{erro}</div>
-              )}
-              <button onClick={submeter} style={{ marginTop: 20, width: "100%", padding: "13px", background: C.red, color: C.white, border: "none", borderRadius: 10, fontSize: 15, fontWeight: 700, cursor: "pointer", boxShadow: "0 6px 16px rgba(215,13,22,0.22)" }}>
+              {erro && <p className="aef-ops__error" role="alert">{erro}</p>}
+              <button type="button" className="aef-ops__btn aef-ops__btn--primary aef-ops__btn--block" onClick={submeter}>
                 Quero participar
               </button>
-              <p style={{ fontSize: 11, color: C.textTertiary, textAlign: "center", marginTop: 14, lineHeight: 1.5 }}>Esta página é uma simulação. No deploy real ela ficará em <b>amoremfoco.org/inscricao/{acao.id}</b> e qualquer pessoa com o link poderá se inscrever.</p>
+              <p className="aef-ops__fineprint">Esta página é uma simulação. No deploy real ela ficará em <b>amoremfoco.org/inscricao/{acao.id}</b> e qualquer pessoa com o link poderá se inscrever.</p>
             </>
           )}
           </div>
@@ -2634,92 +2607,87 @@ function ModalSorteio({ acao, user, onClose, mobile, inscritos: inscritosFonte }
     });
   };
 
-  return (
-    <div onClick={onClose} style={{
-      position: "fixed", inset: 0, background: "rgba(0,0,0,0.55)",
-      display: "flex", alignItems: mobile ? "flex-end" : "center", justifyContent: "center",
-      zIndex: 500, padding: mobile ? 0 : 16,
-    }}>
-      <div onClick={(e) => e.stopPropagation()} style={{
-        background: C.white, borderRadius: mobile ? "16px 16px 0 0" : 18,
-        width: "100%", maxWidth: 640, fontFamily: FONT_BODY,
-        maxHeight: mobile ? "94vh" : "92vh", display: "flex", flexDirection: "column", overflow: "hidden",
-      }}>
-        <div style={{ padding: mobile ? "18px 20px 14px" : "22px 26px 16px", borderBottom: `1px solid ${C.borderLight}` }}>
-          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12 }}>
-            <div>
-              <h2 style={{ fontSize: 19, fontWeight: 700, color: C.text, letterSpacing: -0.4, margin: "0 0 4px", fontFamily: FONT_DISPLAY }}>Sorteio — {acao.nome}</h2>
-              <p style={{ color: C.textSecondary, fontSize: 13, margin: 0 }}>
-                {etapa === "config" && `${acao.data} · Configure critérios e quem está inscrito`}
-                {etapa === "resultado" && `${acao.data} · Salvo em ${resultado?.geradaEm}${resultado?.geradoPor ? ` por ${resultado.geradoPor}` : ""}`}
-              </p>
+  const renderResultList = (titulo, lista, tipo, tom, vazio, botaoCopiar) => (
+    <div className="aef-ops__draw-list" data-tone={tom}>
+      <div className="aef-ops__draw-head">
+        <span>{titulo} ({lista.length})</span>
+        {botaoCopiar}
+      </div>
+      <ul className="aef-ops__people aef-ops__draw-body">
+        {lista.length === 0 ? (
+          <li className="aef-ops__draw-empty">{vazio}</li>
+        ) : lista.map((v, i) => (
+          <li key={v.name} className="aef-ops__person" data-tone={tom}>
+            <span className="aef-ops__num">{i + 1}.</span>
+            <div className="aef-ops__person-main">
+              <div className="aef-ops__person-name">{v.name}{v.novato && <span className="aef-ops__tag" data-tone="green">Novato</span>}</div>
+              {v.telefone && <div className="aef-ops__hint" style={{ marginTop: 0 }}>{v.telefone}</div>}
             </div>
-            <button onClick={onClose} style={{ background: C.bg, border: "none", borderRadius: 8, width: 30, height: 30, cursor: "pointer", fontSize: 16, color: C.textSecondary }}>×</button>
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+
+  return (
+    <div className="aef-ops aef-ops__scrim" onClick={onClose}>
+      <div className="aef-ops__dialog aef-ops__dialog--wide" role="dialog" aria-modal="true" aria-labelledby="ops-sorteio-title" onClick={(e) => e.stopPropagation()}>
+        <div className="aef-ops__dialog-head">
+          <div style={{ minWidth: 0 }}>
+            <h2 id="ops-sorteio-title" className="aef-ops__dialog-title">Sorteio: {acao.nome}</h2>
+            <div className="aef-ops__meta" style={{ marginTop: "var(--space-2xs)" }}>
+              <span>{acao.data}</span>
+              {etapa === "config" && <span>Configure critérios e quem está inscrito</span>}
+              {etapa === "resultado" && <span>Salvo em {resultado?.geradaEm}{resultado?.geradoPor ? ` por ${resultado.geradoPor}` : ""}</span>}
+            </div>
           </div>
+          <button type="button" className="aef-ops__btn aef-ops__btn--outline" onClick={onClose}>Fechar</button>
         </div>
 
-        <div style={{ flex: 1, overflowY: "auto", padding: mobile ? "18px 20px" : "20px 26px" }}>
+        <div className="aef-ops__dialog-body aef-ops__stack">
           {etapa === "config" && (
             <>
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, marginBottom: 18 }}>
-                <div>
-                  <label style={{ display: "block", fontSize: 11, fontWeight: 600, color: C.textSecondary, marginBottom: 6, letterSpacing: 0.4, textTransform: "uppercase" }}>Vagas</label>
-                  <input type="number" min={1} value={vagas} onChange={e => setVagas(Math.max(1, +e.target.value || 1))}
-                    style={{ width: "100%", padding: "10px 12px", border: `1px solid ${C.border}`, borderRadius: 10, fontSize: 14, color: C.text, outline: "none", boxSizing: "border-box", fontFamily: FONT_BODY }}
-                  />
+              <div className="aef-ops__row2">
+                <div className="aef-ops__field">
+                  <label className="aef-ops__label" htmlFor="ops-vagas">Vagas</label>
+                  <input id="ops-vagas" className="aef-ops__input" type="number" min={1} value={vagas} onChange={e => setVagas(Math.max(1, +e.target.value || 1))} />
                 </div>
-                <div>
-                  <label style={{ display: "block", fontSize: 11, fontWeight: 600, color: C.textSecondary, marginBottom: 6, letterSpacing: 0.4, textTransform: "uppercase" }}>Mínimo de novatos</label>
-                  <input type="number" min={0} value={minNovatos} onChange={e => setMinNovatos(Math.max(0, +e.target.value || 0))}
-                    style={{ width: "100%", padding: "10px 12px", border: `1px solid ${C.border}`, borderRadius: 10, fontSize: 14, color: C.text, outline: "none", boxSizing: "border-box", fontFamily: FONT_BODY }}
-                  />
+                <div className="aef-ops__field">
+                  <label className="aef-ops__label" htmlFor="ops-min-novatos">Mínimo de novatos</label>
+                  <input id="ops-min-novatos" className="aef-ops__input" type="number" min={0} value={minNovatos} onChange={e => setMinNovatos(Math.max(0, +e.target.value || 0))} />
                 </div>
               </div>
 
-              <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 8, marginBottom: 18 }}>
-                <div style={{ background: C.bg, borderRadius: 10, padding: "10px 12px" }}>
-                  <div style={{ fontSize: 10, color: C.textTertiary, letterSpacing: 0.5, textTransform: "uppercase", fontWeight: 600 }}>Inscritos</div>
-                  <div style={{ fontSize: 20, fontWeight: 700, color: C.text }}>{elegiveis.length}</div>
-                </div>
-                <div style={{ background: "rgba(34,197,94,0.08)", borderRadius: 10, padding: "10px 12px" }}>
-                  <div style={{ fontSize: 10, color: "#15803D", letterSpacing: 0.5, textTransform: "uppercase", fontWeight: 600 }}>Novatos</div>
-                  <div style={{ fontSize: 20, fontWeight: 700, color: "#15803D" }}>{totalNovatos}</div>
-                </div>
-                <div style={{ background: "rgba(126,34,206,0.08)", borderRadius: 10, padding: "10px 12px" }}>
-                  <div style={{ fontSize: 10, color: "#7E22CE", letterSpacing: 0.5, textTransform: "uppercase", fontWeight: 600 }}>Veteranos</div>
-                  <div style={{ fontSize: 20, fontWeight: 700, color: "#7E22CE" }}>{totalVeteranos}</div>
+              <ul className="aef-ops__figures">
+                <li className="aef-ops__figure"><span className="aef-ops__figure-label">Inscritos</span><span className="aef-ops__figure-value">{elegiveis.length}</span></li>
+                <li className="aef-ops__figure" data-tone="green"><span className="aef-ops__figure-label">Novatos</span><span className="aef-ops__figure-value">{totalNovatos}</span></li>
+                <li className="aef-ops__figure" data-tone="purple"><span className="aef-ops__figure-label">Veteranos</span><span className="aef-ops__figure-value">{totalVeteranos}</span></li>
+              </ul>
+
+              <div className="aef-ops__pool-head">
+                <span className="aef-ops__label">{origemPool === "inscricoes" ? `Inscritos pela página pública (${pool.length})` : "Voluntários do banco"}</span>
+                <div style={{ display: "flex", gap: "var(--space-2xs)" }}>
+                  <button type="button" className="aef-ops__btn aef-ops__btn--link" onClick={() => setInscritos(Object.fromEntries(pool.map(v => [v.name, !v.penalizado])))}>Marcar todos</button>
+                  <button type="button" className="aef-ops__btn aef-ops__btn--quiet" onClick={() => setInscritos({})}>Limpar</button>
                 </div>
               </div>
 
-              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 10 }}>
-                <div style={{ fontSize: 12, fontWeight: 600, color: C.textSecondary, textTransform: "uppercase", letterSpacing: 0.5 }}>{origemPool === "inscricoes" ? `Inscritos pela página pública (${pool.length})` : "Voluntários do banco"}</div>
-                <div style={{ display: "flex", gap: 8 }}>
-                  <button onClick={() => setInscritos(Object.fromEntries(pool.map(v => [v.name, !v.penalizado])))} style={{ fontSize: 11, color: C.red, background: "none", border: "none", cursor: "pointer", fontWeight: 600 }}>Marcar todos</button>
-                  <button onClick={() => setInscritos({})} style={{ fontSize: 11, color: C.textSecondary, background: "none", border: "none", cursor: "pointer", fontWeight: 600 }}>Limpar</button>
-                </div>
-              </div>
-
-              <div style={{ border: `1px solid ${C.border}`, borderRadius: 12, overflow: "hidden" }}>
-                {pool.map((v, i) => (
-                  <label key={v.name} style={{
-                    display: "flex", alignItems: "center", gap: 10, padding: "10px 14px",
-                    borderTop: i === 0 ? "none" : `1px solid ${C.borderLight}`,
-                    cursor: v.penalizado ? "not-allowed" : "pointer", opacity: v.penalizado ? 0.55 : 1,
-                  }}>
+              <div className="aef-ops__pool">
+                {pool.map((v) => (
+                  <label key={v.name} className="aef-ops__pool-row" data-blocked={v.penalizado ? "true" : undefined}>
                     <input type="checkbox" disabled={v.penalizado} checked={!!inscritos[v.name]}
                       onChange={e => setInscritos(prev => ({ ...prev, [v.name]: e.target.checked }))}
-                      style={{ cursor: v.penalizado ? "not-allowed" : "pointer" }}
                     />
-                    <div style={{ width: 28, height: 28, borderRadius: "50%", background: v.penalizado ? C.borderLight : C.bg, color: C.textSecondary, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 10, fontWeight: 700, flexShrink: 0 }}>{v.initials}</div>
-                    <div style={{ flex: 1, minWidth: 0 }}>
-                      <div style={{ fontSize: 13.5, fontWeight: 600, color: C.text, display: "flex", alignItems: "center", gap: 6, flexWrap: "wrap" }}>
+                    <div className="aef-ops__person-main">
+                      <div className="aef-ops__person-name">
                         {v.name}
-                        {v.novato && <span style={{ fontSize: 9, fontWeight: 700, color: "#15803D", background: "rgba(34,197,94,0.12)", padding: "1px 6px", borderRadius: 6, letterSpacing: 0.4, textTransform: "uppercase" }}>Novato</span>}
-                        {v.penalizado && <span style={{ fontSize: 9, fontWeight: 700, color: C.red, background: "rgba(215,13,22,0.08)", padding: "1px 6px", borderRadius: 6, letterSpacing: 0.4, textTransform: "uppercase" }}>Penalizado</span>}
+                        {v.novato && <span className="aef-ops__tag" data-tone="green">Novato</span>}
+                        {v.penalizado && <span className="aef-ops__tag" data-tone="red">Penalizado</span>}
                       </div>
-                      <div style={{ fontSize: 11, color: C.textTertiary }}>
-                        {v.area} · {v.actions} ações
-                        {v.penalizado && v.motivoPenalidade && ` · ${v.motivoPenalidade}`}
+                      <div className="aef-ops__meta">
+                        <span>{v.area}</span>
+                        <span>{v.actions} ações</span>
+                        {v.penalizado && v.motivoPenalidade && <span>{v.motivoPenalidade}</span>}
                       </div>
                     </div>
                   </label>
@@ -2729,82 +2697,31 @@ function ModalSorteio({ acao, user, onClose, mobile, inscritos: inscritosFonte }
           )}
 
           {etapa === "resultado" && resultado && (
-            <div style={{ display: "grid", gridTemplateColumns: mobile ? "1fr" : "1fr 1fr", gap: 14 }}>
-              <div style={{ border: `1.5px solid rgba(34,197,94,0.3)`, background: "rgba(34,197,94,0.04)", borderRadius: 12, overflow: "hidden" }}>
-                <div style={{ padding: "12px 14px", borderBottom: `1px solid rgba(34,197,94,0.2)`, display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-                  <span style={{ fontSize: 12, fontWeight: 700, color: "#15803D", letterSpacing: 0.4, textTransform: "uppercase" }}>Sorteados ({resultado.sorteados.length})</span>
-                  <button onClick={() => copiar("sorteados")} style={{ fontSize: 11, fontWeight: 600, color: copiado === "sorteados" ? "#15803D" : C.textSecondary, background: "none", border: "none", cursor: "pointer", display: "flex", alignItems: "center", gap: 4 }}>
-                    {copiado === "sorteados" ? "✓ copiado" : "Copiar"}
-                  </button>
-                </div>
-                <div style={{ maxHeight: 320, overflowY: "auto" }}>
-                  {resultado.sorteados.map((v, i) => (
-                    <div key={v.name} style={{ padding: "9px 14px", display: "flex", alignItems: "center", gap: 8, borderTop: i === 0 ? "none" : `1px solid rgba(34,197,94,0.12)` }}>
-                      <span style={{ fontSize: 11, fontWeight: 700, color: "#15803D", width: 22, flexShrink: 0 }}>{i + 1}.</span>
-                      <div style={{ flex: 1, minWidth: 0 }}>
-                        <div style={{ fontSize: 13, color: C.text, fontWeight: 600, display: "flex", alignItems: "center", gap: 6, flexWrap: "wrap" }}>
-                          {v.name}
-                          {v.novato && <span style={{ fontSize: 9, fontWeight: 700, color: "#15803D", background: "rgba(34,197,94,0.14)", padding: "1px 6px", borderRadius: 6, letterSpacing: 0.4, textTransform: "uppercase" }}>Novato</span>}
-                        </div>
-                        {v.telefone && <div style={{ fontSize: 11, color: C.textSecondary, marginTop: 1 }}>{v.telefone}</div>}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              <div style={{ border: `1.5px solid ${C.border}`, background: C.bg, borderRadius: 12, overflow: "hidden" }}>
-                <div style={{ padding: "12px 14px", borderBottom: `1px solid ${C.border}`, display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-                  <span style={{ fontSize: 12, fontWeight: 700, color: C.textSecondary, letterSpacing: 0.4, textTransform: "uppercase" }}>Reserva ({resultado.reserva.length})</span>
-                  <button onClick={() => copiar("reserva")} style={{ fontSize: 11, fontWeight: 600, color: copiado === "reserva" ? "#15803D" : C.textSecondary, background: "none", border: "none", cursor: "pointer" }}>
-                    {copiado === "reserva" ? "✓ copiado" : "Copiar"}
-                  </button>
-                </div>
-                <div style={{ maxHeight: 320, overflowY: "auto" }}>
-                  {resultado.reserva.length === 0 ? (
-                    <div style={{ padding: 14, fontSize: 12, color: C.textTertiary, textAlign: "center" }}>Sem reserva — todos foram sorteados</div>
-                  ) : resultado.reserva.map((v, i) => (
-                    <div key={v.name} style={{ padding: "9px 14px", display: "flex", alignItems: "center", gap: 8, borderTop: i === 0 ? "none" : `1px solid ${C.borderLight}` }}>
-                      <span style={{ fontSize: 11, fontWeight: 700, color: C.textSecondary, width: 22, flexShrink: 0 }}>{i + 1}.</span>
-                      <div style={{ flex: 1, minWidth: 0 }}>
-                        <div style={{ fontSize: 13, color: C.text, fontWeight: 600, display: "flex", alignItems: "center", gap: 6, flexWrap: "wrap" }}>
-                          {v.name}
-                          {v.novato && <span style={{ fontSize: 9, fontWeight: 700, color: "#15803D", background: "rgba(34,197,94,0.12)", padding: "1px 6px", borderRadius: 6, letterSpacing: 0.4, textTransform: "uppercase" }}>Novato</span>}
-                        </div>
-                        {v.telefone && <div style={{ fontSize: 11, color: C.textSecondary, marginTop: 1 }}>{v.telefone}</div>}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
+            <div className="aef-ops__draw">
+              {renderResultList("Sorteados", resultado.sorteados, "sorteados", "green", "Sem sorteados",
+                <button type="button" className="aef-ops__btn aef-ops__btn--quiet" data-done={copiado === "sorteados" ? "true" : undefined} onClick={() => copiar("sorteados")}>{copiado === "sorteados" ? "Copiado" : "Copiar"}</button>
+              )}
+              {renderResultList("Reserva", resultado.reserva, "reserva", undefined, "Sem reserva, todos foram sorteados",
+                <button type="button" className="aef-ops__btn aef-ops__btn--quiet" data-done={copiado === "reserva" ? "true" : undefined} onClick={() => copiar("reserva")}>{copiado === "reserva" ? "Copiado" : "Copiar"}</button>
+              )}
             </div>
           )}
         </div>
 
-        <div style={{ padding: mobile ? "14px 20px" : "16px 26px", borderTop: `1px solid ${C.borderLight}`, display: "flex", gap: 10 }}>
+        <div className="aef-ops__dialog-foot">
           {etapa === "config" && (
             <>
-              <button onClick={onClose} style={{ flex: 1, padding: "11px", background: C.white, color: C.textSecondary, border: `1px solid ${C.border}`, borderRadius: 10, fontSize: 14, fontWeight: 600, cursor: "pointer" }}>Cancelar</button>
-              <button disabled={!podeSortear} onClick={realizar} style={{
-                flex: 2, padding: "11px", background: podeSortear ? C.red : C.borderLight,
-                color: podeSortear ? C.white : C.textTertiary, border: "none", borderRadius: 10,
-                fontSize: 14, fontWeight: 700, cursor: podeSortear ? "pointer" : "not-allowed",
-                boxShadow: podeSortear ? "0 6px 16px rgba(215,13,22,0.22)" : "none",
-              }}>
+              <button type="button" className="aef-ops__btn aef-ops__btn--outline aef-ops__btn--grow" onClick={onClose}>Cancelar</button>
+              <button type="button" className="aef-ops__btn aef-ops__btn--primary aef-ops__btn--grow2" disabled={!podeSortear} onClick={realizar}>
                 {!podeSortear ? `Selecione ao menos ${vagas} voluntários` : "Realizar sorteio"}
               </button>
             </>
           )}
           {etapa === "resultado" && (
             <>
-              <button onClick={refazer} style={{ flex: 1, padding: "11px", background: C.white, color: C.textSecondary, border: `1px solid ${C.border}`, borderRadius: 10, fontSize: 14, fontWeight: 600, cursor: "pointer" }}>Refazer</button>
-              <button onClick={() => copiar("tudo")} style={{
-                flex: 2, padding: "11px", background: copiado === "tudo" ? "#15803D" : C.red,
-                color: C.white, border: "none", borderRadius: 10,
-                fontSize: 14, fontWeight: 700, cursor: "pointer",
-                boxShadow: "0 6px 16px rgba(215,13,22,0.22)",
-              }}>
-                {copiado === "tudo" ? "✓ Copiado para área de transferência" : "Copiar lista completa"}
+              <button type="button" className="aef-ops__btn aef-ops__btn--outline aef-ops__btn--grow" onClick={refazer}>Refazer</button>
+              <button type="button" className="aef-ops__btn aef-ops__btn--primary aef-ops__btn--grow2" onClick={() => copiar("tudo")} aria-live="polite">
+                {copiado === "tudo" ? "Copiado para área de transferência" : "Copiar lista completa"}
               </button>
             </>
           )}
@@ -2828,69 +2745,50 @@ function Operacoes({ mobile, user }) {
   }
 
   return (
-    <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', sans-serif" }}>
-      {/* Header */}
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 24, gap: 12 }}>
+    <div className="aef-ops">
+      <div className="aef-ops__head">
         <div>
-          <h1 style={{ fontSize: mobile ? 24 : 28, fontWeight: 700, color: C.text, letterSpacing: -0.5, margin: "0 0 4px", fontFamily: FONT_DISPLAY }}>Operações</h1>
-          <p style={{ color: C.textSecondary, fontSize: 14, margin: 0 }}>{acoes.length} ações registradas</p>
+          <h1 className="aef-ops__title">Operações</h1>
+          <p className="aef-ops__desc">{acoes.length} ações registradas</p>
         </div>
-        <button onClick={() => setShowNovaAcao(true)} style={{
-          background: C.red, color: C.white, border: "none", borderRadius: 10,
-          padding: "10px 18px", fontSize: 14, fontWeight: 600, cursor: "pointer",
-          display: "flex", alignItems: "center", gap: 7, flexShrink: 0,
-        }}>
-          <Icon name="plus" size={16} color={C.white} />
+        <button type="button" className="aef-ops__btn aef-ops__btn--primary" onClick={() => setShowNovaAcao(true)}>
+          <span aria-hidden="true"><Icon name="plus" size={16} /></span>
           Nova Ação
         </button>
       </div>
 
       {/* Nova Ação modal */}
       {showNovaAcao && (
-        <div style={{
-          position: "fixed", inset: 0, background: "rgba(0,0,0,0.4)", zIndex: 999,
-          display: "flex", alignItems: "flex-end", justifyContent: "center",
-          backdropFilter: "blur(4px)",
-        }} onClick={() => setShowNovaAcao(false)}>
-          <div onClick={e => e.stopPropagation()} style={{
-            background: C.surface, borderRadius: "20px 20px 0 0", padding: "28px 24px 40px",
-            width: "100%", maxWidth: 520,
-          }}>
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 22 }}>
-              <h2 style={{ fontSize: 18, fontWeight: 700, color: C.text, letterSpacing: -0.4, margin: 0 }}>Nova Ação</h2>
-              <button onClick={() => setShowNovaAcao(false)} style={{ background: C.bg, border: "none", borderRadius: 8, width: 30, height: 30, cursor: "pointer", fontSize: 16, color: C.textSecondary }}>×</button>
+        <div className="aef-ops__scrim" onClick={() => setShowNovaAcao(false)}>
+          <div className="aef-ops__dialog" role="dialog" aria-modal="true" aria-labelledby="ops-nova-title" onClick={e => e.stopPropagation()}>
+            <div className="aef-ops__dialog-head">
+              <h2 id="ops-nova-title" className="aef-ops__dialog-title">Nova Ação</h2>
+              <button type="button" className="aef-ops__btn aef-ops__btn--outline" onClick={() => setShowNovaAcao(false)}>Fechar</button>
             </div>
-            <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+            <div className="aef-ops__dialog-body aef-ops__form">
               {[
-                { label: "Nome da ação", key: "nome", type: "text", placeholder: "Ex: Café de Rua — Abril" },
+                { label: "Nome da ação", key: "nome", type: "text", placeholder: "Ex: Café de Rua, Abril" },
                 { label: "Data", key: "data", type: "date", placeholder: "" },
                 { label: "Responsável", key: "responsavel", type: "text", placeholder: "Nome do diretor responsável" },
               ].map(f => (
-                <div key={f.key}>
-                  <label style={{ display: "block", fontSize: 11, fontWeight: 600, color: C.textSecondary, marginBottom: 6, letterSpacing: 0.3, textTransform: "uppercase" }}>{f.label}</label>
-                  <input type={f.type} placeholder={f.placeholder} value={novaAcao[f.key]}
+                <div key={f.key} className="aef-ops__field">
+                  <label className="aef-ops__label" htmlFor={`ops-nova-${f.key}`}>{f.label}</label>
+                  <input id={`ops-nova-${f.key}`} className="aef-ops__input" type={f.type} placeholder={f.placeholder} value={novaAcao[f.key]}
                     onChange={e => setNovaAcao(p => ({ ...p, [f.key]: e.target.value }))}
-                    style={{ width: "100%", padding: "11px 14px", border: `1px solid ${C.border}`, borderRadius: 10, fontSize: 14, color: C.text, outline: "none", boxSizing: "border-box" }}
-                    onFocus={e => e.target.style.borderColor = C.red}
-                    onBlur={e => e.target.style.borderColor = C.border}
                   />
                 </div>
               ))}
-              <div>
-                <label style={{ display: "block", fontSize: 11, fontWeight: 600, color: C.textSecondary, marginBottom: 6, letterSpacing: 0.3, textTransform: "uppercase" }}>Tipo de ação</label>
-                <select value={novaAcao.tipo} onChange={e => setNovaAcao(p => ({ ...p, tipo: e.target.value }))}
-                  style={{ width: "100%", padding: "11px 14px", border: `1px solid ${C.border}`, borderRadius: 10, fontSize: 14, color: C.text, outline: "none", background: C.surface, appearance: "none" }}>
+              <div className="aef-ops__field">
+                <label className="aef-ops__label" htmlFor="ops-nova-tipo">Tipo de ação</label>
+                <select id="ops-nova-tipo" className="aef-ops__select" value={novaAcao.tipo} onChange={e => setNovaAcao(p => ({ ...p, tipo: e.target.value }))}>
                   {TIPOS.map(t => <option key={t}>{t}</option>)}
                 </select>
               </div>
-              <button onClick={() => {
+              <button type="button" className="aef-ops__btn aef-ops__btn--primary aef-ops__btn--block" onClick={() => {
                 if (!novaAcao.nome || !novaAcao.data) return;
                 setAcoes(prev => [{ id: Date.now(), ...novaAcao, status: "planejamento", voluntarios: 0, pop: null }, ...prev]);
                 setShowNovaAcao(false);
                 setNovaAcao({ nome: "", tipo: "Café de Rua", data: "", responsavel: "" });
-              }} style={{
-                background: C.red, color: C.white, border: "none", borderRadius: 10,
-                padding: "14px", fontSize: 15, fontWeight: 600, cursor: "pointer", marginTop: 4,
               }}>
                 Criar Ação
               </button>
@@ -2900,42 +2798,29 @@ function Operacoes({ mobile, user }) {
       )}
 
       {/* List */}
-      <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+      <ul className="aef-ops__panel aef-ops__list">
         {acoes.map((a) => (
-          <div key={a.id} onClick={() => { setSelected(a); setView("detail"); }} style={{
-            background: C.surface, borderRadius: 16, padding: "18px 20px",
-            border: `1px solid ${C.border}`, cursor: "pointer",
-            display: "flex", alignItems: "center", justifyContent: "space-between", gap: 16,
-            transition: "box-shadow 0.2s",
-          }}
-            onMouseEnter={e => e.currentTarget.style.boxShadow = "0 4px 20px rgba(0,0,0,0.07)"}
-            onMouseLeave={e => e.currentTarget.style.boxShadow = "none"}
-          >
-            <div style={{ flex: 1, minWidth: 0 }}>
-              <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 6, flexWrap: "wrap" }}>
-                <span style={{ fontWeight: 700, fontSize: 15, color: C.text, letterSpacing: -0.3 }}>{a.nome}</span>
-                <span style={{ padding: "2px 8px", borderRadius: 5, fontSize: 10, fontWeight: 600, background: tipoCfg[a.tipo]?.bg || C.bg, color: tipoCfg[a.tipo]?.text || C.textSecondary }}>{a.tipo}</span>
+          <li key={a.id}>
+            <button type="button" className="aef-ops__row" onClick={() => { setSelected(a); setView("detail"); }}>
+              <div className="aef-ops__row-main">
+                <div className="aef-ops__row-title">
+                  <span>{a.nome}</span>
+                  <span className="aef-ops__tone" data-tone={OPS_TIPO_TONE[a.tipo] || "neutral"}>{a.tipo}</span>
+                </div>
+                <div className="aef-ops__meta">
+                  <span className="aef-ops__meta-item"><span aria-hidden="true"><Icon name="clock" size={13} /></span>{a.data}</span>
+                  <span className="aef-ops__meta-item"><span aria-hidden="true"><Icon name="users" size={13} /></span>{a.voluntarios} voluntários</span>
+                  {a.responsavel && <span>{a.responsavel}</span>}
+                </div>
               </div>
-              <div style={{ display: "flex", alignItems: "center", gap: 14, flexWrap: "wrap" }}>
-                <span style={{ fontSize: 12, color: C.textTertiary, display: "flex", alignItems: "center", gap: 4 }}>
-                  <Icon name="clock" size={11} color={C.textTertiary} /> {a.data}
-                </span>
-                <span style={{ fontSize: 12, color: C.textTertiary, display: "flex", alignItems: "center", gap: 4 }}>
-                  <Icon name="users" size={11} color={C.textTertiary} /> {a.voluntarios} voluntários
-                </span>
-                <span style={{ fontSize: 12, color: C.textSecondary }}>{a.responsavel}</span>
+              <div className="aef-ops__row-side">
+                <span className="aef-ops__tone aef-ops__cap" data-tone={OPS_STATUS_TONE[a.status] || "neutral"}>{a.status}</span>
+                <span aria-hidden="true"><Icon name="chevronRight" size={16} /></span>
               </div>
-            </div>
-            <div style={{ display: "flex", alignItems: "center", gap: 10, flexShrink: 0 }}>
-              <div style={{ display: "flex", alignItems: "center", gap: 5, background: statusCfgOp[a.status]?.bg, padding: "4px 10px", borderRadius: 20 }}>
-                <div style={{ width: 6, height: 6, borderRadius: "50%", background: statusCfgOp[a.status]?.dot }} />
-                <span style={{ fontSize: 11, fontWeight: 600, color: statusCfgOp[a.status]?.text, whiteSpace: "nowrap" }}>{a.status}</span>
-              </div>
-              <Icon name="chevronRight" size={16} color={C.textTertiary} />
-            </div>
-          </div>
+            </button>
+          </li>
         ))}
-      </div>
+      </ul>
     </div>
   );
 }
@@ -3267,28 +3152,24 @@ function Financeiro({ mobile, setActive }) {
     { id: "relatorios", label: "Relatórios" },
   ];
 
+  const CAT_TONE = { doacao: "green", alimentacao: "purple", transporte: "orange", utilidades: "blue", marketing: "teal", tarifa: "neutral", reembolso: "amber", nao_categorizado: "neutral" };
+  const AREA_TONE = { alimentacao: "purple", saude: "red", social: "green", marketing: "teal", admin: "neutral" };
+  const DOADOR_TONE = { fiel: "green", recorrente: "blue", novo: "amber" };
+
   return (
-    <div style={{ fontFamily: FONT_BODY }}>
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 20, gap: 12, flexWrap: "wrap" }}>
+    <div className="aef-fin">
+      <div className="aef-fin__head">
         <div>
-          <h1 style={{ fontSize: mobile ? 24 : 28, fontWeight: 700, color: C.text, letterSpacing: -0.5, margin: "0 0 4px", fontFamily: FONT_DISPLAY }}>Financeiro</h1>
-          <p style={{ color: C.textSecondary, fontSize: 14, margin: 0 }}>Conta Cora · {transacoes.length} movimentações</p>
+          <h1 className="aef-fin__title">Financeiro</h1>
+          <p className="aef-fin__desc">Conta Cora, {transacoes.length} movimentações</p>
         </div>
-        <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
-          <button onClick={() => setShowTransparencia(true)} style={{
-            display: "flex", alignItems: "center", gap: 8, padding: "10px 16px",
-            background: C.white, color: C.text, border: `1px solid ${C.border}`,
-            borderRadius: 10, fontSize: 13, fontWeight: 600, cursor: "pointer",
-          }}>
-            <Icon name="eye" size={14} color={C.text} />
+        <div className="aef-fin__head-actions">
+          <button type="button" className="aef-fin__btn aef-fin__btn--outline" onClick={() => setShowTransparencia(true)}>
+            <span aria-hidden="true"><Icon name="eye" size={14} /></span>
             Página pública
           </button>
-          <button title="Disponível quando integrarmos com a API Cora" disabled style={{
-            display: "flex", alignItems: "center", gap: 8, padding: "10px 16px",
-            background: C.bg, color: C.textTertiary, border: `1px solid ${C.border}`,
-            borderRadius: 10, fontSize: 13, fontWeight: 600, cursor: "not-allowed",
-          }}>
-            <Icon name="settings" size={14} color={C.textTertiary} />
+          <button type="button" className="aef-fin__btn aef-fin__btn--outline" title="Disponível quando integrarmos com a API Cora" disabled>
+            <span aria-hidden="true"><Icon name="settings" size={14} /></span>
             Sincronizar com Cora
           </button>
         </div>
@@ -3296,322 +3177,270 @@ function Financeiro({ mobile, setActive }) {
 
       {/* Alertas */}
       {alertas.length > 0 && (
-        <div style={{ display: "flex", flexDirection: "column", gap: 6, marginBottom: 14 }}>
+        <div className="aef-fin__alerts" role="status">
           {alertas.map(a => (
-            <div key={a.tipo} style={{
-              display: "flex", alignItems: "center", gap: 10,
-              padding: "10px 14px", borderRadius: 10,
-              background: a.cor === C.red ? "rgba(215,13,22,0.06)" : "rgba(245,158,11,0.08)",
-              border: `1px solid ${a.cor === C.red ? "rgba(215,13,22,0.2)" : "rgba(245,158,11,0.25)"}`,
-              fontSize: 13, color: a.cor, fontWeight: 600,
-            }}>
-              <Icon name="shield" size={14} color={a.cor} strokeWidth={2} />
+            <p key={a.tipo} className="aef-fin__alert" data-tone={a.tipo === "saldo" ? "red" : "amber"}>
+              <span aria-hidden="true"><Icon name="shield" size={14} strokeWidth={2} /></span>
               {a.texto}
-            </div>
+            </p>
           ))}
         </div>
       )}
 
-      {/* Meta mensal */}
-      <div style={{ background: C.surface, borderRadius: 14, border: `1px solid ${C.border}`, padding: "16px 18px", marginBottom: 14 }}>
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 10, gap: 12, flexWrap: "wrap" }}>
-          <div>
-            <div style={{ fontSize: 11, fontWeight: 700, color: C.textSecondary, letterSpacing: 0.5, textTransform: "uppercase" }}>Meta de doações do mês</div>
-            <div style={{ fontSize: 17, fontWeight: 700, color: C.text, marginTop: 2 }}>
-              {fmtBRL(entradas)} <span style={{ fontSize: 13, color: C.textTertiary, fontWeight: 500 }}>de {fmtBRL(meta)} ({metaPct.toFixed(0)}%)</span>
+      <div className="aef-fin__top">
+        <section className="aef-fin__balance" aria-label="Saldo Cora">
+          <span className="aef-fin__balance-label">Saldo Cora</span>
+          <span className="aef-fin__balance-value">{fmtBRL(saldoAtual)}</span>
+        </section>
+
+        {/* Meta mensal */}
+        <section className="aef-fin__panel aef-fin__goal" aria-labelledby="fin-meta-title" data-tone={metaBatida ? "green" : undefined}>
+          <div className="aef-fin__goal-head">
+            <div>
+              <h2 id="fin-meta-title" className="aef-fin__h2">Meta de doações do mês</h2>
+              <p className="aef-fin__goal-value">
+                {fmtBRL(entradas)} <span className="aef-fin__goal-of">de {fmtBRL(meta)} ({metaPct.toFixed(0)}%)</span>
+              </p>
+            </div>
+            <div className="aef-fin__goal-actions">
+              {metaBatida && <span className="aef-fin__goal-met"><span aria-hidden="true"><Icon name="check" size={14} strokeWidth={2.5} /></span>Meta batida</span>}
+              {editandoMeta ? (
+                <>
+                  <input type="number" aria-label="Valor da meta mensal" className="aef-fin__input aef-fin__goal-input" value={meta} onChange={e => setMeta(+e.target.value || 0)} />
+                  <button type="button" className="aef-fin__btn aef-fin__btn--primary aef-fin__btn--small" onClick={() => setEditandoMeta(false)}>OK</button>
+                </>
+              ) : (
+                <button type="button" className="aef-fin__btn aef-fin__btn--outline aef-fin__btn--small" onClick={() => setEditandoMeta(true)}>Editar meta</button>
+              )}
             </div>
           </div>
-          <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-            {metaBatida && <span style={{ fontSize: 11, fontWeight: 700, color: "#15803D", background: "rgba(34,197,94,0.12)", padding: "3px 10px", borderRadius: 10, letterSpacing: 0.4, textTransform: "uppercase" }}>🎉 Meta batida</span>}
-            {editandoMeta ? (
-              <>
-                <input type="number" value={meta} onChange={e => setMeta(+e.target.value || 0)} style={{ width: 110, padding: "6px 10px", border: `1px solid ${C.border}`, borderRadius: 8, fontSize: 13, fontFamily: FONT_BODY, outline: "none" }} />
-                <button onClick={() => setEditandoMeta(false)} style={{ padding: "6px 12px", background: C.red, color: C.white, border: "none", borderRadius: 8, fontSize: 12, fontWeight: 600, cursor: "pointer" }}>OK</button>
-              </>
-            ) : (
-              <button onClick={() => setEditandoMeta(true)} style={{ padding: "6px 12px", background: C.white, color: C.textSecondary, border: `1px solid ${C.border}`, borderRadius: 8, fontSize: 12, fontWeight: 600, cursor: "pointer" }}>Editar meta</button>
-            )}
+          <div className="aef-fin__track" role="progressbar" aria-label="Meta de doações do mês" aria-valuemin={0} aria-valuemax={100} aria-valuenow={Math.round(metaPct)}>
+            <span style={{ width: `${metaPct}%` }} />
           </div>
-        </div>
-        <div style={{ height: 8, background: C.borderLight, borderRadius: 4, overflow: "hidden" }}>
-          <div style={{ width: `${metaPct}%`, height: "100%", background: metaBatida ? "#22C55E" : C.red, transition: "width 0.5s" }} />
-        </div>
+        </section>
       </div>
 
       {/* Stats */}
-      <div style={{ display: "grid", gridTemplateColumns: mobile ? "1fr 1fr" : "repeat(4, 1fr)", gap: 10, marginBottom: 20 }}>
-        <div style={{ background: `linear-gradient(135deg, ${C.red} 0%, ${C.redDark} 100%)`, color: C.white, padding: "14px 16px", borderRadius: 12, boxShadow: "0 8px 24px rgba(215,13,22,0.18)" }}>
-          <div style={{ fontSize: 10, letterSpacing: 0.5, textTransform: "uppercase", opacity: 0.85, fontWeight: 600 }}>Saldo Cora</div>
-          <div style={{ fontSize: 22, fontWeight: 700, marginTop: 4, letterSpacing: -0.5 }}>{fmtBRL(saldoAtual)}</div>
-        </div>
-        <StatCard icon="dollar" tone="green" label="Entradas mês" value={fmtBRL(entradas).replace("R$", "").trim()} sub="este mês" />
-        <StatCard icon="dollar" tone="red" label="Saídas mês" value={fmtBRL(Math.abs(saidas)).replace("R$", "").trim()} sub="este mês" />
-        <StatCard icon="settings" tone={naoCategorizadas > 0 ? "amber" : "green"} label="Pendentes" value={naoCategorizadas} sub="conciliar" />
-      </div>
+      <ul className="aef-fin__figures">
+        <li className="aef-fin__figure" data-tone="green"><span className="aef-fin__figure-label">Entradas mês</span><span className="aef-fin__figure-value">{fmtBRL(entradas)}</span></li>
+        <li className="aef-fin__figure" data-tone="red"><span className="aef-fin__figure-label">Saídas mês</span><span className="aef-fin__figure-value">{fmtBRL(Math.abs(saidas))}</span></li>
+        <li className="aef-fin__figure" data-tone={naoCategorizadas > 0 ? "amber" : "green"}><span className="aef-fin__figure-label">Pendentes</span><span className="aef-fin__figure-value">{naoCategorizadas}</span><span className="aef-fin__figure-detail">conciliar</span></li>
+      </ul>
 
       {/* Tabs */}
-      <div style={{ display: "flex", gap: 4, marginBottom: 16, borderBottom: `1px solid ${C.border}`, overflowX: "auto" }}>
+      <nav className="aef-fin__tabs" aria-label="Seções do Financeiro">
         {tabs.map(t => (
-          <button key={t.id} onClick={() => setTab(t.id)} style={{
-            padding: "9px 16px", background: "none", border: "none", cursor: "pointer",
-            fontSize: 14, fontWeight: tab === t.id ? 600 : 400,
-            color: tab === t.id ? C.text : C.textTertiary,
-            borderBottom: tab === t.id ? `2px solid ${C.red}` : "2px solid transparent",
-            marginBottom: -1, whiteSpace: "nowrap",
-          }}>
-            {t.label}{t.count !== undefined && ` (${t.count})`}
+          <button key={t.id} type="button" className="aef-fin__tab" aria-current={tab === t.id ? "page" : undefined} onClick={() => setTab(t.id)}>
+            {t.label}{t.count !== undefined && <span className="aef-fin__tab-count">({t.count})</span>}
           </button>
         ))}
-      </div>
+      </nav>
 
       {(tab === "extrato" || tab === "doacoes" || tab === "despesas") && (
         <>
-          <div style={{ display: "flex", gap: 10, marginBottom: 14, flexWrap: "wrap" }}>
-            <div style={{ position: "relative", flex: 1, minWidth: 220 }}>
-              <div style={{ position: "absolute", left: 12, top: "50%", transform: "translateY(-50%)" }}>
-                <Icon name="search" size={15} color={C.textTertiary} />
-              </div>
-              <input value={busca} onChange={e => setBusca(e.target.value)} placeholder="Buscar por descrição..." style={{
-                width: "100%", padding: "10px 14px 10px 38px", border: `1px solid ${C.border}`,
-                borderRadius: 10, fontSize: 13, fontFamily: FONT_BODY, background: C.white,
-                outline: "none", boxSizing: "border-box",
-              }} />
+          <div className="aef-fin__filters">
+            <div className="aef-fin__search">
+              <span className="aef-fin__search-icon" aria-hidden="true"><Icon name="search" size={15} /></span>
+              <input type="search" aria-label="Buscar por descrição" className="aef-fin__input" value={busca} onChange={e => setBusca(e.target.value)} placeholder="Buscar por descrição…" />
             </div>
-            <select value={filtroPeriodo} onChange={e => setFiltroPeriodo(e.target.value)} style={{
-              padding: "10px 14px", border: `1px solid ${C.border}`, borderRadius: 10,
-              fontSize: 13, fontFamily: FONT_BODY, background: C.white, cursor: "pointer",
-            }}>
+            <select aria-label="Período" className="aef-fin__select" value={filtroPeriodo} onChange={e => setFiltroPeriodo(e.target.value)}>
               <option value="semana">Últimos 7 dias</option>
               <option value="mes">Este mês</option>
               <option value="tudo">Tudo</option>
             </select>
-            <select value={filtroCategoria} onChange={e => setFiltroCategoria(e.target.value)} style={{
-              padding: "10px 14px", border: `1px solid ${C.border}`, borderRadius: 10,
-              fontSize: 13, fontFamily: FONT_BODY, background: C.white, cursor: "pointer",
-            }}>
+            <select aria-label="Categoria" className="aef-fin__select" value={filtroCategoria} onChange={e => setFiltroCategoria(e.target.value)}>
               <option value="todas">Todas categorias</option>
               {Object.entries(FIN_CATEGORIAS).map(([id, c]) => <option key={id} value={id}>{c.label}</option>)}
             </select>
           </div>
 
-          <div style={{ background: C.surface, borderRadius: 14, border: `1px solid ${C.border}`, overflow: "hidden" }}>
+          <div className="aef-fin__panel">
             {filtradas.length === 0 ? (
-              <div style={{ padding: "40px 20px", textAlign: "center", color: C.textTertiary, fontSize: 13 }}>
-                Nenhuma movimentação encontrada com esses filtros.
-              </div>
-            ) : filtradas.map((t, i) => {
-              const cat = FIN_CATEGORIAS[t.categoria] || FIN_CATEGORIAS.nao_categorizado;
-              const entrada = t.valor > 0;
-              return (
-                <div key={t.id} onClick={() => setEditando({ ...t })} style={{
-                  display: "flex", alignItems: "center", gap: 12,
-                  padding: mobile ? "12px 14px" : "14px 18px",
-                  borderTop: i === 0 ? "none" : `1px solid ${C.borderLight}`,
-                  cursor: "pointer", transition: "background 0.15s",
-                }}
-                  onMouseEnter={e => e.currentTarget.style.background = C.bg}
-                  onMouseLeave={e => e.currentTarget.style.background = "transparent"}
-                >
-                  <div style={{ width: 36, height: 36, borderRadius: 10, background: entrada ? "rgba(34,197,94,0.10)" : "rgba(215,13,22,0.08)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
-                    <span style={{ fontSize: 16, fontWeight: 700, color: entrada ? "#15803D" : C.red, lineHeight: 1 }}>{entrada ? "↓" : "↑"}</span>
-                  </div>
-                  <div style={{ flex: 1, minWidth: 0 }}>
-                    <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 3, flexWrap: "wrap" }}>
-                      <span style={{ fontSize: 13.5, fontWeight: 600, color: C.text, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", maxWidth: mobile ? 200 : 380 }}>{t.descricao}</span>
-                      {!t.conciliado && <span style={{ fontSize: 9, fontWeight: 700, color: "#B45309", background: "rgba(245,158,11,0.14)", padding: "1px 6px", borderRadius: 6, letterSpacing: 0.4, textTransform: "uppercase" }}>Pendente</span>}
-                    </div>
-                    <div style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 11, color: C.textTertiary, flexWrap: "wrap" }}>
-                      <span>{fmtDataBR(t.data)} · {t.hora}</span>
-                      <span style={{ fontSize: 10, fontWeight: 600, color: cat.cor, background: cat.bg, padding: "1px 7px", borderRadius: 6, letterSpacing: 0.3, textTransform: "uppercase" }}>{cat.label}</span>
-                      {t.acaoId && <span>· Ação #{t.acaoId}</span>}
-                    </div>
-                  </div>
-                  <div style={{ display: "flex", alignItems: "center", gap: 8, flexShrink: 0 }}>
-                    <div style={{ fontSize: 15, fontWeight: 700, color: entrada ? "#15803D" : C.text, textAlign: "right", fontVariantNumeric: "tabular-nums" }}>
-                      {entrada ? "+" : ""}{fmtBRL(t.valor)}
-                    </div>
-                    {entrada && t.contraparte !== "Anônimo" && t.categoria === "doacao" && (
-                      <button title="Gerar recibo de doação" onClick={(e) => { e.stopPropagation(); emitirRecibo(t); }} style={{
-                        width: 32, height: 32, borderRadius: 8, border: `1px solid ${C.border}`,
-                        background: C.white, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center",
-                      }}>
-                        <Icon name="file" size={13} color={C.textSecondary} />
-                      </button>
-                    )}
-                  </div>
-                </div>
-              );
-            })}
+              <p className="aef-fin__empty">Nenhuma movimentação encontrada com esses filtros.</p>
+            ) : (
+              <ul className="aef-fin__ledger">
+                {filtradas.map((t) => {
+                  const cat = FIN_CATEGORIAS[t.categoria] || FIN_CATEGORIAS.nao_categorizado;
+                  const entrada = t.valor > 0;
+                  return (
+                    <li key={t.id} className="aef-fin__entry" role="button" tabIndex={0} aria-label={"Detalhes: " + t.descricao}
+                      onClick={() => setEditando({ ...t })}
+                      onKeyDown={e => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); setEditando({ ...t }); } }}
+                    >
+                      <div className="aef-fin__entry-main">
+                        <div className="aef-fin__entry-title">
+                          <span>{t.descricao}</span>
+                          {!t.conciliado && <span className="aef-fin__tag" data-tone="amber">Pendente</span>}
+                        </div>
+                        <div className="aef-fin__meta">
+                          <span>{fmtDataBR(t.data)}</span>
+                          <span>{t.hora}</span>
+                          <span className="aef-fin__tone" data-tone={CAT_TONE[t.categoria] || "neutral"}>{cat.label}</span>
+                          {t.acaoId && <span>Ação #{t.acaoId}</span>}
+                        </div>
+                      </div>
+                      <div className="aef-fin__entry-side">
+                        <span className="aef-fin__amount" data-tone={entrada ? "green" : undefined}>{entrada ? "+" : ""}{fmtBRL(t.valor)}</span>
+                        <span className="aef-fin__receipt-slot">
+                          {entrada && t.contraparte !== "Anônimo" && t.categoria === "doacao" && (
+                            <button type="button" className="aef-fin__icon-btn" title="Gerar recibo de doação" aria-label={"Gerar recibo de " + t.contraparte} onClick={(e) => { e.stopPropagation(); emitirRecibo(t); }} onKeyDown={e => e.stopPropagation()}>
+                              <Icon name="file" size={14} />
+                            </button>
+                          )}
+                        </span>
+                      </div>
+                    </li>
+                  );
+                })}
+              </ul>
+            )}
           </div>
         </>
       )}
 
       {tab === "doadores" && (
-        <div style={{ background: C.surface, borderRadius: 14, border: `1px solid ${C.border}`, overflow: "hidden" }}>
-          <div style={{ padding: "14px 18px", borderBottom: `1px solid ${C.borderLight}`, display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 8 }}>
-            <span style={{ fontSize: 14, fontWeight: 700, color: C.text }}>{doadores.length} doadores identificados</span>
-            <div style={{ display: "flex", gap: 10, fontSize: 11, color: C.textSecondary }}>
-              <span><span style={{ display: "inline-block", width: 8, height: 8, borderRadius: "50%", background: "#22C55E", marginRight: 4 }} />Fiel</span>
-              <span><span style={{ display: "inline-block", width: 8, height: 8, borderRadius: "50%", background: "#3B82F6", marginRight: 4 }} />Recorrente</span>
-              <span><span style={{ display: "inline-block", width: 8, height: 8, borderRadius: "50%", background: "#F59E0B", marginRight: 4 }} />Novo</span>
-            </div>
+        <section className="aef-fin__panel">
+          <div className="aef-fin__panel-head">
+            <h2 className="aef-fin__h2">{doadores.length} doadores identificados</h2>
           </div>
           {doadores.length === 0 ? (
-            <div style={{ padding: 32, textAlign: "center", color: C.textTertiary, fontSize: 13 }}>Nenhum doador identificado ainda.</div>
-          ) : doadores.map((d, i) => {
-            const klass = classificarDoador(d.qtd, d.total);
-            return (
-              <div key={d.nome} style={{ padding: "14px 18px", display: "flex", alignItems: "center", gap: 12, borderTop: i === 0 ? "none" : `1px solid ${C.borderLight}` }}>
-                <div style={{ width: 38, height: 38, borderRadius: "50%", background: klass.bg, color: klass.cor, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 13, fontWeight: 700, flexShrink: 0 }}>
-                  {d.nome.split(" ").map(p => p[0]).slice(0, 2).join("").toUpperCase()}
-                </div>
-                <div style={{ flex: 1, minWidth: 0 }}>
-                  <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
-                    <span style={{ fontSize: 14, fontWeight: 600, color: C.text }}>{d.nome}</span>
-                    <span style={{ fontSize: 10, fontWeight: 700, color: klass.cor, background: klass.bg, padding: "2px 8px", borderRadius: 10, letterSpacing: 0.4, textTransform: "uppercase" }}>{klass.label}</span>
-                  </div>
-                  <div style={{ fontSize: 12, color: C.textTertiary, marginTop: 2 }}>
-                    {d.qtd} {d.qtd === 1 ? "doação" : "doações"} · primeira {fmtDataBR(d.primeira)} · última {fmtDataBR(d.ultima)}
-                  </div>
-                </div>
-                <div style={{ textAlign: "right", flexShrink: 0 }}>
-                  <div style={{ fontSize: 15, fontWeight: 700, color: "#15803D", fontVariantNumeric: "tabular-nums" }}>{fmtBRL(d.total)}</div>
-                  <div style={{ fontSize: 11, color: C.textTertiary }}>média {fmtBRL(d.total / d.qtd)}</div>
-                </div>
-              </div>
-            );
-          })}
-        </div>
+            <p className="aef-fin__empty">Nenhum doador identificado ainda.</p>
+          ) : (
+            <ul className="aef-fin__ledger">
+              {doadores.map((d) => {
+                const klass = classificarDoador(d.qtd, d.total);
+                return (
+                  <li key={d.nome} className="aef-fin__donor">
+                    <div className="aef-fin__donor-main">
+                      <div className="aef-fin__donor-name">
+                        <span>{d.nome}</span>
+                        <span className="aef-fin__tag" data-tone={DOADOR_TONE[klass.tipo] || "neutral"}>{klass.label}</span>
+                      </div>
+                      <div className="aef-fin__meta">
+                        <span>{d.qtd} {d.qtd === 1 ? "doação" : "doações"}</span>
+                        <span>primeira {fmtDataBR(d.primeira)}</span>
+                        <span>última {fmtDataBR(d.ultima)}</span>
+                      </div>
+                    </div>
+                    <div className="aef-fin__donor-total">
+                      <strong>{fmtBRL(d.total)}</strong>
+                      <span>média {fmtBRL(d.total / d.qtd)}</span>
+                    </div>
+                  </li>
+                );
+              })}
+            </ul>
+          )}
+        </section>
       )}
 
       {tab === "area" && (
-        <div style={{ background: C.surface, borderRadius: 14, border: `1px solid ${C.border}`, padding: 22 }}>
-          <h3 style={{ fontSize: 15, fontWeight: 700, color: C.text, margin: "0 0 16px", fontFamily: FONT_DISPLAY }}>Despesas por área (todo o histórico)</h3>
+        <section className="aef-fin__panel aef-fin__panel--pad">
+          <h2 className="aef-fin__h2" style={{ marginBottom: "var(--space-md)" }}>Despesas por área (todo o histórico)</h2>
           {breakdownArea.length === 0 ? (
-            <div style={{ padding: 20, textAlign: "center", color: C.textTertiary, fontSize: 13 }}>Sem despesas com área classificada.</div>
-          ) : breakdownArea.map(([areaId, v]) => {
-            const a = FIN_AREAS[areaId] || FIN_AREAS.admin;
-            const pct = (v / totalGastosArea) * 100;
-            return (
-              <div key={areaId} style={{ marginBottom: 14 }}>
-                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 6, fontSize: 13 }}>
-                  <span style={{ color: C.text, fontWeight: 600 }}>{a.label}</span>
-                  <span style={{ color: C.textSecondary, fontVariantNumeric: "tabular-nums" }}>{fmtBRL(v)} · {pct.toFixed(0)}%</span>
-                </div>
-                <div style={{ height: 8, background: C.borderLight, borderRadius: 4, overflow: "hidden" }}>
-                  <div style={{ width: `${pct}%`, height: "100%", background: a.cor, transition: "width 0.4s" }} />
-                </div>
-              </div>
-            );
-          })}
-          <div style={{ marginTop: 16, padding: "10px 14px", background: C.bg, borderRadius: 10, fontSize: 12, color: C.textSecondary }}>
-            💡 Transações vinculadas a uma ação herdam a área dela. Vincule no detalhe da transação.
-          </div>
-        </div>
+            <p className="aef-fin__empty">Sem despesas com área classificada.</p>
+          ) : (
+            <ul className="aef-fin__bars">
+              {breakdownArea.map(([areaId, v]) => {
+                const a = FIN_AREAS[areaId] || FIN_AREAS.admin;
+                const pct = (v / totalGastosArea) * 100;
+                return (
+                  <li key={areaId} className="aef-fin__bar" data-tone={AREA_TONE[areaId] || "neutral"}>
+                    <div className="aef-fin__bar-head"><span className="aef-fin__bar-name">{a.label}</span><span className="aef-fin__bar-figs"><span>{fmtBRL(v)}</span><span>{pct.toFixed(0)}%</span></span></div>
+                    <div className="aef-fin__track" role="presentation"><span style={{ width: `${pct}%` }} /></div>
+                  </li>
+                );
+              })}
+            </ul>
+          )}
+          <p className="aef-fin__note" style={{ marginTop: "var(--space-lg)" }}>
+            Transações vinculadas a uma ação herdam a área dela. Vincule no detalhe da transação.
+          </p>
+        </section>
       )}
 
       {tab === "relatorios" && (
-        <div style={{ display: "grid", gridTemplateColumns: mobile ? "1fr" : "1fr 1fr", gap: 14 }}>
-          <div style={{ background: C.surface, borderRadius: 14, border: `1px solid ${C.border}`, padding: 20 }}>
-            <h3 style={{ fontSize: 15, fontWeight: 700, color: C.text, margin: "0 0 14px", fontFamily: FONT_DISPLAY }}>Despesas por categoria</h3>
+        <div className="aef-fin__reports">
+          <section className="aef-fin__panel aef-fin__panel--pad">
+            <h2 className="aef-fin__h2" style={{ marginBottom: "var(--space-md)" }}>Despesas por categoria</h2>
             {breakdownDespesas.length === 0 ? (
-              <div style={{ fontSize: 13, color: C.textTertiary, textAlign: "center", padding: 20 }}>Sem despesas este mês.</div>
-            ) : breakdownDespesas.map(([catId, valor]) => {
-              const cat = FIN_CATEGORIAS[catId] || FIN_CATEGORIAS.nao_categorizado;
-              const pct = (valor / totalDespesas) * 100;
-              return (
-                <div key={catId} style={{ marginBottom: 12 }}>
-                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 5, fontSize: 13 }}>
-                    <span style={{ color: C.text, fontWeight: 600 }}>{cat.label}</span>
-                    <span style={{ color: C.textSecondary, fontVariantNumeric: "tabular-nums" }}>{fmtBRL(valor)} · {pct.toFixed(0)}%</span>
-                  </div>
-                  <div style={{ height: 6, background: C.borderLight, borderRadius: 3, overflow: "hidden" }}>
-                    <div style={{ width: `${pct}%`, height: "100%", background: cat.cor, transition: "width 0.4s" }} />
-                  </div>
-                </div>
-              );
-            })}
-          </div>
+              <p className="aef-fin__empty">Sem despesas este mês.</p>
+            ) : (
+              <ul className="aef-fin__bars">
+                {breakdownDespesas.map(([catId, valor]) => {
+                  const cat = FIN_CATEGORIAS[catId] || FIN_CATEGORIAS.nao_categorizado;
+                  const pct = (valor / totalDespesas) * 100;
+                  return (
+                    <li key={catId} className="aef-fin__bar" data-tone={CAT_TONE[catId] || "neutral"}>
+                      <div className="aef-fin__bar-head"><span className="aef-fin__bar-name">{cat.label}</span><span className="aef-fin__bar-figs"><span>{fmtBRL(valor)}</span><span>{pct.toFixed(0)}%</span></span></div>
+                      <div className="aef-fin__track aef-fin__track--thin" role="presentation"><span style={{ width: `${pct}%` }} /></div>
+                    </li>
+                  );
+                })}
+              </ul>
+            )}
+          </section>
 
-          <div style={{ background: C.surface, borderRadius: 14, border: `1px solid ${C.border}`, padding: 20 }}>
-            <h3 style={{ fontSize: 15, fontWeight: 700, color: C.text, margin: "0 0 14px", fontFamily: FONT_DISPLAY }}>Resumo do mês</h3>
-            <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-              <div style={{ display: "flex", justifyContent: "space-between", padding: "10px 14px", background: "rgba(34,197,94,0.08)", borderRadius: 10 }}>
-                <span style={{ fontSize: 13, color: "#15803D", fontWeight: 600 }}>Total de doações</span>
-                <span style={{ fontSize: 14, color: "#15803D", fontWeight: 700, fontVariantNumeric: "tabular-nums" }}>{fmtBRL(entradas)}</span>
-              </div>
-              <div style={{ display: "flex", justifyContent: "space-between", padding: "10px 14px", background: "rgba(215,13,22,0.06)", borderRadius: 10 }}>
-                <span style={{ fontSize: 13, color: C.red, fontWeight: 600 }}>Total de despesas</span>
-                <span style={{ fontSize: 14, color: C.red, fontWeight: 700, fontVariantNumeric: "tabular-nums" }}>{fmtBRL(Math.abs(saidas))}</span>
-              </div>
-              <div style={{ display: "flex", justifyContent: "space-between", padding: "10px 14px", background: C.bg, borderRadius: 10 }}>
-                <span style={{ fontSize: 13, color: C.text, fontWeight: 700 }}>Resultado do mês</span>
-                <span style={{ fontSize: 14, color: entradas + saidas >= 0 ? "#15803D" : C.red, fontWeight: 700, fontVariantNumeric: "tabular-nums" }}>{fmtBRL(entradas + saidas)}</span>
-              </div>
+          <section className="aef-fin__panel aef-fin__panel--pad">
+            <h2 className="aef-fin__h2">Resumo do mês</h2>
+            <ul className="aef-fin__summary">
+              <li data-tone="green"><span>Total de doações</span><strong>{fmtBRL(entradas)}</strong></li>
+              <li data-tone="red"><span>Total de despesas</span><strong>{fmtBRL(Math.abs(saidas))}</strong></li>
+              <li data-tone={entradas + saidas >= 0 ? "green" : "red"}><span>Resultado do mês</span><strong>{fmtBRL(entradas + saidas)}</strong></li>
+            </ul>
+            <div className="aef-fin__exports">
+              <button type="button" className="aef-fin__btn aef-fin__btn--outline aef-fin__btn--grow" disabled>Exportar PDF</button>
+              <button type="button" className="aef-fin__btn aef-fin__btn--outline aef-fin__btn--grow" disabled>Exportar Excel</button>
             </div>
-            <div style={{ marginTop: 16, display: "flex", gap: 8, flexWrap: "wrap" }}>
-              <button disabled style={{ flex: 1, padding: "10px", background: C.bg, color: C.textTertiary, border: `1px solid ${C.border}`, borderRadius: 8, fontSize: 12, fontWeight: 600, cursor: "not-allowed" }}>Exportar PDF</button>
-              <button disabled style={{ flex: 1, padding: "10px", background: C.bg, color: C.textTertiary, border: `1px solid ${C.border}`, borderRadius: 8, fontSize: 12, fontWeight: 600, cursor: "not-allowed" }}>Exportar Excel</button>
-            </div>
-            <div style={{ fontSize: 11, color: C.textTertiary, marginTop: 8, textAlign: "center" }}>Disponível após integração com Cora</div>
-          </div>
+            <p className="aef-fin__hint" style={{ textAlign: "center" }}>Disponível após integração com Cora</p>
+          </section>
         </div>
       )}
 
       {/* Toast recibo */}
       {reciboToast && (
-        <div style={{
-          position: "fixed", bottom: mobile ? 80 : 24, left: "50%", transform: "translateX(-50%)",
-          background: C.text, color: C.white, padding: "12px 20px", borderRadius: 12,
-          fontSize: 13, fontWeight: 600, zIndex: 600, boxShadow: "0 10px 30px rgba(0,0,0,0.2)",
-        }}>{reciboToast}</div>
+        <div className="aef-fin__toast" role="status">{reciboToast}</div>
       )}
 
       {/* Modal Transparência */}
       {showTransparencia && (
-        <div onClick={() => setShowTransparencia(false)} style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.6)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 500, padding: 12 }}>
-          <div onClick={(e) => e.stopPropagation()} style={{ width: "100%", maxWidth: 480, fontFamily: FONT_BODY, maxHeight: "94vh", display: "flex", flexDirection: "column" }}>
-            <div style={{ background: C.text, color: "rgba(255,255,255,0.7)", padding: "8px 14px", borderRadius: "12px 12px 0 0", fontSize: 11, display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-              <span style={{ fontFamily: "monospace" }}>🔒 https://amoremfoco.org/transparencia</span>
-              <button onClick={() => setShowTransparencia(false)} style={{ background: "rgba(255,255,255,0.1)", border: "none", color: C.white, width: 22, height: 22, borderRadius: 6, cursor: "pointer", fontSize: 12 }}>×</button>
+        <div className="aef-fin__scrim aef-fin__scrim--center" onClick={() => setShowTransparencia(false)}>
+          <div className="aef-fin__dialog" role="dialog" aria-modal="true" aria-labelledby="fin-transp-title" onClick={(e) => e.stopPropagation()}>
+            <div className="aef-fin__dialog-head">
+              <div style={{ minWidth: 0 }}>
+                <p className="aef-fin__h2">Prévia da página pública</p>
+                <p className="aef-fin__url">https://amoremfoco.org/transparencia</p>
+              </div>
+              <button type="button" className="aef-fin__btn aef-fin__btn--outline" onClick={() => setShowTransparencia(false)}>Fechar</button>
             </div>
-            <div style={{ background: C.white, padding: 28, borderRadius: "0 0 12px 12px", overflowY: "auto" }}>
-              <div style={{ textAlign: "center", marginBottom: 22 }}>
-                <div style={{ width: 56, height: 56, borderRadius: "50%", background: C.red, color: C.white, display: "inline-flex", alignItems: "center", justifyContent: "center", fontSize: 22, fontWeight: 700, fontFamily: FONT_DISPLAY, marginBottom: 10 }}>♥</div>
-                <h2 style={{ fontSize: 22, fontWeight: 700, color: C.text, margin: "0 0 4px", fontFamily: FONT_DISPLAY }}>Transparência</h2>
-                <p style={{ fontSize: 13, color: C.textSecondary, margin: 0 }}>Amor em Foco · Belém-PA</p>
+            <div className="aef-fin__dialog-body">
+              <div className="aef-fin__public-brand">
+                <img className="aef-fin__public-logo" src="/logo-vermelha.png" alt="" />
+                <h2 id="fin-transp-title" className="aef-fin__dialog-title">Transparência</h2>
+                <p className="aef-fin__hint" style={{ marginTop: 0 }}>Amor em Foco, Belém-PA</p>
               </div>
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, marginBottom: 18 }}>
-                <div style={{ padding: "14px 16px", background: "rgba(34,197,94,0.08)", borderRadius: 12 }}>
-                  <div style={{ fontSize: 10, fontWeight: 700, color: "#15803D", textTransform: "uppercase", letterSpacing: 0.4 }}>Doações no mês</div>
-                  <div style={{ fontSize: 20, fontWeight: 700, color: "#15803D", marginTop: 4 }}>{fmtBRL(entradas)}</div>
-                </div>
-                <div style={{ padding: "14px 16px", background: "rgba(215,13,22,0.06)", borderRadius: 12 }}>
-                  <div style={{ fontSize: 10, fontWeight: 700, color: C.red, textTransform: "uppercase", letterSpacing: 0.4 }}>Gastos no mês</div>
-                  <div style={{ fontSize: 20, fontWeight: 700, color: C.red, marginTop: 4 }}>{fmtBRL(Math.abs(saidas))}</div>
-                </div>
-              </div>
-              <div style={{ fontSize: 12, fontWeight: 700, color: C.textSecondary, textTransform: "uppercase", letterSpacing: 0.5, marginBottom: 10 }}>Como usamos sua doação</div>
-              {breakdownArea.map(([areaId, v]) => {
-                const a = FIN_AREAS[areaId] || FIN_AREAS.admin;
-                const pct = (v / totalGastosArea) * 100;
-                return (
-                  <div key={areaId} style={{ marginBottom: 10 }}>
-                    <div style={{ display: "flex", justifyContent: "space-between", fontSize: 13, marginBottom: 4 }}>
-                      <span style={{ color: C.text, fontWeight: 600 }}>{a.label}</span>
-                      <span style={{ color: C.textSecondary }}>{pct.toFixed(0)}%</span>
-                    </div>
-                    <div style={{ height: 6, background: C.borderLight, borderRadius: 3, overflow: "hidden" }}>
-                      <div style={{ width: `${pct}%`, height: "100%", background: a.cor }} />
-                    </div>
-                  </div>
-                );
-              })}
-              <div style={{ marginTop: 18, padding: "12px 14px", background: C.bg, borderRadius: 10, fontSize: 12, color: C.textSecondary, lineHeight: 1.5 }}>
-                ✅ Atualizado em tempo real com a API da Cora.<br/>
-                🔒 Conforme LGPD, doadores individuais não são identificados.
-              </div>
-              <p style={{ fontSize: 11, color: C.textTertiary, textAlign: "center", marginTop: 14, lineHeight: 1.5 }}>Esta página é uma simulação. No deploy real ela ficará pública em <b>amoremfoco.org/transparencia</b>.</p>
+              <ul className="aef-fin__public-figs">
+                <li data-tone="green"><span className="aef-fin__figure-label">Doações no mês</span><strong>{fmtBRL(entradas)}</strong></li>
+                <li data-tone="red"><span className="aef-fin__figure-label">Gastos no mês</span><strong>{fmtBRL(Math.abs(saidas))}</strong></li>
+              </ul>
+              <h3 className="aef-fin__h2">Como usamos sua doação</h3>
+              <ul className="aef-fin__bars">
+                {breakdownArea.map(([areaId, v]) => {
+                  const a = FIN_AREAS[areaId] || FIN_AREAS.admin;
+                  const pct = (v / totalGastosArea) * 100;
+                  return (
+                    <li key={areaId} className="aef-fin__bar" data-tone={AREA_TONE[areaId] || "neutral"}>
+                      <div className="aef-fin__bar-head"><span className="aef-fin__bar-name">{a.label}</span><span className="aef-fin__bar-figs"><span>{pct.toFixed(0)}%</span></span></div>
+                      <div className="aef-fin__track aef-fin__track--thin" role="presentation"><span style={{ width: `${pct}%` }} /></div>
+                    </li>
+                  );
+                })}
+              </ul>
+              <p className="aef-fin__note">
+                Atualizado em tempo real com a API da Cora.<br/>
+                Conforme LGPD, doadores individuais não são identificados.
+              </p>
+              <p className="aef-fin__fineprint">Esta página é uma simulação. No deploy real ela ficará pública em <b>amoremfoco.org/transparencia</b>.</p>
             </div>
           </div>
         </div>
@@ -3619,47 +3448,45 @@ function Financeiro({ mobile, setActive }) {
 
       {/* Modal Editar */}
       {editando && (
-        <div onClick={() => setEditando(null)} style={{
-          position: "fixed", inset: 0, background: "rgba(0,0,0,0.55)",
-          display: "flex", alignItems: mobile ? "flex-end" : "center", justifyContent: "center",
-          zIndex: 500, padding: mobile ? 0 : 16,
-        }}>
-          <div onClick={(e) => e.stopPropagation()} style={{
-            background: C.white, borderRadius: mobile ? "16px 16px 0 0" : 16,
-            padding: mobile ? 22 : 26, width: "100%", maxWidth: 480,
-            maxHeight: mobile ? "92vh" : "90vh", overflowY: "auto", fontFamily: FONT_BODY,
-          }}>
-            <h2 style={{ fontSize: 19, fontWeight: 700, color: C.text, margin: "0 0 4px", fontFamily: FONT_DISPLAY }}>Detalhes da transação</h2>
-            <p style={{ color: C.textSecondary, fontSize: 12, margin: "0 0 18px" }}>{fmtDataBR(editando.data)} · {editando.hora} · {editando.tipo.replace("_", " ")}</p>
-
-            <div style={{ padding: "14px 16px", background: editando.valor > 0 ? "rgba(34,197,94,0.06)" : "rgba(215,13,22,0.04)", borderRadius: 12, marginBottom: 18 }}>
-              <div style={{ fontSize: 13, color: C.textSecondary, marginBottom: 3 }}>{editando.contraparte}</div>
-              <div style={{ fontSize: 22, fontWeight: 700, color: editando.valor > 0 ? "#15803D" : C.text, fontVariantNumeric: "tabular-nums" }}>
-                {editando.valor > 0 ? "+" : ""}{fmtBRL(editando.valor)}
+        <div className="aef-fin__scrim" onClick={() => setEditando(null)}>
+          <div className="aef-fin__dialog" role="dialog" aria-modal="true" aria-labelledby="fin-tx-title" onClick={(e) => e.stopPropagation()}>
+            <div className="aef-fin__dialog-head">
+              <div style={{ minWidth: 0 }}>
+                <h2 id="fin-tx-title" className="aef-fin__dialog-title">Detalhes da transação</h2>
+                <div className="aef-fin__meta" style={{ marginTop: "var(--space-2xs)" }}>
+                  <span>{fmtDataBR(editando.data)}</span>
+                  <span>{editando.hora}</span>
+                  <span>{editando.tipo.replace("_", " ")}</span>
+                </div>
               </div>
-              {editando.txid && <div style={{ fontSize: 11, color: C.textTertiary, marginTop: 4, fontFamily: "monospace" }}>txid: {editando.txid}</div>}
             </div>
 
-            <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
-              <div>
-                <label style={{ display: "block", fontSize: 11, fontWeight: 600, color: C.textSecondary, marginBottom: 6, letterSpacing: 0.4, textTransform: "uppercase" }}>Categoria</label>
-                <select value={editando.categoria} onChange={e => setEditando({ ...editando, categoria: e.target.value })} style={{ width: "100%", padding: "10px 12px", border: `1px solid ${C.border}`, borderRadius: 10, fontSize: 14, fontFamily: FONT_BODY, background: C.white, cursor: "pointer" }}>
+            <div className="aef-fin__dialog-body">
+              <div className="aef-fin__tx" data-tone={editando.valor > 0 ? "green" : undefined}>
+                <span className="aef-fin__hint" style={{ marginTop: 0 }}>{editando.contraparte}</span>
+                <span className="aef-fin__tx-value">{editando.valor > 0 ? "+" : ""}{fmtBRL(editando.valor)}</span>
+                {editando.txid && <span className="aef-fin__hint" style={{ marginTop: 0 }}>txid: {editando.txid}</span>}
+              </div>
+
+              <div className="aef-fin__field">
+                <label className="aef-fin__label" htmlFor="fin-tx-categoria">Categoria</label>
+                <select id="fin-tx-categoria" className="aef-fin__select" value={editando.categoria} onChange={e => setEditando({ ...editando, categoria: e.target.value })}>
                   {Object.entries(FIN_CATEGORIAS).map(([id, c]) => <option key={id} value={id}>{c.label}</option>)}
                 </select>
               </div>
-              <div>
-                <label style={{ display: "block", fontSize: 11, fontWeight: 600, color: C.textSecondary, marginBottom: 6, letterSpacing: 0.4, textTransform: "uppercase" }}>Vincular a ação (opcional)</label>
-                <input type="text" placeholder="Nome ou ID da ação" value={editando.acaoId || ""} onChange={e => setEditando({ ...editando, acaoId: e.target.value || null })} style={{ width: "100%", padding: "10px 12px", border: `1px solid ${C.border}`, borderRadius: 10, fontSize: 14, fontFamily: FONT_BODY, background: C.white, boxSizing: "border-box" }} />
+              <div className="aef-fin__field">
+                <label className="aef-fin__label" htmlFor="fin-tx-acao">Vincular a ação (opcional)</label>
+                <input id="fin-tx-acao" className="aef-fin__input" type="text" placeholder="Nome ou ID da ação" value={editando.acaoId || ""} onChange={e => setEditando({ ...editando, acaoId: e.target.value || null })} />
               </div>
-              <label style={{ display: "flex", alignItems: "center", gap: 10, cursor: "pointer", padding: "10px 12px", background: C.bg, borderRadius: 10 }}>
-                <input type="checkbox" checked={!!editando.conciliado} onChange={e => setEditando({ ...editando, conciliado: e.target.checked })} style={{ cursor: "pointer" }} />
-                <span style={{ fontSize: 13, color: C.text, fontWeight: 600 }}>Transação conciliada</span>
+              <label className="aef-fin__checkline">
+                <input type="checkbox" checked={!!editando.conciliado} onChange={e => setEditando({ ...editando, conciliado: e.target.checked })} />
+                Transação conciliada
               </label>
             </div>
 
-            <div style={{ display: "flex", gap: 10, marginTop: 22 }}>
-              <button onClick={() => setEditando(null)} style={{ flex: 1, padding: "11px", background: C.white, color: C.textSecondary, border: `1px solid ${C.border}`, borderRadius: 10, fontSize: 14, fontWeight: 600, cursor: "pointer" }}>Cancelar</button>
-              <button onClick={salvarEdicao} style={{ flex: 1, padding: "11px", background: C.red, color: C.white, border: "none", borderRadius: 10, fontSize: 14, fontWeight: 700, cursor: "pointer", boxShadow: "0 6px 16px rgba(215,13,22,0.22)" }}>Salvar</button>
+            <div className="aef-fin__dialog-foot">
+              <button type="button" className="aef-fin__btn aef-fin__btn--outline aef-fin__btn--grow" onClick={() => setEditando(null)}>Cancelar</button>
+              <button type="button" className="aef-fin__btn aef-fin__btn--primary aef-fin__btn--grow" onClick={salvarEdicao}>Salvar</button>
             </div>
           </div>
         </div>
@@ -4076,133 +3903,122 @@ function Marketing({ mobile, user }) {
     link.click();
   };
 
+  const REQUEST_TONE = { brief_recebido: "purple", em_producao: "teal", em_aprovacao: "amber", entregue: "green" };
+  const PRIORITY_TONE = { alta: "red", media: "amber", baixa: "green" };
+  const PRIORITY_LABEL = { alta: "Alta", media: "Média", baixa: "Baixa" };
+  const POST_TONE = { rascunho: "amber", em_aprovacao: "purple", agendado: "blue", publicado: "green" };
+
   return (
-    <div className="space-y-5" style={{ fontFamily: FONT_BODY }}>
-      <header>
-        <div className="mb-2 flex items-center gap-2"><Badge variant="secondary" className="rounded-full bg-red-50 px-2.5 py-1 text-[9px] font-bold uppercase tracking-[0.12em] text-primary hover:bg-red-50">Comunicação</Badge><span className="text-[10px] font-semibold text-muted-foreground">{requests.filter(item => item.status !== "entregue").length} demandas ativas</span></div>
-        <h1 className="text-[28px] font-bold leading-tight tracking-[-0.03em] text-foreground sm:text-[34px]" style={{ fontFamily: FONT_DISPLAY }}>Marketing</h1>
-        <p className="mt-1 max-w-2xl text-sm text-muted-foreground">Planejamento, produção e proteção do conteúdo institucional.</p>
+    <div className="aef-mkt">
+      <header className="aef-mkt__head">
+        <div>
+          <h1 className="aef-mkt__title">Marketing</h1>
+          <p className="aef-mkt__desc">Planejamento, produção e proteção do conteúdo institucional.</p>
+        </div>
+        <span className="aef-mkt__aside">{requests.filter(item => item.status !== "entregue").length} demandas ativas</span>
       </header>
 
-      <nav aria-label="Ferramentas de Marketing" className="overflow-x-auto pb-1">
-        <Tabs value={tab} onValueChange={setTab} className="min-w-max">
-          <TabsList className="h-auto gap-1 rounded-xl border border-border/70 bg-card p-1.5 shadow-sm">
-            {MARKETING_NAV_ITEMS.map(item => (
-              <TabsTrigger key={item.id} value={item.id} style={tab === item.id ? { background: C.red, color: C.white } : undefined} className="h-9 gap-1.5 rounded-lg px-3 text-[11px] font-semibold data-[state=active]:shadow-sm">
-                <Icon name={item.icon} size={13} color="currentColor" />{item.label}
-              </TabsTrigger>
-            ))}
-          </TabsList>
-        </Tabs>
+      <nav aria-label="Ferramentas de Marketing" className="aef-mkt__tabs">
+        {MARKETING_NAV_ITEMS.map(item => (
+          <button key={item.id} type="button" className="aef-mkt__tab" aria-current={tab === item.id ? "page" : undefined} onClick={() => setTab(item.id)}>
+            <span aria-hidden="true"><Icon name={item.icon} size={14} /></span>{item.label}
+          </button>
+        ))}
       </nav>
 
-      <div className="border-b border-border/70 pb-4"><h2 className="text-xl font-bold tracking-tight text-foreground" style={{ fontFamily: FONT_DISPLAY }}>{activeMarketingSection.title}</h2><p className="mt-1 text-xs text-muted-foreground">{activeMarketingSection.description}</p></div>
+      <div className="aef-mkt__section-head"><h2 className="aef-mkt__h2">{activeMarketingSection.title}</h2><p className="aef-mkt__hint">{activeMarketingSection.description}</p></div>
 
       {/* ── DEMANDAS ── */}
       {tab === "demandas" && (
         <div>
           {requestNotice && (
-            <div role="status" className="mb-4 flex items-center justify-between gap-3 rounded-xl border border-emerald-200 bg-emerald-50 px-3.5 py-3 text-xs font-medium text-emerald-800"><span className="flex items-center gap-2"><Icon name="check" size={14} color="#15803D" />{requestNotice}</span><Button variant="ghost" size="sm" onClick={() => setRequestNotice("")} aria-label="Fechar aviso" className="h-7 w-7 shrink-0 rounded-full p-0 text-emerald-800 hover:bg-emerald-100">×</Button></div>
+            <div role="status" className="aef-mkt__notice"><span className="aef-mkt__notice-text"><span aria-hidden="true"><Icon name="check" size={14} /></span>{requestNotice}</span><button type="button" className="aef-mkt__btn" onClick={() => setRequestNotice("")} aria-label="Fechar aviso">Fechar</button></div>
           )}
 
-          <div className="mb-4 grid grid-cols-2 gap-2.5 lg:grid-cols-4">
+          <ul className="aef-mkt__figures">
             {[
-              ["Recebidas", requestMetrics.recebidas, "#1D4ED8", "rgba(29,78,216,0.08)"],
-              ["Em produção", requestMetrics.producao, "#0D9488", "rgba(13,148,136,0.08)"],
-              ["Em aprovação", requestMetrics.aprovacao, "#B45309", "rgba(245,158,11,0.10)"],
-              ["Entregues", requestMetrics.entregues, "#15803D", "rgba(34,197,94,0.09)"],
-            ].map(([label, value, color, bg]) => (
-                <Card key={label} className="overflow-hidden border-border/80 shadow-sm transition-shadow hover:shadow-md">
-                <CardContent className={mobile ? "p-3" : "p-4"}>
-                  <div className="text-[10px] font-bold uppercase tracking-[0.08em] text-muted-foreground">{label}</div>
-                  <div className="mt-2 flex items-center gap-2">
-                    <div className="h-2 w-2 rounded-full" style={{ background: color }} />
-                    <span className="text-2xl font-bold tracking-tight text-foreground">{value}</span>
-                  </div>
-                  <div className="mt-2 h-1 overflow-hidden rounded-full" style={{ background: bg }}><div style={{ width: `${requestMetrics.recebidas ? Math.max(8, (value / requestMetrics.recebidas) * 100) : 0}%`, height: "100%", borderRadius: 3, background: color }} /></div>
-                </CardContent>
-              </Card>
+              ["Recebidas", requestMetrics.recebidas, "blue"],
+              ["Em produção", requestMetrics.producao, "teal"],
+              ["Em aprovação", requestMetrics.aprovacao, "amber"],
+              ["Entregues", requestMetrics.entregues, "green"],
+            ].map(([label, value, tone]) => (
+              <li key={label} className="aef-mkt__figure" data-tone={tone}><span className="aef-mkt__figure-label">{label}</span><span className="aef-mkt__figure-value">{value}</span></li>
             ))}
-          </div>
+          </ul>
 
-          <div className="grid items-start gap-4 xl:grid-cols-[340px_minmax(0,1fr)]">
-            <Card className="border-border/80 shadow-sm"><CardContent className="p-0"><form onSubmit={criarDemanda} className="p-4 sm:p-5">
-              <div className="flex items-center gap-2.5"><div className="flex h-9 w-9 items-center justify-center rounded-xl bg-red-50"><Icon name="plus" size={15} color={C.red} /></div><div><h3 className="text-sm font-bold text-foreground">Nova solicitação</h3><p className="text-[10px] text-muted-foreground">O andamento também aparecerá no Mural.</p></div></div>
+          <div className="aef-mkt__split aef-mkt__split--form-first">
+            <form onSubmit={criarDemanda} className="aef-mkt__panel aef-mkt__panel--pad aef-mkt__form">
+              <div className="aef-mkt__form-head"><h3 className="aef-mkt__h3">Nova solicitação</h3><p className="aef-mkt__hint">O andamento também aparecerá no Mural.</p></div>
 
-              <div className="mt-5"><Label htmlFor="marketing-request-title" className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">O que você precisa?</Label><Input id="marketing-request-title" required value={requestForm.titulo} onChange={e => setRequestForm(prev => ({ ...prev, titulo: e.target.value }))} placeholder="Ex.: Divulgação da próxima ação" className="mt-1.5 h-10 rounded-xl text-xs" /></div>
+              <div className="aef-mkt__field"><label htmlFor="marketing-request-title" className="aef-mkt__label">O que você precisa?</label><input id="marketing-request-title" className="aef-mkt__input" required value={requestForm.titulo} onChange={e => setRequestForm(prev => ({ ...prev, titulo: e.target.value }))} placeholder="Ex.: Divulgação da próxima ação" /></div>
 
-              <div className="mt-3 grid grid-cols-2 gap-2.5">
-                <div>
-                  <Label htmlFor="marketing-request-sector" className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Setor</Label>
-                  <select id="marketing-request-sector" value={requestForm.setor} onChange={e => setRequestForm(prev => ({ ...prev, setor: e.target.value }))} className="mt-1.5 h-10 w-full rounded-xl border border-input bg-background px-2.5 text-[11px] outline-none focus:ring-2 focus:ring-ring">
+              <div className="aef-mkt__row2">
+                <div className="aef-mkt__field">
+                  <label htmlFor="marketing-request-sector" className="aef-mkt__label">Setor</label>
+                  <select id="marketing-request-sector" className="aef-mkt__select" value={requestForm.setor} onChange={e => setRequestForm(prev => ({ ...prev, setor: e.target.value }))}>
                     {["Diretoria", "Operações", "Financeiro", "RH", "Jurídico", "Marketing"].map(setor => <option key={setor}>{setor}</option>)}
                   </select>
                 </div>
-                <div>
-                  <Label htmlFor="marketing-request-format" className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Formato</Label>
-                  <select id="marketing-request-format" value={requestForm.formato} onChange={e => setRequestForm(prev => ({ ...prev, formato: e.target.value }))} className="mt-1.5 h-10 w-full rounded-xl border border-input bg-background px-2.5 text-[11px] outline-none focus:ring-2 focus:ring-ring">
+                <div className="aef-mkt__field">
+                  <label htmlFor="marketing-request-format" className="aef-mkt__label">Formato</label>
+                  <select id="marketing-request-format" className="aef-mkt__select" value={requestForm.formato} onChange={e => setRequestForm(prev => ({ ...prev, formato: e.target.value }))}>
                     {["Post estático", "Carrossel", "Story", "Vídeo/Reels", "Campanha", "Outro"].map(formato => <option key={formato}>{formato}</option>)}
                   </select>
                 </div>
               </div>
 
-              <div className="mt-3 grid grid-cols-2 gap-2.5">
-                <div>
-                  <Label htmlFor="marketing-request-priority" className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Prioridade</Label>
-                  <select id="marketing-request-priority" value={requestForm.prioridade} onChange={e => setRequestForm(prev => ({ ...prev, prioridade: e.target.value }))} className="mt-1.5 h-10 w-full rounded-xl border border-input bg-background px-2.5 text-[11px] outline-none focus:ring-2 focus:ring-ring">
+              <div className="aef-mkt__row2">
+                <div className="aef-mkt__field">
+                  <label htmlFor="marketing-request-priority" className="aef-mkt__label">Prioridade</label>
+                  <select id="marketing-request-priority" className="aef-mkt__select" value={requestForm.prioridade} onChange={e => setRequestForm(prev => ({ ...prev, prioridade: e.target.value }))}>
                     <option value="baixa">Baixa</option><option value="media">Média</option><option value="alta">Alta</option>
                   </select>
                 </div>
-                <div>
-                  <Label htmlFor="marketing-request-deadline" className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Prazo</Label>
-                  <Input id="marketing-request-deadline" required type="date" value={requestForm.prazo} onChange={e => setRequestForm(prev => ({ ...prev, prazo: e.target.value }))} className="mt-1.5 h-10 rounded-xl px-2.5 text-[11px]" />
+                <div className="aef-mkt__field">
+                  <label htmlFor="marketing-request-deadline" className="aef-mkt__label">Prazo</label>
+                  <input id="marketing-request-deadline" className="aef-mkt__input" required type="date" value={requestForm.prazo} onChange={e => setRequestForm(prev => ({ ...prev, prazo: e.target.value }))} />
                 </div>
               </div>
 
-              <div className="mt-3"><Label htmlFor="marketing-request-brief" className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Briefing</Label><Textarea id="marketing-request-brief" value={requestForm.descricao} onChange={e => setRequestForm(prev => ({ ...prev, descricao: e.target.value }))} rows={4} placeholder="Objetivo, público, mensagem e referências..." className="mt-1.5 min-h-24 rounded-xl text-xs" /></div>
+              <div className="aef-mkt__field"><label htmlFor="marketing-request-brief" className="aef-mkt__label">Briefing</label><textarea id="marketing-request-brief" className="aef-mkt__textarea" value={requestForm.descricao} onChange={e => setRequestForm(prev => ({ ...prev, descricao: e.target.value }))} rows={4} placeholder="Objetivo, público, mensagem e referências…" /></div>
 
-              <Button type="submit" className="mt-4 w-full rounded-xl bg-primary text-xs font-bold shadow-sm shadow-primary/20 hover:bg-primary/90">
-                <Icon name="plus" size={14} color={C.white} /> Enviar pedido
-              </Button>
-            </form></CardContent></Card>
+              <button type="submit" className="aef-mkt__btn aef-mkt__btn--primary aef-mkt__btn--block">
+                <span aria-hidden="true"><Icon name="plus" size={14} /></span> Enviar pedido
+              </button>
+            </form>
 
-            <Card className="overflow-hidden border-border/80 shadow-sm">
-              <div className="flex items-center justify-between gap-3 border-b border-border/70 px-4 py-4 sm:px-5">
+            <section className="aef-mkt__panel">
+              <div className="aef-mkt__panel-head">
                 <div>
-                  <h3 className="text-sm font-bold text-foreground">Fila de demandas</h3>
-                  <p className="mt-0.5 text-[10px] text-muted-foreground">Do briefing recebido até a entrega final.</p>
+                  <h3 className="aef-mkt__h3">Fila de demandas</h3>
+                  <p className="aef-mkt__hint">Do briefing recebido até a entrega final.</p>
                 </div>
-                <Badge variant="secondary" className="rounded-full px-2.5 py-1 text-[10px] font-bold">{requests.length} pedidos</Badge>
+                <span className="aef-mkt__aside">{requests.length} pedidos</span>
               </div>
 
-              <div style={{ display: "flex", flexDirection: "column" }}>
-                {requests.map((request, index) => {
-                  const status = MARKETING_REQUEST_STATUS[request.status] || MARKETING_REQUEST_STATUS.brief_recebido;
-                  const priority = request.prioridade === "alta" ? { color: "#B91C1C", bg: "#FEF2F2" } : request.prioridade === "baixa" ? { color: "#15803D", bg: "#F0FDF4" } : { color: "#B45309", bg: "#FFF7ED" };
+              <ul className="aef-mkt__list">
+                {requests.map((request) => {
                   return (
-                    <article key={request.id} className={`px-4 py-4 transition-colors hover:bg-muted/30 sm:px-5 ${index < requests.length - 1 ? "border-b border-border/70" : ""}`}>
-                      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 12 }}>
+                    <li key={request.id} className="aef-mkt__item">
+                      <div className="aef-mkt__item-head">
                         <div style={{ minWidth: 0 }}>
-                          <div style={{ fontSize: 14, fontWeight: 700, color: C.text, marginBottom: 4 }}>{request.titulo}</div>
-                          <div style={{ fontSize: 11, color: C.textTertiary }}>{request.solicitante || request.setor} · {request.setor} · {request.formato || "Conteúdo"}</div>
+                          <div className="aef-mkt__item-title">{request.titulo}</div>
+                          <div className="aef-mkt__meta"><span>{request.solicitante || request.setor}</span><span>{request.setor}</span><span>{request.formato || "Conteúdo"}</span></div>
                         </div>
-                        <Badge variant="outline" className="shrink-0 rounded-full border-0 px-2 py-1 text-[10px] font-bold capitalize" style={{ color: priority.color, background: priority.bg }}>{request.prioridade}</Badge>
+                        <span className="aef-mkt__tone-text aef-mkt__cap" data-tone={PRIORITY_TONE[request.prioridade] || "amber"}>{PRIORITY_LABEL[request.prioridade] || request.prioridade}</span>
                       </div>
-                      {request.descricao && <p style={{ fontSize: 12, color: C.textSecondary, lineHeight: 1.5, margin: "10px 0", display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical", overflow: "hidden" }}>{request.descricao}</p>}
-                      <div style={{ display: "flex", flexWrap: "wrap", justifyContent: "space-between", alignItems: "center", gap: 8, marginTop: 10 }}>
-                        <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-                          <Icon name="clock" size={12} color={C.textTertiary} />
-                          <span style={{ fontSize: 11, color: C.textTertiary }}>Prazo: {marketingDateLabel(request.prazo)}</span>
-                        </div>
-                        <select aria-label={`Status de ${request.titulo}`} value={request.status} onChange={e => atualizarStatusDemanda(request.id, e.target.value)} style={{ border: `1px solid ${status.color}33`, background: status.bg, color: status.color, borderRadius: 20, padding: "6px 9px", fontSize: 10, fontWeight: 700, outline: "none", cursor: "pointer" }}>
+                      {request.descricao && <p className="aef-mkt__item-text">{request.descricao}</p>}
+                      <div className="aef-mkt__item-foot">
+                        <span className="aef-mkt__due"><span aria-hidden="true"><Icon name="clock" size={13} /></span>Prazo: {marketingDateLabel(request.prazo)}</span>
+                        <select aria-label={`Status de ${request.titulo}`} className="aef-mkt__status-select" data-tone={REQUEST_TONE[request.status] || "purple"} value={request.status} onChange={e => atualizarStatusDemanda(request.id, e.target.value)}>
                           {Object.entries(MARKETING_REQUEST_STATUS).map(([id, item]) => <option key={id} value={id}>{item.label}</option>)}
                         </select>
                       </div>
-                    </article>
+                    </li>
                   );
                 })}
-              </div>
-            </Card>
+              </ul>
+            </section>
           </div>
         </div>
       )}
@@ -4210,36 +4026,36 @@ function Marketing({ mobile, user }) {
       {/* ── ACERVO ── */}
       {tab === "acervo" && (
         <div>
-          <div className="mb-4 flex gap-2 overflow-x-auto pb-1">
+          <div className="aef-mkt__chips" role="group" aria-label="Filtrar acervo">
             {["todos","foto","logo","arte"].map(f => (
-              <Button key={f} variant={acervoFilter === f ? "default" : "outline"} size="sm" onClick={() => setAcervoFilter(f)} className="h-8 shrink-0 rounded-full px-4 text-[11px] capitalize shadow-none">{f}</Button>
+              <button key={f} type="button" className="aef-mkt__chip" aria-pressed={acervoFilter === f} onClick={() => setAcervoFilter(f)}>{f}</button>
             ))}
           </div>
 
-          <div className="grid grid-cols-2 gap-3 lg:grid-cols-[repeat(auto-fill,minmax(220px,1fr))]">
+          <ul className="aef-mkt__media">
             {acervoFiltrado.map(f => (
-              <Card key={f.id} className="group overflow-hidden border-border/80 shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-md">
-                <div className="aspect-[4/3] overflow-hidden bg-muted">
-                  <img src={f.url} alt={f.nome} className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-[1.03]" />
+              <li key={f.id} className="aef-mkt__panel aef-mkt__tile">
+                <div className="aef-mkt__tile-img">
+                  <img src={f.url} alt={f.nome} />
                 </div>
-                <CardContent className="p-3 sm:p-4">
-                  <div className="truncate text-xs font-bold text-foreground sm:text-sm">{f.nome}</div>
-                  <div className="mt-2 flex flex-col items-start justify-between gap-2 sm:flex-row sm:items-center">
-                    <span className="truncate text-[9px] text-muted-foreground sm:text-[10px]">{f.acao} · {f.data}</span>
-                    <Button variant="secondary" size="sm" onClick={() => iniciarMascaramento(f)} className="h-7 rounded-lg px-2.5 text-[9px]">Proteger</Button>
+                <div className="aef-mkt__tile-body">
+                  <div className="aef-mkt__tile-name">{f.nome}</div>
+                  <div className="aef-mkt__tile-foot">
+                    <span className="aef-mkt__meta" style={{ marginTop: 0 }}>{f.acao !== "—" && <span>{f.acao}</span>}{f.data !== "—" && <span>{f.data}</span>}</span>
+                    <button type="button" className="aef-mkt__btn aef-mkt__btn--outline" onClick={() => iniciarMascaramento(f)}>Proteger</button>
                   </div>
-                </CardContent>
-              </Card>
+                </div>
+              </li>
             ))}
 
             {/* Drive link card */}
-            <button className="flex min-h-40 flex-col items-center justify-center gap-2.5 rounded-xl border border-dashed border-border bg-card p-5 text-muted-foreground transition-colors hover:border-primary/30 hover:bg-red-50/30 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary">
-              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-muted">
-                <Icon name="plus" size={18} color={C.textTertiary} />
-              </div>
-              <span className="text-center text-[11px] font-semibold">Abrir Google Drive</span>
-            </button>
-          </div>
+            <li style={{ display: "grid" }}>
+              <button type="button" className="aef-mkt__drive">
+                <span aria-hidden="true"><Icon name="plus" size={18} /></span>
+                Abrir Google Drive
+              </button>
+            </li>
+          </ul>
         </div>
       )}
 
@@ -4247,51 +4063,47 @@ function Marketing({ mobile, user }) {
       {tab === "calendario" && (
         <div>
           {calendarNotice && (
-            <div role="status" className="mb-4 flex items-center justify-between gap-3 rounded-xl border border-emerald-200 bg-emerald-50 px-3.5 py-3 text-xs font-medium text-emerald-800"><span className="flex items-center gap-2"><Icon name="check" size={14} color="#15803D" />{calendarNotice}</span><Button variant="ghost" size="sm" onClick={() => setCalendarNotice("")} aria-label="Fechar aviso" className="h-7 w-7 shrink-0 rounded-full p-0 text-emerald-800 hover:bg-emerald-100">×</Button></div>
+            <div role="status" className="aef-mkt__notice"><span className="aef-mkt__notice-text"><span aria-hidden="true"><Icon name="check" size={14} /></span>{calendarNotice}</span><button type="button" className="aef-mkt__btn" onClick={() => setCalendarNotice("")} aria-label="Fechar aviso">Fechar</button></div>
           )}
 
-          <div className="grid items-start gap-4 xl:grid-cols-[minmax(0,1fr)_330px]">
-            <Card className="overflow-hidden border-border/80 shadow-sm">
-              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, padding: "16px 18px", borderBottom: `1px solid ${C.border}` }}>
+          <div className="aef-mkt__split aef-mkt__split--form-last">
+            <section className="aef-mkt__panel" style={{ overflow: "hidden" }}>
+              <div className="aef-mkt__cal-bar">
                 <div>
-                  <div style={{ fontSize: 16, fontWeight: 700, color: C.text, textTransform: "capitalize" }}>
-                    {calendarCursor.toLocaleDateString("pt-BR", { month: "long", year: "numeric" })}
-                  </div>
-                  <div style={{ fontSize: 11, color: C.textTertiary, marginTop: 2 }}>Calendário editorial da equipe</div>
+                  <h3 className="aef-mkt__cal-month">{calendarCursor.toLocaleDateString("pt-BR", { month: "long", year: "numeric" })}</h3>
+                  <p className="aef-mkt__hint">Calendário editorial da equipe</p>
                 </div>
-                <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-                  <Button variant="outline" size="sm" onClick={() => setCalendarCursor(new Date())} className="h-8 rounded-lg px-2.5 text-[10px]">Hoje</Button>
-                  <Button variant="outline" size="sm" onClick={() => setCalendarCursor(new Date(calendarYear, calendarMonth - 1, 1))} aria-label="Mês anterior" className="h-8 w-8 rounded-lg p-0 text-base">‹</Button>
-                  <Button variant="outline" size="sm" onClick={() => setCalendarCursor(new Date(calendarYear, calendarMonth + 1, 1))} aria-label="Próximo mês" className="h-8 w-8 rounded-lg p-0 text-base">›</Button>
+                <div className="aef-mkt__cal-nav">
+                  <button type="button" className="aef-mkt__btn aef-mkt__btn--outline" onClick={() => setCalendarCursor(new Date())}>Hoje</button>
+                  <button type="button" className="aef-mkt__btn aef-mkt__btn--outline aef-mkt__btn--icon" onClick={() => setCalendarCursor(new Date(calendarYear, calendarMonth - 1, 1))} aria-label="Mês anterior"><span className="aef-mkt__flip" aria-hidden="true"><Icon name="chevronRight" size={16} /></span></button>
+                  <button type="button" className="aef-mkt__btn aef-mkt__btn--outline aef-mkt__btn--icon" onClick={() => setCalendarCursor(new Date(calendarYear, calendarMonth + 1, 1))} aria-label="Próximo mês"><span aria-hidden="true"><Icon name="chevronRight" size={16} /></span></button>
                 </div>
               </div>
 
-              <div style={{ overflowX: "auto" }}>
-                <div style={{ minWidth: 720 }}>
-                  <div style={{ display: "grid", gridTemplateColumns: "repeat(7, 1fr)", background: C.bg, borderBottom: `1px solid ${C.border}` }}>
-                    {["Seg", "Ter", "Qua", "Qui", "Sex", "Sáb", "Dom"].map(day => (
-                      <div key={day} style={{ padding: "9px 8px", textAlign: "center", fontSize: 10, fontWeight: 700, color: C.textTertiary, letterSpacing: 0.5, textTransform: "uppercase" }}>{day}</div>
-                    ))}
+              <div className="aef-mkt__cal-scroll">
+                <div className="aef-mkt__cal">
+                  <div className="aef-mkt__cal-week">
+                    {["Seg", "Ter", "Qua", "Qui", "Sex", "Sáb", "Dom"].map(day => <span key={day}>{day}</span>)}
                   </div>
-                  <div style={{ display: "grid", gridTemplateColumns: "repeat(7, 1fr)" }}>
+                  <div className="aef-mkt__cal-grid">
                     {calendarCells.map((cell, index) => {
                       const isToday = cell?.key === marketingDateKey(new Date());
                       return (
-                        <div key={cell?.key || `empty-${index}`} style={{ minHeight: 112, padding: 7, borderRight: (index + 1) % 7 === 0 ? "none" : `1px solid ${C.border}`, borderBottom: index >= calendarCellCount - 7 ? "none" : `1px solid ${C.border}`, background: cell ? C.surface : "#FAFAFA" }}>
+                        <div key={cell?.key || `empty-${index}`} className="aef-mkt__cal-day" data-empty={cell ? undefined : "true"} data-today={isToday ? "true" : undefined} data-last-row={index >= calendarCellCount - 7 ? "true" : undefined}>
                           {cell && (
                             <>
-                              <div style={{ width: 24, height: 24, borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 11, fontWeight: isToday ? 700 : 500, color: isToday ? C.white : C.textSecondary, background: isToday ? C.red : "transparent", marginBottom: 5 }}>{cell.day}</div>
-                              <div style={{ display: "flex", flexDirection: "column", gap: 5 }}>
+                              <div className="aef-mkt__cal-num">{cell.day}</div>
+                              <div className="aef-mkt__cal-posts">
                                 {cell.posts.slice(0, 2).map(post => (
-                                  <div key={post.id} style={{ background: post.googleCalendarSent ? "#F0FDF4" : "#EFF6FF", borderLeft: `3px solid ${post.googleCalendarSent ? "#22C55E" : "#3B82F6"}`, borderRadius: 6, padding: "5px 6px" }}>
-                                    <div style={{ fontSize: 9, color: C.textTertiary, marginBottom: 2 }}>{post.scheduledTime || "09:00"} · {post.canal}</div>
-                                    <div title={post.acao} style={{ fontSize: 10, fontWeight: 700, color: C.text, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{post.acao}</div>
-                                    <button onClick={() => enviarGoogleAgenda(post)} style={{ background: "none", border: "none", padding: "3px 0 0", color: post.googleCalendarSent ? "#15803D" : "#1D4ED8", fontSize: 9, fontWeight: 700, cursor: "pointer" }}>
+                                  <div key={post.id} className="aef-mkt__cal-post" data-tone={post.googleCalendarSent ? "green" : "blue"}>
+                                    <div className="aef-mkt__cal-post-meta"><span>{post.scheduledTime || "09:00"}</span><span>{post.canal}</span></div>
+                                    <div title={post.acao} className="aef-mkt__cal-post-title">{post.acao}</div>
+                                    <button type="button" className="aef-mkt__cal-send" onClick={() => enviarGoogleAgenda(post)}>
                                       {post.googleCalendarSent ? "Enviado ao Agenda" : "Enviar ao Agenda"}
                                     </button>
                                   </div>
                                 ))}
-                                {cell.posts.length > 2 && <div style={{ fontSize: 9, color: C.textTertiary }}>+{cell.posts.length - 2} postagem(ns)</div>}
+                                {cell.posts.length > 2 && <div className="aef-mkt__cal-more">+{cell.posts.length - 2} postagem(ns)</div>}
                               </div>
                             </>
                           )}
@@ -4301,208 +4113,208 @@ function Marketing({ mobile, user }) {
                   </div>
                 </div>
               </div>
-            </Card>
+            </section>
 
-            <Card className="border-border/80 shadow-sm"><CardContent className="p-0"><form onSubmit={agendarPost} className="p-4 sm:p-5">
-              <div style={{ display: "flex", alignItems: "center", gap: 9, marginBottom: 4 }}>
-                <div style={{ width: 34, height: 34, borderRadius: 9, background: "#FEF2F2", display: "flex", alignItems: "center", justifyContent: "center" }}><Icon name="calendar" size={16} color={C.red} /></div>
-                <div style={{ fontSize: 14, fontWeight: 700, color: C.text }}>Agendar postagem</div>
-              </div>
-              <p style={{ fontSize: 11, color: C.textTertiary, lineHeight: 1.5, margin: "0 0 16px 43px" }}>Organize aqui e envie ao Google Agenda quando precisar.</p>
+            <form onSubmit={agendarPost} className="aef-mkt__panel aef-mkt__panel--pad aef-mkt__form">
+              <div className="aef-mkt__form-head"><h3 className="aef-mkt__h3">Agendar postagem</h3><p className="aef-mkt__hint">Organize aqui e envie ao Google Agenda quando precisar.</p></div>
 
-              <label style={{ display: "block", fontSize: 10, fontWeight: 700, color: C.textSecondary, textTransform: "uppercase", marginBottom: 5 }}>Título da postagem</label>
-              <input required value={calendarForm.acao} onChange={e => setCalendarForm(prev => ({ ...prev, acao: e.target.value }))} placeholder="Ex.: Chamada para voluntários" style={{ width: "100%", boxSizing: "border-box", padding: "10px 11px", border: `1px solid ${C.border}`, borderRadius: 9, fontSize: 12, color: C.text, outline: "none", marginBottom: 12 }} />
+              <div className="aef-mkt__field"><label htmlFor="mkt-cal-titulo" className="aef-mkt__label">Título da postagem</label><input id="mkt-cal-titulo" className="aef-mkt__input" required value={calendarForm.acao} onChange={e => setCalendarForm(prev => ({ ...prev, acao: e.target.value }))} placeholder="Ex.: Chamada para voluntários" /></div>
 
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
-                <div>
-                  <label style={{ display: "block", fontSize: 10, fontWeight: 700, color: C.textSecondary, textTransform: "uppercase", marginBottom: 5 }}>Data</label>
-                  <input required type="date" value={calendarForm.scheduledDate} onChange={e => setCalendarForm(prev => ({ ...prev, scheduledDate: e.target.value }))} style={{ width: "100%", boxSizing: "border-box", padding: "9px", border: `1px solid ${C.border}`, borderRadius: 9, fontSize: 11, color: C.text, background: C.surface, outline: "none" }} />
+              <div className="aef-mkt__row2">
+                <div className="aef-mkt__field">
+                  <label htmlFor="mkt-cal-data" className="aef-mkt__label">Data</label>
+                  <input id="mkt-cal-data" className="aef-mkt__input" required type="date" value={calendarForm.scheduledDate} onChange={e => setCalendarForm(prev => ({ ...prev, scheduledDate: e.target.value }))} />
                 </div>
-                <div>
-                  <label style={{ display: "block", fontSize: 10, fontWeight: 700, color: C.textSecondary, textTransform: "uppercase", marginBottom: 5 }}>Horário</label>
-                  <input required type="time" value={calendarForm.scheduledTime} onChange={e => setCalendarForm(prev => ({ ...prev, scheduledTime: e.target.value }))} style={{ width: "100%", boxSizing: "border-box", padding: "9px", border: `1px solid ${C.border}`, borderRadius: 9, fontSize: 11, color: C.text, background: C.surface, outline: "none" }} />
+                <div className="aef-mkt__field">
+                  <label htmlFor="mkt-cal-hora" className="aef-mkt__label">Horário</label>
+                  <input id="mkt-cal-hora" className="aef-mkt__input" required type="time" value={calendarForm.scheduledTime} onChange={e => setCalendarForm(prev => ({ ...prev, scheduledTime: e.target.value }))} />
                 </div>
               </div>
 
-              <label style={{ display: "block", fontSize: 10, fontWeight: 700, color: C.textSecondary, textTransform: "uppercase", margin: "12px 0 5px" }}>Canal</label>
-              <select value={calendarForm.canal} onChange={e => setCalendarForm(prev => ({ ...prev, canal: e.target.value }))} style={{ width: "100%", padding: "10px 11px", border: `1px solid ${C.border}`, borderRadius: 9, fontSize: 12, color: C.text, background: C.surface, outline: "none", marginBottom: 12 }}>
-                {["Instagram", "Facebook", "WhatsApp", "LinkedIn", "Site", "E-mail"].map(canal => <option key={canal}>{canal}</option>)}
-              </select>
+              <div className="aef-mkt__field">
+                <label htmlFor="mkt-cal-canal" className="aef-mkt__label">Canal</label>
+                <select id="mkt-cal-canal" className="aef-mkt__select" value={calendarForm.canal} onChange={e => setCalendarForm(prev => ({ ...prev, canal: e.target.value }))}>
+                  {["Instagram", "Facebook", "WhatsApp", "LinkedIn", "Site", "E-mail"].map(canal => <option key={canal}>{canal}</option>)}
+                </select>
+              </div>
 
-              <label style={{ display: "block", fontSize: 10, fontWeight: 700, color: C.textSecondary, textTransform: "uppercase", marginBottom: 5 }}>Responsável</label>
-              <input value={calendarForm.responsavel} onChange={e => setCalendarForm(prev => ({ ...prev, responsavel: e.target.value }))} style={{ width: "100%", boxSizing: "border-box", padding: "10px 11px", border: `1px solid ${C.border}`, borderRadius: 9, fontSize: 12, color: C.text, outline: "none", marginBottom: 12 }} />
+              <div className="aef-mkt__field"><label htmlFor="mkt-cal-resp" className="aef-mkt__label">Responsável</label><input id="mkt-cal-resp" className="aef-mkt__input" value={calendarForm.responsavel} onChange={e => setCalendarForm(prev => ({ ...prev, responsavel: e.target.value }))} /></div>
 
-              <label style={{ display: "block", fontSize: 10, fontWeight: 700, color: C.textSecondary, textTransform: "uppercase", marginBottom: 5 }}>Observação ou legenda</label>
-              <textarea value={calendarForm.legenda} onChange={e => setCalendarForm(prev => ({ ...prev, legenda: e.target.value }))} rows={3} placeholder="Resumo do conteúdo..." style={{ width: "100%", boxSizing: "border-box", padding: "10px 11px", border: `1px solid ${C.border}`, borderRadius: 9, fontSize: 12, color: C.text, outline: "none", resize: "vertical", fontFamily: "inherit" }} />
+              <div className="aef-mkt__field"><label htmlFor="mkt-cal-legenda" className="aef-mkt__label">Observação ou legenda</label><textarea id="mkt-cal-legenda" className="aef-mkt__textarea" value={calendarForm.legenda} onChange={e => setCalendarForm(prev => ({ ...prev, legenda: e.target.value }))} rows={3} placeholder="Resumo do conteúdo…" /></div>
 
-              <Button type="submit" className="mt-4 w-full rounded-xl text-xs font-bold shadow-sm shadow-primary/20">
-                <Icon name="plus" size={14} color={C.white} /> Adicionar ao calendário
-              </Button>
-            </form></CardContent></Card>
+              <button type="submit" className="aef-mkt__btn aef-mkt__btn--primary aef-mkt__btn--block">
+                <span aria-hidden="true"><Icon name="plus" size={14} /></span> Adicionar ao calendário
+              </button>
+            </form>
           </div>
         </div>
       )}
 
       {/* ── IA ── */}
       {tab === "ia" && (
-        <div className="max-w-2xl">
-          <Card className="mb-4 border-border/80 shadow-sm"><CardContent className="p-5">
-            <div className="mb-4 flex items-center gap-2.5"><div className="flex h-9 w-9 items-center justify-center rounded-xl bg-red-50"><Icon name="heart" size={15} color={C.red} /></div><div><h3 className="text-sm font-bold text-foreground">Configurar geração</h3><p className="text-[10px] text-muted-foreground">Escolha o contexto e o tom antes de gerar.</p></div></div>
+        <div className="aef-mkt__narrow">
+          <section className="aef-mkt__panel aef-mkt__panel--pad aef-mkt__form">
+            <div className="aef-mkt__form-head"><h3 className="aef-mkt__h3">Configurar geração</h3><p className="aef-mkt__hint">Escolha o contexto e o tom antes de gerar.</p></div>
 
-            <div style={{ display: "grid", gridTemplateColumns: mobile ? "1fr" : "1fr 1fr", gap: 14 }}>
-              <div>
-                <label style={{ display: "block", fontSize: 11, fontWeight: 600, color: C.textSecondary, marginBottom: 6, letterSpacing: 0.3, textTransform: "uppercase" }}>Ação</label>
-                <select value={acaoSelecionada} onChange={e => setAcaoSelecionada(e.target.value)} style={{
-                  width: "100%", padding: "10px 14px", border: `1px solid ${C.border}`, borderRadius: 10,
-                  fontSize: 14, color: C.text, background: C.surface, outline: "none", appearance: "none",
-                }}>
+            <div className={mobile ? "aef-mkt__form" : "aef-mkt__row2"}>
+              <div className="aef-mkt__field">
+                <label htmlFor="mkt-ia-acao" className="aef-mkt__label">Ação</label>
+                <select id="mkt-ia-acao" className="aef-mkt__select" value={acaoSelecionada} onChange={e => setAcaoSelecionada(e.target.value)}>
                   {["Café de Rua","Sopão da Noite","Ação de Saúde","Visita Orfanato","Lar de Idosos","Arrecadação"].map(a => <option key={a}>{a}</option>)}
                 </select>
               </div>
-              <div>
-                <label style={{ display: "block", fontSize: 11, fontWeight: 600, color: C.textSecondary, marginBottom: 6, letterSpacing: 0.3, textTransform: "uppercase" }}>Tom</label>
-                <div style={{ display: "flex", gap: 6 }}>
+              <div className="aef-mkt__field">
+                <span className="aef-mkt__label" id="mkt-ia-tom">Tom</span>
+                <div className="aef-mkt__segments" role="group" aria-labelledby="mkt-ia-tom">
                   {[["emotivo","Emotivo"],["informativo","Informativo"],["convocacao","Convocação"]].map(([id, label]) => (
-                    <button key={id} onClick={() => setTom(id)} style={{
-                      flex: 1, padding: "10px 4px", borderRadius: 8, border: `1px solid ${tom === id ? C.red : C.border}`,
-                      background: tom === id ? "#FEF2F2" : C.surface, color: tom === id ? C.red : C.textSecondary,
-                      fontSize: 11, fontWeight: tom === id ? 600 : 400, cursor: "pointer",
-                    }}>{label}</button>
+                    <button key={id} type="button" className="aef-mkt__segment" aria-pressed={tom === id} onClick={() => setTom(id)}>{label}</button>
                   ))}
                 </div>
               </div>
             </div>
 
-            <Button onClick={gerarLegenda} disabled={gerando} className="mt-5 w-full rounded-xl text-xs font-bold shadow-sm shadow-primary/20">
+            <button type="button" onClick={gerarLegenda} disabled={gerando} aria-busy={gerando} className="aef-mkt__btn aef-mkt__btn--primary aef-mkt__btn--block">
               {gerando ? (
-                <><div style={{ width: 14, height: 14, border: `2px solid ${C.textTertiary}`, borderTopColor: "transparent", borderRadius: "50%", animation: "spin 0.8s linear infinite" }} /> Gerando...</>
+                <><span className="aef-mkt__spinner" aria-hidden="true" /> Gerando…</>
               ) : (
-                <><Icon name="camera" size={15} color={C.white} /> Gerar com IA</>
+                <>Gerar com IA</>
               )}
-            </Button>
-          </CardContent></Card>
+            </button>
+          </section>
 
           {/* Output */}
           {(legenda || gerando) && (
-            <Card className="border-border/80 shadow-sm"><CardContent className="p-5">
-              <Label htmlFor="generated-caption" className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Legenda gerada</Label>
-              <Textarea id="generated-caption"
-                value={legenda}
-                onChange={e => setLegenda(e.target.value)}
-                rows={8}
-                className="mt-2 min-h-48 rounded-xl text-sm leading-relaxed"
-              />
+            <section className="aef-mkt__panel aef-mkt__panel--pad aef-mkt__form">
+              <div className="aef-mkt__field">
+                <label htmlFor="generated-caption" className="aef-mkt__label">Legenda gerada</label>
+                <textarea id="generated-caption"
+                  className="aef-mkt__textarea aef-mkt__textarea--tall"
+                  value={legenda}
+                  onChange={e => setLegenda(e.target.value)}
+                  rows={8}
+                />
+              </div>
               {gerado && (
-                <div style={{ display: "flex", gap: 10, marginTop: 12 }}>
-                  <Button variant="outline" onClick={gerarLegenda} className="flex-1 rounded-xl text-xs">Gerar outra</Button>
-                  <Button onClick={salvarPost} className="flex-1 rounded-xl text-xs">Salvar rascunho</Button>
+                <div className="aef-mkt__row-actions">
+                  <button type="button" className="aef-mkt__btn aef-mkt__btn--outline" onClick={gerarLegenda}>Gerar outra</button>
+                  <button type="button" className="aef-mkt__btn aef-mkt__btn--primary" onClick={salvarPost}>Salvar rascunho</button>
                 </div>
               )}
-            </CardContent></Card>
+            </section>
           )}
         </div>
       )}
 
       {/* ── POSTS ── */}
       {tab === "posts" && (
-        <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+        <ul className="aef-mkt__panel aef-mkt__list">
           {posts.map(p => (
-            <Card key={p.id} className="border-border/80 shadow-sm"><CardContent className="p-4 sm:p-5">
-              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 12, marginBottom: 10 }}>
+            <li key={p.id} className="aef-mkt__item">
+              <div className="aef-mkt__item-head">
                 <div>
-                  <div style={{ fontWeight: 600, fontSize: 14, color: C.text }}>{p.acao}</div>
-                  <div style={{ fontSize: 12, color: C.textTertiary, marginTop: 2 }}>{p.data}</div>
+                  <div className="aef-mkt__item-title">{p.acao}</div>
+                  <div className="aef-mkt__meta"><span>{p.data}</span>{p.canal && <span>{p.canal}</span>}</div>
                 </div>
-                <Badge variant={p.status === "publicado" ? "secondary" : "outline"} className={`shrink-0 rounded-full text-[10px] font-bold capitalize ${p.status === "publicado" ? "bg-emerald-50 text-emerald-700 hover:bg-emerald-50" : ""}`}>{p.status}</Badge>
+                <span className="aef-mkt__tone-text aef-mkt__cap" data-tone={POST_TONE[p.status] || "amber"}>{MARKETING_POST_STATUS[p.status]?.label || p.status}</span>
               </div>
-              <p style={{ fontSize: 13, color: C.textSecondary, lineHeight: 1.6, margin: "0 0 14px", display: "-webkit-box", WebkitLineClamp: 3, WebkitBoxOrient: "vertical", overflow: "hidden" }}>
-                {p.legenda}
-              </p>
-              <div style={{ display: "flex", gap: 8 }}>
-                <Button variant="outline" size="sm" className="h-8 rounded-lg text-[10px]">Editar</Button>
+              <p className="aef-mkt__item-text aef-mkt__item-text--3">{p.legenda}</p>
+              <div className="aef-mkt__actions">
+                <button type="button" className="aef-mkt__btn aef-mkt__btn--outline">Editar</button>
                 {p.status === "rascunho" && (
-                  <Button size="sm" className="h-8 rounded-lg text-[10px]">Copiar para Instagram</Button>
+                  <button type="button" className="aef-mkt__btn aef-mkt__btn--primary">Copiar para Instagram</button>
                 )}
               </div>
-            </CardContent></Card>
+            </li>
           ))}
-        </div>
+        </ul>
       )}
 
       {/* ── PROTEÇÃO ── */}
       {tab === "protecao" && (
-        <div style={{ maxWidth: 1040 }}>
-          <Card className="mb-4 border-primary/15 bg-red-50/30 shadow-sm"><CardContent className="flex flex-col items-start justify-between gap-3 p-4 sm:flex-row sm:items-center sm:p-5"><div className="flex items-start gap-3"><div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-primary"><Icon name="shield" size={17} color={C.white} /></div><div><h3 className="text-sm font-bold text-foreground">Processamento seguro no navegador</h3><p className="mt-1 max-w-2xl text-[11px] leading-relaxed text-muted-foreground">O MediaPipe detecta rostos localmente. A equipe revisa todas as máscaras antes de gerar uma nova versão.</p></div></div><Badge variant="secondary" className="shrink-0 rounded-full bg-emerald-50 text-[9px] font-bold text-emerald-700 hover:bg-emerald-50"><span className="mr-1.5 h-1.5 w-1.5 rounded-full bg-emerald-500" />Modelo local · revisão humana</Badge></CardContent></Card>
+        <div className="aef-mkt__protect">
+          <section className="aef-mkt__panel aef-mkt__intro">
+            <div className="aef-mkt__intro-main">
+              <span className="aef-mkt__intro-icon" aria-hidden="true"><Icon name="shield" size={18} /></span>
+              <div><h3 className="aef-mkt__h3">Processamento seguro no navegador</h3><p className="aef-mkt__hint">O MediaPipe detecta rostos localmente. A equipe revisa todas as máscaras antes de gerar uma nova versão.</p></div>
+            </div>
+            <span className="aef-mkt__intro-note">Modelo local e revisão humana</span>
+          </section>
 
-          {protectionError && <div style={{ background: "#FEF2F2", border: "1px solid #FECACA", color: "#B91C1C", borderRadius: 11, padding: "11px 13px", fontSize: 12, marginBottom: 14 }}>{protectionError}</div>}
+          {protectionError && <p className="aef-mkt__error" role="alert">{protectionError}</p>}
 
-          <div style={{ display: "grid", gridTemplateColumns: mobile ? "1fr" : "310px minmax(0, 1fr)", gap: 16, alignItems: "start" }}>
-            <div onDragOver={event => event.preventDefault()} onDrop={event => { event.preventDefault(); handleProtectionUpload(event.dataTransfer.files?.[0]); }} style={{ background: C.surface, borderRadius: 16, border: `1px solid ${C.border}`, padding: "18px" }}>
-              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 10, marginBottom: 12 }}>
-                <div style={{ fontSize: 11, fontWeight: 700, color: C.textSecondary, letterSpacing: 0.4, textTransform: "uppercase" }}>1. Escolha a imagem</div>
-                <label htmlFor="protection-image-upload" style={{ border: `1px solid ${C.border}`, background: C.bg, color: C.textSecondary, borderRadius: 8, padding: "7px 10px", fontSize: 10, fontWeight: 700, cursor: "pointer", display: "inline-flex", alignItems: "center", gap: 5 }}><Icon name="upload" size={12} color={C.textSecondary} /> Selecionar do computador</label>
-                <input id="protection-image-upload" type="file" accept=".jpg,.jpeg,.png,.webp,image/jpeg,image/png,image/webp" onChange={event => { const file = event.target.files?.[0]; event.target.value = ""; handleProtectionUpload(file); }} style={{ position: "absolute", width: 1, height: 1, opacity: 0, pointerEvents: "none" }} />
+          <div className="aef-mkt__protect-grid">
+            <div className="aef-mkt__panel aef-mkt__panel--pad aef-mkt__steps" onDragOver={event => event.preventDefault()} onDrop={event => { event.preventDefault(); handleProtectionUpload(event.dataTransfer.files?.[0]); }}>
+              <div className="aef-mkt__step">
+                <div className="aef-mkt__step-head">
+                  <h3 className="aef-mkt__step-title">1. Escolha a imagem</h3>
+                  <div className="aef-mkt__upload">
+                    <label htmlFor="protection-image-upload" className="aef-mkt__btn aef-mkt__btn--outline"><span aria-hidden="true"><Icon name="upload" size={13} /></span> Selecionar do computador</label>
+                    <input id="protection-image-upload" type="file" accept=".jpg,.jpeg,.png,.webp,image/jpeg,image/png,image/webp" onChange={event => { const file = event.target.files?.[0]; event.target.value = ""; handleProtectionUpload(file); }} />
+                  </div>
+                </div>
+                <div className="aef-mkt__thumbs">
+                  {acervo.filter(f => f.tipo === "foto" && !f.protected).slice(0, 6).map(f => (
+                    <button key={f.id} type="button" className="aef-mkt__thumb" aria-pressed={fotoSelecionada?.id === f.id} onClick={() => iniciarMascaramento(f)} title={f.nome}>
+                      <img src={f.url} alt={f.nome} crossOrigin={/^https?:/i.test(f.url) ? "anonymous" : undefined} />
+                    </button>
+                  ))}
+                </div>
+                <div className="aef-mkt__drop-hint" aria-live="polite">
+                  {mascarando ? "Processando a foto selecionada…" : fotoSelecionada?.acao === "Upload local" ? `Selecionada: ${fotoSelecionada.nome}` : "Ou arraste aqui uma imagem JPG, PNG ou WebP"}
+                </div>
               </div>
-              <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 8, marginBottom: 18 }}>
-                {acervo.filter(f => f.tipo === "foto" && !f.protected).slice(0, 6).map(f => (
-                  <button key={f.id} onClick={() => iniciarMascaramento(f)} title={f.nome} style={{ padding: 0, borderRadius: 9, overflow: "hidden", cursor: "pointer", border: fotoSelecionada?.id === f.id ? `2px solid ${C.red}` : "2px solid transparent", background: C.bg, aspectRatio: "1" }}>
-                    <img src={f.url} alt={f.nome} crossOrigin={/^https?:/i.test(f.url) ? "anonymous" : undefined} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
-                  </button>
-                ))}
-              </div>
-              <div style={{ border: `1px dashed ${C.border}`, borderRadius: 9, padding: "9px 10px", margin: "-8px 0 16px", textAlign: "center", fontSize: 10, color: C.textTertiary }}>
-                {mascarando ? "Processando a foto selecionada..." : fotoSelecionada?.acao === "Upload local" ? `Selecionada: ${fotoSelecionada.nome}` : "Ou arraste aqui uma imagem JPG, PNG ou WebP"}
-              </div>
 
-              <div style={{ fontSize: 11, fontWeight: 700, color: C.textSecondary, letterSpacing: 0.4, textTransform: "uppercase", marginBottom: 9 }}>2. Escolha a proteção</div>
-              <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 6, marginBottom: 16 }}>
-                {[["blur","Desfoque"], ["aef","Elemento AEF"], ["silhouette","Silhueta"]].map(([id, label]) => (
-                  <button key={id} onClick={() => { setMaskStyle(id); setReviewConfirmed(false); }} style={{ padding: "9px 5px", borderRadius: 8, border: `1px solid ${maskStyle === id ? C.red : C.border}`, background: maskStyle === id ? "#FEF2F2" : C.surface, color: maskStyle === id ? C.red : C.textSecondary, fontSize: 10, fontWeight: maskStyle === id ? 700 : 500, cursor: "pointer" }}>{label}</button>
-                ))}
-              </div>
+              <div className="aef-mkt__step">
+                <h3 className="aef-mkt__step-title" id="mkt-mask-style">2. Escolha a proteção</h3>
+                <div className="aef-mkt__segments" role="group" aria-labelledby="mkt-mask-style">
+                  {[["blur","Desfoque"], ["aef","Elemento AEF"], ["silhouette","Silhueta"]].map(([id, label]) => (
+                    <button key={id} type="button" className="aef-mkt__segment" aria-pressed={maskStyle === id} onClick={() => { setMaskStyle(id); setReviewConfirmed(false); }}>{label}</button>
+                  ))}
+                </div>
 
-              <label style={{ display: "flex", justifyContent: "space-between", alignItems: "center", fontSize: 11, fontWeight: 600, color: C.textSecondary, marginBottom: 7 }}>
-                Margem da máscara <span style={{ color: C.text, fontWeight: 700 }}>{maskPadding}%</span>
-              </label>
-              <input type="range" min="0" max="45" value={maskPadding} onChange={event => { setMaskPadding(Number(event.target.value)); setReviewConfirmed(false); }} style={{ width: "100%", accentColor: C.red, marginBottom: 18 }} />
+                <label className="aef-mkt__field" htmlFor="mkt-mask-padding">
+                  <span className="aef-mkt__range-head"><span>Margem da máscara</span><span>{maskPadding}%</span></span>
+                  <input id="mkt-mask-padding" className="aef-mkt__range" type="range" min="0" max="45" value={maskPadding} onChange={event => { setMaskPadding(Number(event.target.value)); setReviewConfirmed(false); }} />
+                </label>
 
-              <div style={{ background: C.bg, borderRadius: 10, padding: "11px 12px", fontSize: 11, color: C.textSecondary, lineHeight: 1.5 }}>
-                <b style={{ color: C.text }}>Correção manual:</b> arraste sobre qualquer rosto que o detector não encontrou. Remova máscaras incorretas na lista ao lado.
+                <p className="aef-mkt__tip">
+                  <strong>Correção manual:</strong> arraste sobre qualquer rosto que o detector não encontrou. Remova máscaras incorretas na lista ao lado.
+                </p>
               </div>
             </div>
 
-            <div ref={protectionEditorRef} style={{ background: C.surface, borderRadius: 16, border: `1px solid ${C.border}`, padding: mobile ? "14px" : "18px", scrollMarginTop: 16 }}>
+            <div ref={protectionEditorRef} className="aef-mkt__panel aef-mkt__editor">
               {!mascVisible ? (
-                <div style={{ minHeight: 360, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", textAlign: "center", color: C.textTertiary }}>
-                  <div style={{ width: 48, height: 48, borderRadius: 14, background: C.bg, display: "flex", alignItems: "center", justifyContent: "center", marginBottom: 12 }}><Icon name="shield" size={21} color={C.textTertiary} /></div>
-                  <div style={{ fontSize: 13, fontWeight: 700, color: C.textSecondary }}>Selecione uma foto para começar</div>
-                  <div style={{ fontSize: 11, marginTop: 4 }}>O original será preservado.</div>
+                <div className="aef-mkt__editor-empty">
+                  <span aria-hidden="true"><Icon name="shield" size={22} /></span>
+                  <h3 className="aef-mkt__h3">Selecione uma foto para começar</h3>
+                  <p className="aef-mkt__hint">O original será preservado.</p>
                 </div>
               ) : (
                 <>
-                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 12, marginBottom: 12 }}>
-                    <div>
-                      <div style={{ fontSize: 13, fontWeight: 700, color: C.text }}>{fotoSelecionada?.nome}</div>
-                      <div style={{ fontSize: 10, color: C.textTertiary, marginTop: 2 }}>{manualDrawing ? "Solte para adicionar a máscara" : protectionNotice}</div>
+                  <div className="aef-mkt__editor-head">
+                    <div style={{ minWidth: 0 }}>
+                      <div className="aef-mkt__item-title">{fotoSelecionada?.nome}</div>
+                      <div className="aef-mkt__hint" aria-live="polite">{manualDrawing ? "Solte para adicionar a máscara" : protectionNotice}</div>
                     </div>
-                    <span style={{ fontSize: 10, fontWeight: 700, color: faceBoxes.length ? "#15803D" : "#B45309", background: faceBoxes.length ? "#F0FDF4" : "#FFF7ED", borderRadius: 20, padding: "5px 8px", flexShrink: 0 }}>{faceBoxes.length} máscara(s)</span>
+                    <span className="aef-mkt__tone-text" data-tone={faceBoxes.length ? "green" : "amber"}>{faceBoxes.length} máscara(s)</span>
                   </div>
 
-                  <div style={{ position: "relative", borderRadius: 12, overflow: "hidden", background: "#111", lineHeight: 0 }}>
-                    <canvas ref={protectionCanvasRef} onPointerDown={startManualMask} onPointerUp={finishManualMask} onPointerCancel={() => { manualStartRef.current = null; setManualDrawing(false); }} aria-label="Editor da imagem protegida" style={{ display: "block", width: "100%", maxHeight: 560, objectFit: "contain", cursor: mascarando ? "wait" : "crosshair", touchAction: "none" }} />
+                  <div className="aef-mkt__stage" data-busy={mascarando ? "true" : undefined}>
+                    <canvas ref={protectionCanvasRef} onPointerDown={startManualMask} onPointerUp={finishManualMask} onPointerCancel={() => { manualStartRef.current = null; setManualDrawing(false); }} aria-label="Editor da imagem protegida" />
                     {mascarando && (
-                      <div style={{ position: "absolute", inset: 0, background: "rgba(0,0,0,0.62)", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 10 }}>
-                        <div style={{ width: 22, height: 22, border: "2px solid rgba(255,255,255,0.3)", borderTopColor: C.white, borderRadius: "50%", animation: "spin 0.8s linear infinite" }} />
-                        <span style={{ color: C.white, fontSize: 12, fontWeight: 600 }}>Processando no dispositivo...</span>
+                      <div className="aef-mkt__stage-busy" role="status">
+                        <span className="aef-mkt__spinner" aria-hidden="true" />
+                        <span>Processando no dispositivo…</span>
                       </div>
                     )}
                   </div>
 
                   {!mascarando && faceBoxes.length > 0 && (
-                    <div style={{ display: "flex", flexWrap: "wrap", gap: 6, marginTop: 10 }}>
+                    <div className="aef-mkt__masks">
                       {faceBoxes.map((box, index) => (
-                        <button key={box.id} onClick={() => { setFaceBoxes(prev => prev.filter(item => item.id !== box.id)); setReviewConfirmed(false); }} title="Remover esta máscara" style={{ border: `1px solid ${C.border}`, background: C.bg, color: C.textSecondary, borderRadius: 20, padding: "5px 8px", fontSize: 10, cursor: "pointer" }}>
-                          {box.manual ? "Manual" : `Rosto ${index + 1}`} · remover
+                        <button key={box.id} type="button" className="aef-mkt__mask-chip" onClick={() => { setFaceBoxes(prev => prev.filter(item => item.id !== box.id)); setReviewConfirmed(false); }} title="Remover esta máscara">
+                          Remover {box.manual ? "manual" : `rosto ${index + 1}`}
                         </button>
                       ))}
                     </div>
@@ -4510,14 +4322,14 @@ function Marketing({ mobile, user }) {
 
                   {!mascarando && (
                     <>
-                      <label style={{ display: "flex", alignItems: "flex-start", gap: 9, background: "#FFF7ED", border: "1px solid #FED7AA", borderRadius: 10, padding: "10px 11px", marginTop: 12, cursor: "pointer" }}>
-                        <input type="checkbox" checked={reviewConfirmed} onChange={event => setReviewConfirmed(event.target.checked)} disabled={!faceBoxes.length} style={{ marginTop: 2, accentColor: C.red }} />
-                        <span style={{ fontSize: 11, color: "#9A3412", lineHeight: 1.45 }}>Revisei a imagem inteira e confirmei que todos os rostos que precisam de proteção estão cobertos.</span>
+                      <label className="aef-mkt__confirm">
+                        <input type="checkbox" checked={reviewConfirmed} onChange={event => setReviewConfirmed(event.target.checked)} disabled={!faceBoxes.length} />
+                        <span>Revisei a imagem inteira e confirmei que todos os rostos que precisam de proteção estão cobertos.</span>
                       </label>
-                      <div style={{ display: "grid", gridTemplateColumns: mobile ? "1fr" : "repeat(3, 1fr)", gap: 8, marginTop: 12 }}>
-                        <button onClick={() => processProtectionImage(fotoSelecionada)} style={{ background: C.bg, border: `1px solid ${C.border}`, borderRadius: 9, padding: "10px", fontSize: 11, fontWeight: 700, color: C.textSecondary, cursor: "pointer" }}>Detectar novamente</button>
-                        <button onClick={baixarImagemProtegida} disabled={!reviewConfirmed || !faceBoxes.length} style={{ background: C.bg, border: `1px solid ${C.border}`, borderRadius: 9, padding: "10px", fontSize: 11, fontWeight: 700, color: reviewConfirmed && faceBoxes.length ? C.text : C.textTertiary, cursor: reviewConfirmed && faceBoxes.length ? "pointer" : "not-allowed" }}>Baixar versão</button>
-                        <button onClick={salvarImagemProtegida} disabled={!reviewConfirmed || !faceBoxes.length} style={{ background: reviewConfirmed && faceBoxes.length ? C.red : C.border, border: "none", borderRadius: 9, padding: "10px", fontSize: 11, fontWeight: 700, color: C.white, cursor: reviewConfirmed && faceBoxes.length ? "pointer" : "not-allowed" }}>Salvar no Acervo</button>
+                      <div className="aef-mkt__final">
+                        <button type="button" className="aef-mkt__btn aef-mkt__btn--outline" onClick={() => processProtectionImage(fotoSelecionada)}>Detectar novamente</button>
+                        <button type="button" className="aef-mkt__btn aef-mkt__btn--outline" onClick={baixarImagemProtegida} disabled={!reviewConfirmed || !faceBoxes.length}>Baixar versão</button>
+                        <button type="button" className="aef-mkt__btn aef-mkt__btn--primary" onClick={salvarImagemProtegida} disabled={!reviewConfirmed || !faceBoxes.length}>Salvar no Acervo</button>
                       </div>
                     </>
                   )}
@@ -4527,10 +4339,6 @@ function Marketing({ mobile, user }) {
           </div>
         </div>
       )}
-
-      <style>{`
-        @keyframes spin { to { transform: rotate(360deg); } }
-      `}</style>
     </div>
   );
 }
@@ -4686,278 +4494,198 @@ function Juridico({ mobile }) {
 
   const catLabel = (id) => JURIDICO_CATEGORIAS.find(c => c.id === id)?.label || id;
 
+  const tomDoStatus = { vencido: "red", vencendo: "amber", ok: "green" };
+  const vencidos = alertas.filter(a => a.status.tipo === "vencido").length;
+  const vencendo = alertas.filter(a => a.status.tipo === "vencendo").length;
+
   return (
-    <div style={{ padding: mobile ? "20px 16px 100px" : tight ? "28px 24px" : "32px 40px", fontFamily: FONT_BODY }}>
-      <div style={{ display: "flex", alignItems: mobile ? "stretch" : "flex-start", justifyContent: "space-between", gap: 12, marginBottom: 24, flexWrap: "wrap", flexDirection: mobile ? "column" : "row" }}>
+    <div className="aef-jur">
+      <div className="aef-jur__head">
         <div>
-          <h1 style={{ fontSize: mobile ? 24 : 28, fontWeight: 700, color: C.text, letterSpacing: -0.5, margin: "0 0 4px", fontFamily: FONT_DISPLAY }}>Jurídico</h1>
-          <p style={{ color: C.textSecondary, fontSize: 14, margin: 0 }}>Repositório de documentos oficiais da ONG</p>
+          <h1 className="aef-jur__title">Jurídico</h1>
+          <p className="aef-jur__desc">Repositório de documentos oficiais da ONG</p>
         </div>
-        <button onClick={() => setShowUpload(true)} style={{
-          display: "flex", alignItems: "center", justifyContent: "center", gap: 8, padding: "11px 18px",
-          background: C.red, color: C.white, border: "none", borderRadius: 10,
-          fontSize: 14, fontWeight: 600, cursor: "pointer",
-          boxShadow: "0 6px 16px rgba(215,13,22,0.25)",
-          width: mobile ? "100%" : "auto",
-        }}>
-          <Icon name="upload" size={16} color={C.white} strokeWidth={2} />
+        <button type="button" onClick={() => setShowUpload(true)} className="aef-jur__btn aef-jur__btn--primary">
+          <span aria-hidden="true"><Icon name="upload" size={16} strokeWidth={2} /></span>
           Novo documento
         </button>
       </div>
 
-      {/* Stats */}
-      <div style={{ display: "grid", gridTemplateColumns: mobile ? "1fr 1fr" : tight ? "1fr 1fr" : "repeat(4, 1fr)", gap: 12, marginBottom: 20 }}>
-        <div style={{ background: C.white, padding: "16px 18px", borderRadius: 12, border: `1px solid ${C.border}` }}>
-          <div style={{ fontSize: 11, color: C.textTertiary, letterSpacing: 1, textTransform: "uppercase", marginBottom: 6 }}>Total vigentes</div>
-          <div style={{ fontSize: 24, fontWeight: 700, color: C.text }}>{docs.filter(d => d.vigente !== false).length}</div>
-        </div>
-        <div style={{ background: C.white, padding: "16px 18px", borderRadius: 12, border: `1px solid ${C.border}` }}>
-          <div style={{ fontSize: 11, color: C.textTertiary, letterSpacing: 1, textTransform: "uppercase", marginBottom: 6 }}>Vencidos</div>
-          <div style={{ fontSize: 24, fontWeight: 700, color: alertas.some(a => a.status.tipo === "vencido") ? C.red : C.text }}>
-            {alertas.filter(a => a.status.tipo === "vencido").length}
-          </div>
-        </div>
-        <div style={{ background: C.white, padding: "16px 18px", borderRadius: 12, border: `1px solid ${C.border}` }}>
-          <div style={{ fontSize: 11, color: C.textTertiary, letterSpacing: 1, textTransform: "uppercase", marginBottom: 6 }}>Vencendo (30d)</div>
-          <div style={{ fontSize: 24, fontWeight: 700, color: alertas.some(a => a.status.tipo === "vencendo") ? "#B45309" : C.text }}>
-            {alertas.filter(a => a.status.tipo === "vencendo").length}
-          </div>
-        </div>
-        <div style={{ background: C.white, padding: "16px 18px", borderRadius: 12, border: `1px solid ${C.border}` }}>
-          <div style={{ fontSize: 11, color: C.textTertiary, letterSpacing: 1, textTransform: "uppercase", marginBottom: 6 }}>Certidões</div>
-          <div style={{ fontSize: 24, fontWeight: 700, color: C.text }}>{docs.filter(d => d.categoria === "certidoes" && d.vigente !== false).length}</div>
-        </div>
-      </div>
+      <ul className="aef-jur__figures">
+        <li className="aef-jur__figure"><span className="aef-jur__figure-label">Total vigentes</span><span className="aef-jur__figure-value">{docs.filter(d => d.vigente !== false).length}</span></li>
+        <li className="aef-jur__figure" data-tone={vencidos ? "red" : undefined}><span className="aef-jur__figure-label">Vencidos</span><span className="aef-jur__figure-value">{vencidos}</span></li>
+        <li className="aef-jur__figure" data-tone={vencendo ? "amber" : undefined}><span className="aef-jur__figure-label">Vencendo (30d)</span><span className="aef-jur__figure-value">{vencendo}</span></li>
+        <li className="aef-jur__figure"><span className="aef-jur__figure-label">Certidões</span><span className="aef-jur__figure-value">{docs.filter(d => d.categoria === "certidoes" && d.vigente !== false).length}</span></li>
+      </ul>
 
-      {/* Filtros + busca */}
-      <div style={{ display: "flex", gap: 12, marginBottom: 16, flexWrap: "wrap" }}>
-        <div style={{ position: "relative", flex: 1, minWidth: 200 }}>
-          <div style={{ position: "absolute", left: 12, top: "50%", transform: "translateY(-50%)" }}>
-            <Icon name="search" size={16} color={C.textTertiary} />
-          </div>
+      <div className="aef-jur__panel aef-jur__toolbar">
+        <div className="aef-jur__search">
+          <span className="aef-jur__search-icon" aria-hidden="true"><Icon name="search" size={16} /></span>
           <input
+            className="aef-jur__input"
+            type="search"
+            aria-label="Buscar documento"
             value={busca}
             onChange={(e) => setBusca(e.target.value)}
-            placeholder="Buscar documento..."
-            style={{
-              width: "100%", padding: "11px 14px 11px 38px",
-              border: `1px solid ${C.border}`, borderRadius: 10,
-              fontSize: 14, fontFamily: FONT_BODY, background: C.white,
-              outline: "none", boxSizing: "border-box",
-            }}
+            placeholder="Buscar documento…"
           />
         </div>
+        <div className="aef-jur__chips" role="group" aria-label="Filtrar por categoria">
+          {[{ id: "todos", label: "Todos" }, ...JURIDICO_CATEGORIAS].map(cat => {
+            const ativo = filtro === cat.id;
+            return (
+              <button key={cat.id} type="button" className="aef-jur__chip" aria-pressed={ativo} onClick={() => setFiltro(cat.id)}>
+                {cat.label}
+              </button>
+            );
+          })}
+        </div>
+        <label className="aef-jur__check">
+          <input type="checkbox" checked={mostrarHistorico} onChange={(e) => setMostrarHistorico(e.target.checked)} />
+          Mostrar versões históricas ({docs.filter(d => d.vigente === false).length})
+        </label>
       </div>
 
-      <div style={{ display: "flex", gap: 8, marginBottom: 14, flexWrap: "wrap" }}>
-        {[{ id: "todos", label: "Todos" }, ...JURIDICO_CATEGORIAS].map(cat => {
-          const ativo = filtro === cat.id;
-          return (
-            <button key={cat.id} onClick={() => setFiltro(cat.id)} style={{
-              padding: "7px 14px", borderRadius: 20,
-              background: ativo ? C.text : C.white,
-              color: ativo ? C.white : C.textSecondary,
-              border: `1px solid ${ativo ? C.text : C.border}`,
-              fontSize: 13, fontWeight: ativo ? 600 : 500,
-              cursor: "pointer", fontFamily: FONT_BODY,
-            }}>
-              {cat.label}
-            </button>
-          );
-        })}
-      </div>
-
-      <label style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 20, fontSize: 13, color: C.textSecondary, cursor: "pointer", userSelect: "none" }}>
-        <input type="checkbox" checked={mostrarHistorico} onChange={(e) => setMostrarHistorico(e.target.checked)} style={{ cursor: "pointer" }} />
-        Mostrar versões históricas ({docs.filter(d => d.vigente === false).length})
-      </label>
-
-      {/* Lista de documentos */}
-      <div style={{ background: C.white, borderRadius: 14, border: `1px solid ${C.border}`, overflow: "hidden" }}>
+      <div className="aef-jur__panel aef-jur__register">
         {filtrados.length === 0 ? (
-          <div style={{ padding: "60px 24px", textAlign: "center" }}>
-            <div style={{ width: 56, height: 56, borderRadius: 16, background: C.bg, display: "inline-flex", alignItems: "center", justifyContent: "center", marginBottom: 16 }}>
-              <Icon name="file" size={24} color={C.textTertiary} />
-            </div>
-            <div style={{ fontSize: 15, fontWeight: 600, color: C.text, marginBottom: 4 }}>Nenhum documento encontrado</div>
-            <div style={{ fontSize: 13, color: C.textSecondary }}>Faça upload do primeiro documento para começar</div>
+          <div className="aef-jur__empty">
+            <span className="aef-jur__empty-icon" aria-hidden="true"><Icon name="file" size={24} /></span>
+            <h2 className="aef-jur__h2">Nenhum documento encontrado</h2>
+            <p className="aef-jur__desc">Faça upload do primeiro documento para começar</p>
           </div>
-        ) : filtrados.map((doc, idx) => {
-          const status = statusValidade(doc.validade);
-          const historico = doc.vigente === false;
-          return (
-          <div key={doc.id} style={{
-            display: "flex", alignItems: (mobile || tight) ? "flex-start" : "center", gap: mobile ? 12 : 14,
-            padding: mobile ? "14px 14px" : "16px 20px",
-            borderTop: idx === 0 ? "none" : `1px solid ${C.borderLight}`,
-            opacity: historico ? 0.62 : 1,
-            flexWrap: (mobile || tight) ? "wrap" : "nowrap",
-          }}>
-            <div style={{ width: mobile ? 36 : 40, height: mobile ? 36 : 40, borderRadius: 10, background: "rgba(215,13,22,0.08)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
-              <Icon name="file" size={mobile ? 16 : 18} color={C.red} strokeWidth={1.8} />
+        ) : (
+          <>
+            <div className="aef-jur__cols" aria-hidden="true">
+              <span>Documento</span><span>Categoria</span><span>Validade</span><span>Enviado</span><span>Responsável</span><span />
             </div>
-            <div style={{ flex: "1 1 0", minWidth: 0 }}>
-              <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 3, flexWrap: "wrap" }}>
-                <span style={{ fontSize: 14, fontWeight: 600, color: C.text, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", flex: "0 1 auto", minWidth: 0 }}>{doc.nome}</span>
-                {historico && (
-                  <span style={{ fontSize: 10, fontWeight: 700, color: C.textSecondary, background: C.borderLight, padding: "2px 8px", borderRadius: 10, letterSpacing: 0.5, textTransform: "uppercase" }}>Histórico</span>
-                )}
-                {status && !historico && (
-                  <span style={{ fontSize: 11, fontWeight: 600, color: status.cor, background: status.bg, padding: "2px 8px", borderRadius: 10 }}>{status.label}</span>
-                )}
-              </div>
-              <div style={{ fontSize: 12, color: C.textTertiary, display: "flex", gap: 8, flexWrap: "wrap" }}>
-                <span>{catLabel(doc.categoria)}</span>
-                <span>•</span>
-                <span>{doc.tamanho}</span>
-                <span>•</span>
-                <span>{doc.data}</span>
-                {!mobile && <><span>•</span><span>{doc.responsavel}</span></>}
-              </div>
-            </div>
-            <div style={{ display: "flex", gap: 8, marginLeft: (mobile || tight) ? "auto" : 0, flexShrink: 0, flexBasis: (mobile || tight) ? "100%" : "auto", justifyContent: (mobile || tight) ? "flex-end" : "flex-start" }}>
-              <button title="Editar" onClick={() => setEditing(doc)} style={{
-                width: mobile ? 32 : 34, height: mobile ? 32 : 34, borderRadius: 8, border: `1px solid ${C.border}`,
-                background: C.white, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center",
-              }}>
-                <Icon name="settings" size={14} color={C.textSecondary} />
-              </button>
-              <button title="Visualizar" onClick={() => setViewing(doc)} style={{
-                width: mobile ? 32 : 34, height: mobile ? 32 : 34, borderRadius: 8, border: `1px solid ${C.border}`,
-                background: C.white, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center",
-              }}>
-                <Icon name="eye" size={15} color={C.textSecondary} />
-              </button>
-              <button title="Baixar" onClick={() => baixarDoc(doc)} style={{
-                width: mobile ? 32 : 34, height: mobile ? 32 : 34, borderRadius: 8, border: `1px solid ${C.border}`,
-                background: C.white, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center",
-              }}>
-                <Icon name="download" size={15} color={C.textSecondary} />
-              </button>
-              <button title="Remover" onClick={() => removerDoc(doc.id)} style={{
-                width: mobile ? 32 : 34, height: mobile ? 32 : 34, borderRadius: 8, border: `1px solid ${C.border}`,
-                background: C.white, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center",
-              }}>
-                <Icon name="trash" size={15} color={C.red} />
-              </button>
-            </div>
-          </div>
-          );
-        })}
+            <ul className="aef-jur__register">
+              {filtrados.map((doc) => {
+                const status = statusValidade(doc.validade);
+                const historico = doc.vigente === false;
+                const validade = status && !historico ? <span className="aef-jur__validity" data-tone={tomDoStatus[status.tipo]}>{status.label}</span> : null;
+                return (
+                  <li key={doc.id} className="aef-jur__doc" data-historic={historico ? "true" : undefined}>
+                    <div className="aef-jur__doc-main">
+                      <div className="aef-jur__doc-name">
+                        <span>{doc.nome}</span>
+                        {historico && <span className="aef-jur__tag">Histórico</span>}
+                      </div>
+                      <div className="aef-jur__doc-sub">
+                        <span>{doc.tamanho}</span>
+                        <span className="aef-jur__sub-meta">{catLabel(doc.categoria)}</span>
+                        <span className="aef-jur__sub-meta">{doc.data}</span>
+                        {!mobile && <span className="aef-jur__sub-meta">{doc.responsavel}</span>}
+                        {validade && <span className="aef-jur__sub-validity">{validade}</span>}
+                      </div>
+                    </div>
+                    <span className="aef-jur__cell">{catLabel(doc.categoria)}</span>
+                    <span className="aef-jur__cell">{validade}</span>
+                    <span className="aef-jur__cell">{doc.data}</span>
+                    <span className="aef-jur__cell">{doc.responsavel}</span>
+                    <div className="aef-jur__actions">
+                      <button type="button" className="aef-jur__icon-btn" title="Editar" aria-label={"Editar " + doc.nome} onClick={() => setEditing(doc)}>
+                        <Icon name="settings" size={15} />
+                      </button>
+                      <button type="button" className="aef-jur__icon-btn" title="Visualizar" aria-label={"Visualizar " + doc.nome} onClick={() => setViewing(doc)}>
+                        <Icon name="eye" size={15} />
+                      </button>
+                      <button type="button" className="aef-jur__icon-btn" title="Baixar" aria-label={"Baixar " + doc.nome} onClick={() => baixarDoc(doc)}>
+                        <Icon name="download" size={15} />
+                      </button>
+                      <button type="button" className="aef-jur__icon-btn aef-jur__icon-btn--danger" title="Remover" aria-label={"Remover " + doc.nome} onClick={() => removerDoc(doc.id)}>
+                        <Icon name="trash" size={15} />
+                      </button>
+                    </div>
+                  </li>
+                );
+              })}
+            </ul>
+          </>
+        )}
       </div>
 
       {/* Modal Upload */}
       {showUpload && (
-        <div onClick={() => setShowUpload(false)} style={{
-          position: "fixed", inset: 0, background: "rgba(0,0,0,0.5)",
-          display: "flex", alignItems: mobile ? "flex-end" : "center", justifyContent: "center",
-          zIndex: 500, padding: mobile ? 0 : 20,
-        }}>
-          <div onClick={(e) => e.stopPropagation()} style={{
-            background: C.white, borderRadius: mobile ? "16px 16px 0 0" : 16, padding: mobile ? 22 : 28,
-            width: "100%", maxWidth: 460, fontFamily: FONT_BODY,
-          }}>
-            <h2 style={{ fontSize: 20, fontWeight: 700, color: C.text, margin: "0 0 6px", fontFamily: FONT_DISPLAY }}>Enviar documento</h2>
-            <p style={{ color: C.textSecondary, fontSize: 13, margin: "0 0 20px" }}>Selecione um ou mais arquivos do seu computador</p>
-            <label style={{
-              display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center",
-              padding: "32px 20px", border: `2px dashed ${C.border}`, borderRadius: 12,
-              cursor: "pointer", background: C.bg, marginBottom: 20,
-            }}>
-              <Icon name="upload" size={28} color={C.textTertiary} />
-              <div style={{ marginTop: 12, fontSize: 14, fontWeight: 600, color: C.text }}>Clique para escolher arquivos</div>
-              <div style={{ fontSize: 12, color: C.textTertiary, marginTop: 4 }}>PDF, DOC, JPG, PNG (até 8MB)</div>
-              <input type="file" multiple onChange={(e) => handleFiles(e.target.files)} style={{ display: "none" }} />
+        <div className="aef-jur__scrim" onClick={() => setShowUpload(false)}>
+          <div className="aef-jur__dialog" role="dialog" aria-modal="true" aria-labelledby="jur-upload-title" onClick={(e) => e.stopPropagation()}>
+            <h2 id="jur-upload-title" className="aef-jur__dialog-title">Enviar documento</h2>
+            <p className="aef-jur__dialog-sub">Selecione um ou mais arquivos do seu computador</p>
+            <label className="aef-jur__drop">
+              <span className="aef-jur__drop-icon" aria-hidden="true"><Icon name="upload" size={28} /></span>
+              <span className="aef-jur__drop-title">Clique para escolher arquivos</span>
+              <span className="aef-jur__drop-note">PDF, DOC, JPG, PNG (até 8MB)</span>
+              <input type="file" multiple onChange={(e) => handleFiles(e.target.files)} />
             </label>
-            {uploadError && (
-              <div style={{ padding: "10px 12px", background: "rgba(215,13,22,0.08)", color: C.red, borderRadius: 8, fontSize: 13, marginBottom: 14 }}>
-                {uploadError}
-              </div>
-            )}
-            <button onClick={() => { setShowUpload(false); setUploadError(""); }} style={{
-              width: "100%", padding: "11px", background: C.white, color: C.textSecondary,
-              border: `1px solid ${C.border}`, borderRadius: 10, fontSize: 14, fontWeight: 600, cursor: "pointer",
-            }}>Cancelar</button>
+            {uploadError && <p className="aef-jur__error" role="alert">{uploadError}</p>}
+            <button type="button" className="aef-jur__btn aef-jur__btn--outline aef-jur__btn--block" onClick={() => { setShowUpload(false); setUploadError(""); }}>Cancelar</button>
           </div>
         </div>
       )}
 
       {/* Modal Editar */}
       {editing && (
-        <div onClick={() => setEditing(null)} style={{
-          position: "fixed", inset: 0, background: "rgba(0,0,0,0.5)",
-          display: "flex", alignItems: mobile ? "flex-end" : "center", justifyContent: "center",
-          zIndex: 500, padding: mobile ? 0 : 20,
-        }}>
-          <div onClick={(e) => e.stopPropagation()} style={{
-            background: C.white, borderRadius: mobile ? "16px 16px 0 0" : 16, padding: mobile ? 22 : 28,
-            width: "100%", maxWidth: 460, fontFamily: FONT_BODY,
-            maxHeight: mobile ? "92vh" : "none", overflowY: "auto",
-          }}>
-            <h2 style={{ fontSize: 20, fontWeight: 700, color: C.text, margin: "0 0 4px", fontFamily: FONT_DISPLAY }}>Editar documento</h2>
-            <p style={{ color: C.textSecondary, fontSize: 13, margin: "0 0 20px", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{editing.nome}</p>
+        <div className="aef-jur__scrim" onClick={() => setEditing(null)}>
+          <div className="aef-jur__dialog" role="dialog" aria-modal="true" aria-labelledby="jur-edit-title" onClick={(e) => e.stopPropagation()}>
+            <h2 id="jur-edit-title" className="aef-jur__dialog-title">Editar documento</h2>
+            <p className="aef-jur__dialog-sub">{editing.nome}</p>
 
-            <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
-              <div>
-                <label style={{ fontSize: 12, fontWeight: 600, color: C.textSecondary, letterSpacing: 0.5, textTransform: "uppercase", display: "block", marginBottom: 6 }}>Categoria</label>
+            <div className="aef-jur__fields">
+              <div className="aef-jur__field">
+                <label className="aef-jur__label" htmlFor="jur-categoria">Categoria</label>
                 <select
+                  id="jur-categoria"
+                  className="aef-jur__select"
                   value={editing.categoria}
                   onChange={(e) => setEditing({ ...editing, categoria: e.target.value })}
-                  style={{ width: "100%", padding: "10px 12px", border: `1px solid ${C.border}`, borderRadius: 10, fontSize: 14, fontFamily: FONT_BODY, background: C.white, color: C.text, cursor: "pointer" }}
                 >
                   {JURIDICO_CATEGORIAS.map(c => <option key={c.id} value={c.id}>{c.label}</option>)}
                 </select>
               </div>
 
-              <div>
-                <label style={{ fontSize: 12, fontWeight: 600, color: C.textSecondary, letterSpacing: 0.5, textTransform: "uppercase", display: "block", marginBottom: 6 }}>Validade (opcional)</label>
+              <div className="aef-jur__field">
+                <label className="aef-jur__label" htmlFor="jur-validade">Validade (opcional)</label>
                 <input
+                  id="jur-validade"
+                  className="aef-jur__input"
                   type="date"
                   value={editing.validade || ""}
                   onChange={(e) => setEditing({ ...editing, validade: e.target.value || null })}
-                  style={{ width: "100%", padding: "10px 12px", border: `1px solid ${C.border}`, borderRadius: 10, fontSize: 14, fontFamily: FONT_BODY, background: C.white, color: C.text, boxSizing: "border-box" }}
                 />
                 {editing.validade && (() => {
                   const s = statusValidade(editing.validade);
-                  return s ? <div style={{ fontSize: 12, marginTop: 6, color: s.cor, fontWeight: 600 }}>{s.label} ({formatDataBR(editing.validade)})</div> : null;
+                  return s ? <p className="aef-jur__field-note" data-tone={tomDoStatus[s.tipo]}>{s.label} ({formatDataBR(editing.validade)})</p> : null;
                 })()}
               </div>
 
-              <div>
-                <label style={{ fontSize: 12, fontWeight: 600, color: C.textSecondary, letterSpacing: 0.5, textTransform: "uppercase", display: "block", marginBottom: 6 }}>Responsável</label>
+              <div className="aef-jur__field">
+                <label className="aef-jur__label" htmlFor="jur-responsavel">Responsável</label>
                 <input
+                  id="jur-responsavel"
+                  className="aef-jur__input"
                   type="text"
                   value={editing.responsavel || ""}
                   onChange={(e) => setEditing({ ...editing, responsavel: e.target.value })}
-                  style={{ width: "100%", padding: "10px 12px", border: `1px solid ${C.border}`, borderRadius: 10, fontSize: 14, fontFamily: FONT_BODY, background: C.white, color: C.text, boxSizing: "border-box" }}
                 />
               </div>
 
-              <label style={{ display: "flex", alignItems: "flex-start", gap: 10, cursor: "pointer", padding: "12px 14px", background: C.bg, borderRadius: 10 }}>
+              <label className="aef-jur__toggle">
                 <input
                   type="checkbox"
                   checked={editing.vigente !== false}
                   onChange={(e) => setEditing({ ...editing, vigente: e.target.checked })}
-                  style={{ marginTop: 3, cursor: "pointer" }}
                 />
-                <div>
-                  <div style={{ fontSize: 14, fontWeight: 600, color: C.text }}>Documento vigente</div>
-                  <div style={{ fontSize: 12, color: C.textSecondary, marginTop: 2 }}>Desmarque se for uma versão antiga (Estatuto v1, ata revogada, etc.)</div>
-                </div>
+                <span>
+                  <span className="aef-jur__toggle-title">Documento vigente</span><br />
+                  <span className="aef-jur__toggle-note">Desmarque se for uma versão antiga (Estatuto v1, ata revogada, etc.)</span>
+                </span>
               </label>
             </div>
 
-            <div style={{ display: "flex", gap: 10, marginTop: 24 }}>
-              <button onClick={() => setEditing(null)} style={{
-                flex: 1, padding: "11px", background: C.white, color: C.textSecondary,
-                border: `1px solid ${C.border}`, borderRadius: 10, fontSize: 14, fontWeight: 600, cursor: "pointer",
-              }}>Cancelar</button>
-              <button onClick={() => {
+            <div className="aef-jur__dialog-actions">
+              <button type="button" className="aef-jur__btn aef-jur__btn--outline" onClick={() => setEditing(null)}>Cancelar</button>
+              <button type="button" className="aef-jur__btn aef-jur__btn--primary" onClick={() => {
                 setDocs(prev => prev.map(d => d.id === editing.id ? editing : d));
                 setEditing(null);
-              }} style={{
-                flex: 1, padding: "11px", background: C.red, color: C.white,
-                border: "none", borderRadius: 10, fontSize: 14, fontWeight: 600, cursor: "pointer",
               }}>Salvar</button>
             </div>
           </div>
@@ -4966,59 +4694,37 @@ function Juridico({ mobile }) {
 
       {/* Modal Visualizar */}
       {viewing && (
-        <div onClick={() => setViewing(null)} style={{
-          position: "fixed", inset: 0, background: "rgba(0,0,0,0.7)",
-          display: "flex", alignItems: "center", justifyContent: "center",
-          zIndex: 500, padding: mobile ? 12 : 30,
-        }}>
-          <div onClick={(e) => e.stopPropagation()} style={{
-            background: C.white, borderRadius: 14, width: "100%",
-            maxWidth: 960, height: mobile ? "94vh" : "90vh", display: "flex", flexDirection: "column",
-            overflow: "hidden", fontFamily: FONT_BODY,
-          }}>
-            <div style={{ padding: mobile ? "12px 14px" : "14px 18px", borderBottom: `1px solid ${C.border}`, display: "flex", alignItems: "center", gap: mobile ? 8 : 12 }}>
-              <div style={{ width: mobile ? 32 : 36, height: mobile ? 32 : 36, borderRadius: 9, background: "rgba(215,13,22,0.08)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
-                <Icon name="file" size={mobile ? 14 : 16} color={C.red} strokeWidth={1.8} />
+        <div className="aef-jur__scrim aef-jur__scrim--viewer" onClick={() => setViewing(null)}>
+          <div className="aef-jur__viewer" role="dialog" aria-modal="true" aria-labelledby="jur-view-title" onClick={(e) => e.stopPropagation()}>
+            <div className="aef-jur__viewer-bar">
+              <div className="aef-jur__viewer-title">
+                <h2 id="jur-view-title" className="aef-jur__viewer-name">{viewing.nome}</h2>
+                <div className="aef-jur__doc-sub"><span>{catLabel(viewing.categoria)}</span><span>{viewing.tamanho}</span><span>{viewing.data}</span></div>
               </div>
-              <div style={{ flex: 1, minWidth: 0 }}>
-                <div style={{ fontSize: mobile ? 13 : 14, fontWeight: 600, color: C.text, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{viewing.nome}</div>
-                <div style={{ fontSize: 11, color: C.textTertiary, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{catLabel(viewing.categoria)} • {viewing.tamanho} • {viewing.data}</div>
-              </div>
-              <button title="Baixar" onClick={() => baixarDoc(viewing)} style={{
-                display: "flex", alignItems: "center", gap: 6, padding: mobile ? "8px 10px" : "8px 14px",
-                background: C.red, color: C.white, border: "none", borderRadius: 8,
-                fontSize: 13, fontWeight: 600, cursor: "pointer", flexShrink: 0,
-              }}>
-                <Icon name="download" size={14} color={C.white} strokeWidth={2} />
+              <button type="button" title="Baixar" className="aef-jur__btn aef-jur__btn--primary" onClick={() => baixarDoc(viewing)}>
+                <span aria-hidden="true"><Icon name="download" size={14} strokeWidth={2} /></span>
                 {!mobile && "Baixar"}
               </button>
-              <button title="Fechar" onClick={() => setViewing(null)} style={{
-                padding: mobile ? "8px 10px" : "8px 14px", background: C.white, color: C.textSecondary,
-                border: `1px solid ${C.border}`, borderRadius: 8, fontSize: 13, fontWeight: 600, cursor: "pointer", flexShrink: 0,
-              }}>{mobile ? "✕" : "Fechar"}</button>
+              <button type="button" title="Fechar" className="aef-jur__btn aef-jur__btn--outline" onClick={() => setViewing(null)}>Fechar</button>
             </div>
-            <div style={{ flex: 1, background: "#2A2A2E", overflow: "auto", display: "flex", alignItems: "center", justifyContent: "center" }}>
+            <div className="aef-jur__viewer-body">
               {!viewing.conteudo ? (
-                <div style={{ textAlign: "center", color: C.white, padding: 40 }}>
-                  <div style={{ width: 56, height: 56, borderRadius: 16, background: "rgba(255,255,255,0.08)", display: "inline-flex", alignItems: "center", justifyContent: "center", marginBottom: 16 }}>
-                    <Icon name="file" size={24} color="rgba(255,255,255,0.5)" />
-                  </div>
-                  <div style={{ fontSize: 15, fontWeight: 600, marginBottom: 4 }}>Sem visualização disponível</div>
-                  <div style={{ fontSize: 13, color: "rgba(255,255,255,0.6)" }}>Este é um documento de exemplo sem arquivo anexado.</div>
+                <div className="aef-jur__viewer-empty">
+                  <span className="aef-jur__empty-icon" aria-hidden="true"><Icon name="file" size={24} /></span>
+                  <h3 className="aef-jur__h2">Sem visualização disponível</h3>
+                  <p>Este é um documento de exemplo sem arquivo anexado.</p>
                 </div>
               ) : viewing.tipo?.startsWith("image/") ? (
-                <img src={viewing.conteudo} alt={viewing.nome} style={{ maxWidth: "100%", maxHeight: "100%", objectFit: "contain" }} />
+                <img src={viewing.conteudo} alt={viewing.nome} />
               ) : viewing.tipo === "application/pdf" ? (
-                <iframe src={viewing.conteudo} title={viewing.nome} style={{ width: "100%", height: "100%", border: "none", background: C.white }} />
+                <iframe src={viewing.conteudo} title={viewing.nome} />
               ) : viewing.tipo?.startsWith("text/") || viewing.tipo?.includes("json") ? (
-                <iframe src={viewing.conteudo} title={viewing.nome} style={{ width: "100%", height: "100%", border: "none", background: C.white }} />
+                <iframe src={viewing.conteudo} title={viewing.nome} />
               ) : (
-                <div style={{ textAlign: "center", color: C.white, padding: 40 }}>
-                  <div style={{ width: 56, height: 56, borderRadius: 16, background: "rgba(255,255,255,0.08)", display: "inline-flex", alignItems: "center", justifyContent: "center", marginBottom: 16 }}>
-                    <Icon name="file" size={24} color="rgba(255,255,255,0.5)" />
-                  </div>
-                  <div style={{ fontSize: 15, fontWeight: 600, marginBottom: 4 }}>Pré-visualização não suportada</div>
-                  <div style={{ fontSize: 13, color: "rgba(255,255,255,0.6)", marginBottom: 16 }}>Tipo: {viewing.tipo || "desconhecido"}. Use o botão Baixar para abrir no seu computador.</div>
+                <div className="aef-jur__viewer-empty">
+                  <span className="aef-jur__empty-icon" aria-hidden="true"><Icon name="file" size={24} /></span>
+                  <h3 className="aef-jur__h2">Pré-visualização não suportada</h3>
+                  <p>Tipo: {viewing.tipo || "desconhecido"}. Use o botão Baixar para abrir no seu computador.</p>
                 </div>
               )}
             </div>
@@ -5084,160 +4790,89 @@ function Profile({ user, onClose, onLogout, onUpdateUser }) {
 
   return (
     <>
-      <div onClick={onClose} style={{
-        position: "fixed", inset: 0, background: "rgba(0,0,0,0.45)",
-        zIndex: 300, backdropFilter: "blur(3px)",
-      }} />
+      <div className="aef-prof__scrim" onClick={onClose} />
 
-      <div style={{
-        position: "fixed", top: 0, right: 0, bottom: 0,
-        width: 340, background: C.surface, zIndex: 301,
-        display: "flex", flexDirection: "column",
-        boxShadow: "-8px 0 40px rgba(0,0,0,0.15)",
-        fontFamily: FONT_BODY, overflowY: "auto",
-      }}>
-        {/* Header */}
-        <div style={{ background: C.black, padding: "32px 24px 24px", position: "relative" }}>
-          <button onClick={onClose} style={{
-            position: "absolute", top: 16, right: 16,
-            background: "rgba(255,255,255,0.08)", border: "none",
-            borderRadius: 8, width: 32, height: 32, cursor: "pointer",
-            color: "rgba(255,255,255,0.5)", fontSize: 18,
-            display: "flex", alignItems: "center", justifyContent: "center",
-          }}>×</button>
-
-          <div style={{
-            width: 72, height: 72, borderRadius: "50%",
-            background: C.red, display: "flex", alignItems: "center",
-            justifyContent: "center", color: C.white, fontWeight: 700,
-            fontSize: 26, fontFamily: FONT_DISPLAY, marginBottom: 16,
-            border: "3px solid rgba(255,255,255,0.1)",
-          }}>{user.initials}</div>
-
-          <div style={{ fontFamily: FONT_DISPLAY, fontSize: 22, fontWeight: 700, color: C.white, letterSpacing: 0.5, marginBottom: 6 }}>
-            {user.name}
+      <aside className="aef-prof" role="dialog" aria-modal="true" aria-labelledby="prof-name">
+        <header className="aef-prof__head">
+          <div className="aef-prof__head-top">
+            <span className="aef-prof__avatar" aria-hidden="true">{user.initials}</span>
+            <button type="button" className="aef-prof__close" onClick={onClose}>Fechar</button>
           </div>
-          <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
-            <span style={{
-              background: C.red, color: C.white,
-              fontSize: 11, fontWeight: 600, padding: "3px 10px",
-              borderRadius: 20, letterSpacing: 0.5,
-            }}>{user.profileLabel}</span>
-            <span style={{
-              background: "rgba(255,255,255,0.12)", color: C.white,
-              fontSize: 11, fontWeight: 600, padding: "3px 10px",
-              borderRadius: 20, letterSpacing: 0.5,
-            }}>{user.department}</span>
-            <span style={{ fontSize: 11, color: "rgba(255,255,255,0.3)" }}>· Amor em Foco</span>
+          <h2 id="prof-name" className="aef-prof__name">{user.name}</h2>
+          <div className="aef-prof__tags">
+            <span className="aef-prof__tag">{user.profileLabel}</span>
+            <span className="aef-prof__tag">{user.department}</span>
+            <span className="aef-prof__org">Amor em Foco</span>
           </div>
-        </div>
+        </header>
 
-        {/* Stats */}
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 1, background: C.border, borderBottom: `1px solid ${C.border}` }}>
+        <ul className="aef-prof__figures">
           {profileStats.map((s, i) => (
-            <div key={i} style={{ background: C.surface, padding: "16px 18px" }}>
-              <div style={{ fontSize: 22, fontWeight: 700, color: C.text, letterSpacing: -1, fontFamily: FONT_DISPLAY }}>{s.value}</div>
-              <div style={{ fontSize: 11, color: C.textTertiary, marginTop: 2 }}>{s.label}</div>
-            </div>
+            <li key={i} className="aef-prof__figure">
+              <span className="aef-prof__figure-value">{s.value}</span>
+              <span className="aef-prof__figure-label">{s.label}</span>
+            </li>
           ))}
-        </div>
+        </ul>
 
-        {/* Info / Edit */}
-        <div style={{ padding: "20px 24px", flex: 1 }}>
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 14 }}>
-            <div style={{ fontSize: 11, fontWeight: 600, color: C.textTertiary, letterSpacing: 1.5, textTransform: "uppercase" }}>Informações</div>
-            {!editing && (
-              <button onClick={() => setEditing(true)} style={{
-                background: "none", border: "none", cursor: "pointer",
-                fontSize: 12, color: C.red, fontWeight: 600, fontFamily: FONT_BODY,
-              }}>Editar</button>
-            )}
-          </div>
-
-          <div style={{ display: "flex", flexDirection: "column", gap: 0, borderRadius: 12, overflow: "hidden", border: `1px solid ${C.border}` }}>
-
-            {/* Nome — não editável */}
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "12px 16px", borderBottom: `1px solid ${C.borderLight}`, background: C.surface }}>
-              <span style={{ fontSize: 12, color: C.textTertiary }}>Nome completo</span>
-              <span style={{ fontSize: 13, fontWeight: 500, color: C.text }}>{user.name}</span>
+        <div className="aef-prof__body">
+          <section className="aef-prof__section" aria-labelledby="prof-info">
+            <div className="aef-prof__section-head">
+              <h3 id="prof-info" className="aef-prof__h3">Informações</h3>
+              {!editing && (
+                <button type="button" className="aef-prof__link" onClick={() => setEditing(true)}>Editar</button>
+              )}
             </div>
 
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "12px 16px", borderBottom: `1px solid ${C.borderLight}`, background: C.surface }}>
-              <span style={{ fontSize: 12, color: C.textTertiary }}>Perfil de acesso</span>
-              <span style={{ fontSize: 13, fontWeight: 500, color: C.text }}>{user.profileLabel}</span>
-            </div>
-
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "12px 16px", borderBottom: `1px solid ${C.borderLight}`, background: C.surface }}>
-              <span style={{ fontSize: 12, color: C.textTertiary }}>Cargo</span>
-              <span style={{ fontSize: 13, fontWeight: 500, color: C.text }}>{user.position}</span>
-            </div>
-
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "12px 16px", borderBottom: `1px solid ${C.borderLight}`, background: C.surface }}>
-              <span style={{ fontSize: 12, color: C.textTertiary }}>Area principal</span>
-              <span style={{ fontSize: 13, fontWeight: 500, color: C.text }}>{user.department}</span>
-            </div>
-
-            {[
-              { key: "email", label: "E-mail" },
-              { key: "telefone", label: "Telefone" },
-              { key: "cidade", label: "Cidade" },
-            ].map((f, i, arr) => (
-              <div key={f.key} style={{ padding: "12px 16px", borderBottom: i < arr.length - 1 ? `1px solid ${C.borderLight}` : "none", background: editing ? "#FFF8F8" : C.surface }}>
-                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: editing ? 8 : 0 }}>
-                  <span style={{ fontSize: 12, color: C.textTertiary }}>{f.label}</span>
-                  {!editing && <span style={{ fontSize: 13, fontWeight: 500, color: C.text }}>{form[f.key]}</span>}
-                </div>
-                {editing && (
-                  <input
-                    value={draft[f.key]}
-                    onChange={e => setDraft(d => ({ ...d, [f.key]: e.target.value }))}
-                    style={inputStyle}
-                  />
-                )}
-              </div>
-            ))}
-          </div>
-
-          <div style={{ marginTop: 18 }}>
-            <div style={{ fontSize: 11, fontWeight: 600, color: C.textTertiary, letterSpacing: 1.5, textTransform: "uppercase", marginBottom: 10 }}>Modulos liberados</div>
-            <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
-              {user.allowedModules.map(moduleId => (
-                <span key={moduleId} style={{
-                  padding: "7px 10px", borderRadius: 999,
-                  background: "#FFF1F2", color: C.red, border: "1px solid rgba(215,13,22,0.12)",
-                  fontSize: 12, fontWeight: 600,
-                }}>
-                  {getModuleLabel(moduleId)}
-                </span>
+            <dl className="aef-prof__info">
+              <div className="aef-prof__row"><dt>Nome completo</dt><dd>{user.name}</dd></div>
+              <div className="aef-prof__row"><dt>Perfil de acesso</dt><dd>{user.profileLabel}</dd></div>
+              <div className="aef-prof__row"><dt>Cargo</dt><dd>{user.position}</dd></div>
+              <div className="aef-prof__row"><dt>Área principal</dt><dd>{user.department}</dd></div>
+              {[
+                { key: "email", label: "E-mail" },
+                { key: "telefone", label: "Telefone" },
+                { key: "cidade", label: "Cidade" },
+              ].map((f) => (
+                editing ? (
+                  <div key={f.key} className="aef-prof__row aef-prof__row--edit">
+                    <label htmlFor={`prof-${f.key}`}>{f.label}</label>
+                    <input
+                      id={`prof-${f.key}`}
+                      className="aef-prof__input"
+                      type={f.key === "email" ? "email" : f.key === "telefone" ? "tel" : "text"}
+                      value={draft[f.key]}
+                      onChange={e => setDraft(d => ({ ...d, [f.key]: e.target.value }))}
+                    />
+                  </div>
+                ) : (
+                  <div key={f.key} className="aef-prof__row"><dt>{f.label}</dt><dd>{form[f.key]}</dd></div>
+                )
               ))}
-            </div>
-          </div>
+            </dl>
+          </section>
+
+          <section className="aef-prof__section" aria-labelledby="prof-modules">
+            <h3 id="prof-modules" className="aef-prof__h3">Módulos liberados</h3>
+            <ul className="aef-prof__modules">
+              {user.allowedModules.map(moduleId => (
+                <li key={moduleId} className="aef-prof__module">{getModuleLabel(moduleId)}</li>
+              ))}
+            </ul>
+          </section>
         </div>
 
-        {/* Botões */}
-        <div style={{ padding: "0 24px 32px", display: "flex", flexDirection: "column", gap: 10 }}>
+        <div className="aef-prof__actions">
           {editing ? (
             <>
-              <button onClick={handleSave} style={{
-                width: "100%", padding: "12px", background: C.red,
-                border: "none", borderRadius: 10,
-                fontSize: 14, fontWeight: 600, color: C.white, cursor: "pointer",
-              }}>Salvar alterações</button>
-              <button onClick={handleCancel} style={{
-                width: "100%", padding: "12px", background: C.bg,
-                border: `1px solid ${C.border}`, borderRadius: 10,
-                fontSize: 14, fontWeight: 600, color: C.textSecondary, cursor: "pointer",
-              }}>Cancelar</button>
+              <button type="button" className="aef-prof__btn aef-prof__btn--primary" onClick={handleSave}>Salvar alterações</button>
+              <button type="button" className="aef-prof__btn aef-prof__btn--outline" onClick={handleCancel}>Cancelar</button>
             </>
           ) : (
-            <button onClick={onLogout} style={{
-              width: "100%", padding: "12px", background: "rgba(215,13,22,0.07)",
-              border: `1px solid rgba(215,13,22,0.2)`, borderRadius: 10,
-              fontSize: 14, fontWeight: 600, color: C.red, cursor: "pointer",
-            }}>Sair da conta</button>
+            <button type="button" className="aef-prof__btn aef-prof__btn--danger" onClick={onLogout}>Sair da conta</button>
           )}
         </div>
-      </div>
+      </aside>
     </>
   );
 }
@@ -5363,30 +4998,22 @@ export default function App() {
   };
 
   return (
-    <div style={{ display: "flex", minHeight: "100vh", background: C.bg }}>
+    <div className="aef-shell">
       {showProfile && <Profile user={user} onClose={() => setShowProfile(false)} onLogout={handleLogout} onUpdateUser={handleUserUpdate} />}
       {!mobile && <Sidebar active={active} setActive={handleSetActive} user={user} onOpenProfile={() => setShowProfile(true)} navItems={allowedNavItems} />}
-      <main style={{
-        marginLeft: mobile ? 0 : 240, flex: 1,
-        padding: mobile ? "20px 16px 100px" : "40px 44px",
-        maxWidth: mobile ? "100%" : "calc(100vw - 240px)",
-        boxSizing: "border-box", overflowX: "hidden",
-        fontFamily: FONT_BODY,
-      }}>
+      <main className={mobile ? "aef-shell__main aef-shell__main--mobile" : "aef-shell__main"}>
         {/* Mobile top bar */}
         {mobile && (
-          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 24 }}>
-            <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-              <div style={{ width: 32, height: 32, flexShrink: 0 }}>
-                <img src="/logo-vermelha.png" alt="Amor em Foco" style={{ width: "100%", height: "100%", objectFit: "contain" }} />
-              </div>
-              <div>
-                <div style={{ fontWeight: 700, fontSize: 16, color: C.text, letterSpacing: 0.5, fontFamily: FONT_DISPLAY }}>AEF Hub</div>
-                <div style={{ fontSize: 10, color: C.textTertiary, letterSpacing: 1.1, textTransform: "uppercase" }}>{user.profileLabel}</div>
+          <header className="aef-topbar">
+            <div className="aef-topbar__brand">
+              <img className="aef-topbar__logo" src="/logo-vermelha.png" alt="" />
+              <div style={{ minWidth: 0 }}>
+                <div className="aef-nav__wordmark">AEF Hub</div>
+                <div className="aef-nav__org">{user.profileLabel}</div>
               </div>
             </div>
-            <div onClick={() => setShowProfile(true)} style={{ width: 32, height: 32, borderRadius: "50%", background: C.red, display: "flex", alignItems: "center", justifyContent: "center", color: C.white, fontWeight: 700, fontSize: 12, cursor: "pointer" }}>{user.initials}</div>
-          </div>
+            <button type="button" className="aef-nav__avatar aef-topbar__avatar" aria-label={"Abrir perfil de " + user.name} onClick={() => setShowProfile(true)}>{user.initials}</button>
+          </header>
         )}
         <AccessNotice message={accessNotice} />
         {renderModule()}

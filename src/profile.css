@@ -1,0 +1,130 @@
+/* Hallmark · shape: app screen · genre: editorial · theme: brand · redesign: full
+ * paper: oklch(97.1% 0.003 286.4) · accent: oklch(55.6% 0.223 27.7) · display: Gagalin · body: Outfit
+ * nav: none, a drawer over the app · signature: the person set in Gagalin on the solid brand red head · states: reading, editing, saving
+ * axes: light/display-heavy/chromatic-red · posture: one red head for identity, red elsewhere on the primary action and the released modules · contrast: pass · v2.0.0 */
+/* Hallmark · pre-emit critique: P4 H5 E4 S4 R4 V3 · weakest: V, the drawer shares the app's ruled panels; deliberate, one app with one system */
+/* Hallmark · answered F16 · scrollbar-color stays with the browser, the drawer scrolls as one plain column */
+/* Hallmark · answered F7 · the full radius sits on the avatar and the module chips, which are markers, not boxes */
+@import "./tokens.css";
+
+.aef-prof__scrim { position: fixed; inset: 0; z-index: var(--z-modal); background: var(--color-scrim); }
+.aef-prof {
+  position: fixed;
+  inset: 0 0 0 auto;
+  z-index: calc(var(--z-modal) + 1);
+  width: min(23rem, 100%);
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+  background: var(--color-surface);
+  color: var(--color-ink);
+  font-family: var(--font-body);
+  font-size: var(--text-md);
+  line-height: 1.5;
+  box-shadow: -8px 0 40px color-mix(in oklab, var(--color-ink) 15%, transparent);
+  animation: aef-prof-in var(--dur-short) var(--ease-out);
+}
+@keyframes aef-prof-in { from { transform: translateX(24px); opacity: 0; } }
+.aef-prof h2, .aef-prof h3, .aef-prof p, .aef-prof dl, .aef-prof dd { margin: 0; }
+.aef-prof h2, .aef-prof h3 { text-wrap: balance; }
+
+/* Head */
+.aef-prof__head { display: grid; gap: var(--space-xs); padding: var(--space-lg); background: var(--color-accent); color: var(--color-accent-ink); }
+.aef-prof__head-top { display: flex; align-items: flex-start; justify-content: space-between; gap: var(--space-sm); }
+.aef-prof__avatar { display: inline-grid; place-items: center; width: 64px; height: 64px; border-radius: var(--radius-pill); background: var(--color-accent-ink); color: var(--color-accent); font-family: var(--font-display); font-size: var(--text-xl); }
+.aef-prof__name { font-family: var(--font-display); font-weight: 400; font-size: var(--text-2xl); line-height: 1.05; letter-spacing: var(--tracking-display); overflow-wrap: break-word; min-width: 0; text-wrap: balance; }
+.aef-prof__tags { display: flex; flex-wrap: wrap; gap: var(--space-2xs) var(--space-xs); font-size: var(--text-sm); }
+.aef-prof__tag { padding: var(--space-3xs) var(--space-xs); border-radius: var(--radius-control); background: color-mix(in oklab, var(--color-accent-ink) 18%, transparent); font-weight: 600; }
+.aef-prof__org { color: var(--color-accent-ink-2); align-self: center; }
+.aef-prof__close {
+  min-height: 36px;
+  padding: 0 var(--space-sm);
+  border: 0;
+  border-radius: var(--radius-control);
+  background: color-mix(in oklab, var(--color-accent-ink) 14%, transparent);
+  color: var(--color-accent-ink);
+  font: inherit;
+  font-size: var(--text-sm);
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color var(--dur-micro) var(--ease-out);
+}
+.aef-prof__close:hover { background: color-mix(in oklab, var(--color-accent-ink) 24%, transparent); }
+.aef-prof__close:active { background: color-mix(in oklab, var(--color-accent-ink) 30%, transparent); }
+.aef-prof__close:focus-visible { outline: 2px solid var(--color-focus-on-accent); outline-offset: 2px; transition: none; }
+
+/* Figures */
+.aef-prof__figures { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--rule-hair); margin: 0; padding: 0; list-style: none; background: var(--color-rule); border-bottom: var(--rule-hair) solid var(--color-rule); }
+.aef-prof__figure { display: grid; gap: var(--space-3xs); padding: var(--space-md) var(--space-lg); background: var(--color-surface); }
+.aef-prof__figure-value { font-size: var(--text-2xl); font-weight: 700; line-height: 1.1; font-variant-numeric: tabular-nums; }
+.aef-prof__figure-label { font-size: var(--text-sm); color: var(--color-muted); }
+
+/* Body */
+.aef-prof__body { flex: 1; display: grid; gap: var(--space-lg); align-content: start; padding: var(--space-lg); }
+.aef-prof__section { display: grid; gap: var(--space-sm); }
+.aef-prof__section-head { display: flex; align-items: center; justify-content: space-between; gap: var(--space-sm); }
+.aef-prof__h3 { font-size: var(--text-md); font-weight: 600; }
+.aef-prof__link { min-height: 32px; padding: 0 var(--space-xs); border: 0; border-radius: var(--radius-control); background: transparent; color: var(--color-accent-strong); font: inherit; font-size: var(--text-sm); font-weight: 600; cursor: pointer; transition: background-color var(--dur-micro) var(--ease-out); }
+.aef-prof__link:hover { background: var(--color-accent-wash); }
+.aef-prof__link:active { background: var(--color-paper-3); }
+.aef-prof__link:focus-visible { outline: 2px solid var(--color-focus); outline-offset: 1px; transition: none; }
+
+.aef-prof__info { border: var(--rule-hair) solid var(--color-rule); border-radius: var(--radius-control); overflow: hidden; }
+.aef-prof__row { display: flex; align-items: baseline; justify-content: space-between; gap: var(--space-md); padding: var(--space-sm) var(--space-md); }
+.aef-prof__row + .aef-prof__row { border-top: var(--rule-hair) solid var(--color-rule); }
+.aef-prof__row dt { flex-shrink: 0; font-size: var(--text-sm); color: var(--color-muted); }
+.aef-prof__row dd { min-width: 0; font-size: var(--text-sm); font-weight: 500; text-align: right; overflow-wrap: anywhere; }
+.aef-prof__row--edit { display: grid; gap: var(--space-2xs); background: var(--color-paper-2); }
+.aef-prof__row--edit label { font-size: var(--text-sm); font-weight: 600; color: var(--color-ink-2); }
+
+.aef-prof__input {
+  width: 100%;
+  height: 40px;
+  padding: 0 var(--space-sm);
+  background: var(--color-surface);
+  color: var(--color-ink);
+  border: var(--rule-hair) solid var(--color-rule-strong);
+  border-radius: var(--radius-control);
+  font: inherit;
+  font-size: var(--text-sm);
+  outline: none;
+  transition: border-color var(--dur-micro) var(--ease-out);
+}
+.aef-prof__input:hover { border-color: var(--color-ink-2); }
+.aef-prof__input:focus-visible { border-color: var(--color-accent); outline: 2px solid var(--color-focus); outline-offset: 1px; transition: none; }
+.aef-prof__input:disabled { opacity: 0.6; cursor: not-allowed; }
+
+.aef-prof__modules { display: flex; flex-wrap: wrap; gap: var(--space-2xs); margin: 0; padding: 0; list-style: none; }
+.aef-prof__module { padding: var(--space-2xs) var(--space-sm); border-radius: var(--radius-pill); background: var(--color-accent-wash); color: var(--color-accent-strong); font-size: var(--text-sm); font-weight: 600; }
+
+/* Actions */
+.aef-prof__actions { display: grid; gap: var(--space-xs); padding: 0 var(--space-lg) var(--space-xl); }
+.aef-prof__btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 44px;
+  padding: 0 var(--space-md);
+  border: var(--rule-hair) solid transparent;
+  border-radius: var(--radius-control);
+  font: inherit;
+  font-size: var(--text-sm);
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color var(--dur-micro) var(--ease-out), border-color var(--dur-micro) var(--ease-out), transform var(--dur-micro) var(--ease-out);
+}
+.aef-prof__btn:active { transform: scale(0.98); }
+.aef-prof__btn:focus-visible { outline: 2px solid var(--color-focus); outline-offset: 2px; transition: none; }
+.aef-prof__btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+.aef-prof__btn--primary { background: var(--color-accent); color: var(--color-accent-ink); }
+.aef-prof__btn--primary:hover { background: var(--color-accent-strong); }
+.aef-prof__btn--outline { background: transparent; color: var(--color-ink); border-color: var(--color-rule-strong); }
+.aef-prof__btn--outline:hover { background: var(--color-paper-2); }
+.aef-prof__btn--danger { background: transparent; color: var(--color-accent-strong); border-color: var(--color-accent); }
+.aef-prof__btn--danger:hover { background: var(--color-accent-wash); }
+
+@media (prefers-reduced-motion: reduce) {
+  .aef-prof { animation: none; }
+  .aef-prof *, .aef-prof *::before, .aef-prof *::after { transition-duration: 0.01ms !important; }
+  .aef-prof__btn:active { transform: none; }
+}

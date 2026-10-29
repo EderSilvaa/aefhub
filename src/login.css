@@ -1,0 +1,200 @@
+/* Hallmark · shape: app screen · genre: editorial · theme: brand · redesign: full
+ * paper: oklch(98.6% 0.004 27.7) · accent: oklch(55.6% 0.223 27.7) · display: Gagalin · body: Outfit
+ * nav: none, a sign-in screen · signature: the demo profiles as a pick list that fills the form · states: idle, error, loading, selected profile
+ * axes: light/display-heavy/chromatic-red · posture: brand panel, solid red surface on the left fifth-to-half, red elsewhere only on the action and the selection · contrast: pass · v2.0.0 */
+/* Hallmark · pre-emit critique: P4 H5 E4 S4 R5 V4 · weakest: P, a sign-in screen argues little; the brand line set large in Gagalin carries the voice instead of a gradient and two orbs */
+/* Hallmark · scope: login only · base.css is not imported, so the rest of the app keeps its own system; the Floor rules it carries are set here under .aef-login */
+/* Hallmark · dropped onFocus, onBlur, onMouseDown, onMouseUp · the login inputs and button handlers only painted border and scale inline; :focus, :focus-visible and :active in this sheet now carry those states */
+/* Hallmark · answered F16 · scrollbar-color stays with the app shell, which owns the page scroll; the login themes only its selection */
+@import "./tokens.css";
+
+html, body { overflow-x: clip; }
+
+.aef-login {
+  min-height: 100dvh;
+  display: grid;
+  grid-template-columns: minmax(0, 5fr) minmax(0, 7fr);
+  background: var(--color-paper);
+  color: var(--color-ink);
+  font-family: var(--font-body);
+  font-size: var(--text-md);
+  line-height: 1.55;
+  -webkit-font-smoothing: antialiased;
+}
+
+.aef-login ::selection { background: var(--color-accent-wash); color: var(--color-ink); }
+
+/* Brand panel */
+.aef-login__brand {
+  background: var(--color-accent);
+  color: var(--color-accent-ink);
+  padding: var(--space-2xl);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: flex-start;
+  gap: var(--space-xl);
+  min-width: 0;
+}
+/* logo-branco.png carries transparent margins (13.4% left, 22.5% top, 28.9% bottom); the negative margins trim them so the mark aligns with the statement */
+.aef-login__logo {
+  --logo-w: 340px;
+  width: var(--logo-w);
+  max-width: none;
+  height: auto;
+  display: block;
+  margin: calc(var(--logo-w) * -0.159) 0 calc(var(--logo-w) * -0.204) calc(var(--logo-w) * -0.134);
+}
+.aef-login__statement {
+  margin: 0;
+  font-family: var(--font-display);
+  font-weight: 400;
+  font-size: clamp(2rem, 0.9rem + 2.1vw, 3.25rem);
+  line-height: 1.04;
+  letter-spacing: var(--tracking-display);
+  max-width: 9em;
+  overflow-wrap: break-word;
+  min-width: 0;
+}
+.aef-login__purpose {
+  margin: var(--space-md) 0 0;
+  color: var(--color-accent-ink-2);
+  font-size: var(--text-md);
+}
+
+/* Form side */
+.aef-login__main {
+  display: grid;
+  place-items: center;
+  padding: var(--space-2xl) var(--space-xl);
+  min-width: 0;
+}
+.aef-login__panel {
+  width: 100%;
+  max-width: 400px;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-xl);
+}
+.aef-login__title {
+  margin: 0;
+  font-family: var(--font-display);
+  font-weight: 400;
+  font-size: var(--text-3xl);
+  line-height: 1.05;
+  letter-spacing: var(--tracking-display);
+  color: var(--color-ink);
+  overflow-wrap: break-word;
+  min-width: 0;
+}
+.aef-login__sub { margin: var(--space-xs) 0 0; color: var(--color-muted); }
+
+.aef-login__fields { display: flex; flex-direction: column; gap: var(--space-md); }
+.aef-login__field { display: flex; flex-direction: column; gap: var(--space-xs); }
+.aef-login__label { font-size: var(--text-sm); font-weight: 600; color: var(--color-ink-2); }
+.aef-login__input {
+  height: 48px;
+  padding: 0 var(--space-md);
+  background: var(--color-paper-2);
+  color: var(--color-ink);
+  border: var(--rule-hair) solid var(--color-rule);
+  border-radius: var(--radius-control);
+  font: inherit;
+  font-size: var(--text-md);
+  outline: none;
+  -webkit-appearance: none;
+  appearance: none;
+  transition: border-color var(--dur-micro) var(--ease-out), background-color var(--dur-micro) var(--ease-out);
+}
+.aef-login__input::placeholder { color: var(--color-muted); }
+.aef-login__input:hover { border-color: var(--color-rule-strong); }
+.aef-login__input:focus { background: var(--color-paper); }
+.aef-login__input:focus-visible { border-color: var(--color-accent); outline: 2px solid var(--color-focus); outline-offset: 1px; transition: none; }
+.aef-login__input:disabled { opacity: 0.6; cursor: not-allowed; }
+.aef-login__input[aria-invalid="true"] { border-color: var(--color-accent); }
+
+.aef-login__error {
+  margin: 0;
+  padding: var(--space-sm) var(--space-md);
+  background: var(--color-accent-wash);
+  color: var(--color-accent-strong);
+  border-radius: var(--radius-control);
+  font-size: var(--text-sm);
+  font-weight: 500;
+}
+
+.aef-login__submit {
+  height: 52px;
+  margin-top: var(--space-xs);
+  background: var(--color-accent);
+  color: var(--color-accent-ink);
+  border: 0;
+  border-radius: var(--radius-control);
+  font: inherit;
+  font-size: var(--text-md);
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color var(--dur-micro) var(--ease-out), transform var(--dur-micro) var(--ease-out);
+}
+.aef-login__submit:hover { background: var(--color-accent-strong); }
+.aef-login__submit:active { transform: scale(0.98); }
+.aef-login__submit:focus-visible { outline: 2px solid var(--color-focus); outline-offset: 3px; transition: none; }
+.aef-login__submit:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
+.aef-login__submit:disabled:hover { background: var(--color-accent); }
+
+/* Demo profiles */
+.aef-login__demo {
+  padding-top: var(--space-lg);
+  border-top: var(--rule-hair) solid var(--color-rule);
+}
+.aef-login__demo-title { margin: 0; font-size: var(--text-md); font-weight: 600; color: var(--color-ink); }
+.aef-login__demo-note { margin: var(--space-2xs) 0 var(--space-sm); font-size: var(--text-sm); color: var(--color-muted); }
+.aef-login__demo-note strong { color: var(--color-ink); font-weight: 600; }
+.aef-login__profiles { list-style: none; margin: 0; padding: 0; }
+.aef-login__profiles li + li { border-top: var(--rule-hair) solid var(--color-rule); }
+.aef-login__profile {
+  width: 100%;
+  min-height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-md);
+  padding: var(--space-sm) var(--space-xs);
+  background: transparent;
+  color: var(--color-ink);
+  border: 0;
+  border-radius: var(--radius-control);
+  font: inherit;
+  font-size: var(--text-md);
+  text-align: left;
+  cursor: pointer;
+  transition: background-color var(--dur-micro) var(--ease-out);
+}
+.aef-login__profile-name { font-weight: 500; min-width: 0; }
+.aef-login__profile-role { font-size: var(--text-sm); color: var(--color-muted); white-space: nowrap; }
+.aef-login__profile:hover { background: var(--color-paper-2); }
+.aef-login__profile:active { background: var(--color-paper-3); }
+.aef-login__profile:focus-visible { outline: 2px solid var(--color-focus); outline-offset: -2px; transition: none; }
+.aef-login__profile:disabled { opacity: 0.6; cursor: not-allowed; }
+.aef-login__profile[aria-pressed="true"] { background: var(--color-accent-wash); }
+.aef-login__profile[aria-pressed="true"] .aef-login__profile-role { color: var(--color-accent-strong); }
+
+.aef-login__help { margin: 0; font-size: var(--text-sm); color: var(--color-muted); }
+
+@media (max-width: 60rem) {
+  .aef-login { grid-template-columns: minmax(0, 1fr); }
+  .aef-login__brand { padding: var(--space-xl) var(--space-lg); gap: var(--space-lg); }
+  .aef-login__logo { --logo-w: 200px; }
+  .aef-login__statement { font-size: clamp(1.5rem, 1rem + 2vw, 2rem); max-width: 10em; }
+  .aef-login__main { padding: var(--space-xl) var(--space-lg) var(--space-2xl); place-items: start center; }
+}
+@media (max-width: 40rem) {
+  .aef-login__brand { padding: var(--space-lg) var(--space-md); }
+  .aef-login__main { padding: var(--space-lg) var(--space-md) var(--space-xl); }
+  .aef-login__purpose { margin-top: var(--space-xs); font-size: var(--text-sm); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .aef-login *, .aef-login *::before, .aef-login *::after { transition-duration: 0.01ms !important; }
+  .aef-login__submit:active { transform: none; }
+}

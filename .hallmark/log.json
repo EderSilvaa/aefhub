@@ -1,0 +1,190 @@
+[
+ {
+  "mode": "redesign",
+  "depth": "full",
+  "scope": "app",
+  "shape": "app screen",
+  "theme": "brand",
+  "axes": "light/display-heavy/chromatic-red",
+  "nav": "none, a drawer",
+  "footer": "none",
+  "signature": "the person set in Gagalin on the solid brand red head",
+  "sections": [
+   "identity head",
+   "figures",
+   "information list with inline edit",
+   "released modules",
+   "actions"
+  ],
+  "waived": [],
+  "prompt": "painel de perfil do usuário no AEF Hub",
+  "date": "2026-10-29"
+ },
+ {
+  "mode": "redesign",
+  "depth": "full",
+  "scope": "app",
+  "shape": "app screen",
+  "theme": "brand",
+  "axes": "light/display-heavy/chromatic-red",
+  "nav": "fixed sidebar on desktop, light bottom bar on phones",
+  "footer": "none",
+  "signature": "the current module held in solid brand red",
+  "sections": [
+   "sidebar",
+   "bottom bar",
+   "mobile top bar",
+   "access notice"
+  ],
+  "waived": [],
+  "prompt": "menu de módulos do AEF Hub: barra lateral, barra inferior do celular e topo",
+  "date": "2026-10-29"
+ },
+ {
+  "mode": "redesign",
+  "depth": "full",
+  "scope": "app",
+  "shape": "app screen",
+  "theme": "brand",
+  "axes": "light/display-heavy/chromatic-red",
+  "nav": "kept, Financeiro tabs as underlined strip",
+  "footer": "none",
+  "signature": "the statement as a ledger, amounts right-aligned in tabular figures",
+  "sections": [
+   "balance + monthly goal",
+   "month figures",
+   "ledger with filters",
+   "donors",
+   "spend by area",
+   "reports",
+   "transaction and transparency dialogs"
+  ],
+  "waived": [],
+  "prompt": "módulo financeiro do AEF Hub: saldo Cora, meta de doações, extrato, doadores, despesas por área e relatórios",
+  "date": "2026-10-29"
+ },
+ {
+  "mode": "redesign",
+  "depth": "full",
+  "scope": "app",
+  "shape": "app screen",
+  "theme": "brand",
+  "axes": "light/display-heavy/chromatic-red",
+  "nav": "kept, action detail with underlined tabs",
+  "footer": "none",
+  "signature": "the POP as a real checklist, each section folding with its done count",
+  "sections": [
+   "action list",
+   "new action dialog",
+   "action detail: POP, volunteers, sign-ups, draw, PIX",
+   "public sign-up preview",
+   "draw dialog"
+  ],
+  "waived": [],
+  "prompt": "módulo de operações do AEF Hub: ações, POP, inscrições, sorteio e PIX",
+  "date": "2026-10-29"
+ },
+ {
+  "mode": "redesign",
+  "depth": "full",
+  "scope": "app",
+  "shape": "app screen",
+  "theme": "brand",
+  "axes": "light/display-heavy/chromatic-red",
+  "nav": "kept, Marketing sub-tabs as underlined strip",
+  "footer": "none",
+  "signature": "the editorial calendar, each post a block washed in its state",
+  "sections": [
+   "requests: figures, form, queue",
+   "calendar + scheduling form",
+   "media library",
+   "caption assistant",
+   "content list",
+   "image protection editor"
+  ],
+  "waived": [],
+  "prompt": "módulo de marketing do AEF Hub: demandas, calendário editorial, acervo, legendas, conteúdos e proteção de rostos",
+  "date": "2026-10-29"
+ },
+ {
+  "mode": "redesign",
+  "depth": "full",
+  "scope": "app",
+  "shape": "app screen",
+  "theme": "brand",
+  "axes": "light/display-heavy/chromatic-red",
+  "nav": "kept",
+  "footer": "none",
+  "signature": "the document register with its own validity column",
+  "sections": [
+   "figures",
+   "search and category filter",
+   "document register",
+   "upload, edit and viewer dialogs"
+  ],
+  "waived": [],
+  "prompt": "módulo jurídico do AEF Hub: repositório de documentos oficiais com validade de certidões",
+  "date": "2026-10-29"
+ },
+ {
+  "mode": "redesign",
+  "depth": "full",
+  "scope": "app",
+  "shape": "app screen",
+  "theme": "brand",
+  "axes": "light/display-heavy/chromatic-red",
+  "nav": "kept, RH sub-tabs as underlined strip",
+  "footer": "none",
+  "signature": "the network as a directory, one ruled row per person, company and member",
+  "sections": [
+   "overview",
+   "network directory",
+   "attendance table",
+   "feedbacks",
+   "occurrences"
+  ],
+  "waived": [],
+  "prompt": "aba de RH do AEF Hub: painel, rede de voluntários e parceiros, participação, feedbacks e ocorrências",
+  "date": "2026-10-28"
+ },
+ {
+  "mode": "redesign",
+  "depth": "full",
+  "scope": "app",
+  "shape": "app screen",
+  "theme": "brand",
+  "axes": "light/display-heavy/chromatic-red",
+  "nav": "kept",
+  "footer": "none",
+  "signature": "the balance set large on the solid red panel",
+  "sections": [
+   "greeting",
+   "balance + running action",
+   "indicators ruled grid",
+   "mural feed"
+  ],
+  "waived": [],
+  "prompt": "dashboard do AEF Hub: saldo, ação em andamento, indicadores por setor e mural de atividades",
+  "date": "2026-10-28"
+ },
+ {
+  "mode": "redesign",
+  "depth": "full",
+  "scope": "app",
+  "shape": "app screen",
+  "theme": "brand",
+  "axes": "light/display-heavy/chromatic-red",
+  "nav": "none",
+  "footer": "none",
+  "signature": "demo profiles as a pick list that fills the form",
+  "sections": [
+   "brand panel",
+   "sign-in form",
+   "demo profiles",
+   "help line"
+  ],
+  "waived": [],
+  "prompt": "tela de login do AEF Hub, sistema interno de gestão da ONG Amor em Foco",
+  "date": "2026-10-28"
+ }
+]
