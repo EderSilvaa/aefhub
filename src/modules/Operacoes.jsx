@@ -922,8 +922,10 @@ export function Operacoes({ mobile, user }) {
 
   useEffect(() => {
     let alive = true;
-    Promise.all([listEquipe(), listAcoes()])
-      .then(([membros, lista]) => { if (alive) { setEquipe(membros); setAcoes(lista); } })
+    // separate loads: the team list must not depend on the actions loading
+    listEquipe().then(membros => { if (alive) setEquipe(membros); }).catch(error => { if (alive) setErro(acaoErrorMessage(error)); });
+    listAcoes()
+      .then(lista => { if (alive) setAcoes(lista); })
       .catch(error => { if (alive) setErro(acaoErrorMessage(error)); })
       .finally(() => { if (alive) setCarregando(false); });
     return () => { alive = false; };

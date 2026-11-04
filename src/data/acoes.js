@@ -382,6 +382,11 @@ export async function voluntariosDaAcao(acaoId) {
 }
 
 export function acaoErrorMessage(error) {
+  if (error) console.error("[acoes]", error);
+  // a column, table or function the app expects is missing: an SQL file was not run yet
+  if (["42703", "42P01", "42883", "PGRST200", "PGRST202", "PGRST204", "PGRST205"].includes(error?.code)) {
+    return "O banco está desatualizado: falta rodar o último arquivo SQL no Supabase.";
+  }
   if (error?.code === "42501" || error?.code === "PGRST116") return "Seu perfil não pode alterar esta ação.";
   if (error?.code === "23505") return "Essa pessoa já está na ação.";
   if (error?.code === "P0001" || error?.code === "P0002") return error.message;
