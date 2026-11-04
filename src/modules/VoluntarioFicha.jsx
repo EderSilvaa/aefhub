@@ -2,13 +2,18 @@ import { useEffect, useRef, useState } from "react";
 import { Icon } from "@/components/Icon";
 import { useVoluntariosActions } from "@/data/VoluntariosContext";
 import { getSaude, removeFoto, saveSaude, SEM_AREA, updateVoluntario, uploadFoto, voluntarioErrorMessage } from "@/data/voluntarios";
-import { historicoVoluntario, volId } from "@/data/acoes";
+import { historicoVoluntario, listOcorrencias, tipoRegistro, volId } from "@/data/acoes";
 
 const PRESENCA_LABEL = { presente: ["Foi", "green"], falta: ["Faltou", "red"], justificada: ["Justificou", "amber"] };
 
 // Two absences without justification in 12 months: RH gets a nudge, the decision stays with them.
 export const FALTAS_PARA_AVISO = 2;
-export const sugerePenalidade = person => (person.faltas12m || 0) >= FALTAS_PARA_AVISO && (person.status || "") !== "penalizado" && !person.penalizado;
+export const pontosNegativos = person => (person.faltas12m || 0) + (person.negativos12m || 0);
+export const sugerePenalidade = person => pontosNegativos(person) >= FALTAS_PARA_AVISO && (person.status || "") !== "penalizado" && !person.penalizado;
+export const motivoAviso = person => [
+  person.faltas12m ? `${person.faltas12m} ${person.faltas12m === 1 ? "falta" : "faltas"} sem justificar` : "",
+  person.negativos12m ? `${person.negativos12m} ${person.negativos12m === 1 ? "ocorrência" : "ocorrências"}` : "",
+].filter(Boolean).join(" e ");
 
 export const STATUS_VOLUNTARIO = [
   ["novo", "Novo cadastro", "blue"],
@@ -45,9 +50,12 @@ export function VoluntarioFicha({ person, canEdit, areas, onClose }) {
   useEffect(() => { actions?.requestFotos([person.fotoPath]); }, [actions, person.fotoPath]);
 
   const [historico, setHistorico] = useState(null);
+  const [registros, setRegistros] = useState([]);
   useEffect(() => {
     let alive = true;
     historicoVoluntario(volId(person)).then(rows => { if (alive) setHistorico(rows); }).catch(() => { if (alive) setHistorico([]); });
+    // RH sees every note; others only what they wrote
+    listOcorrencias(volId(person)).then(rows => { if (alive) setRegistros(rows); }).catch(() => {});
     return () => { alive = false; };
   }, [person]);
 
@@ -142,7 +150,7 @@ export function VoluntarioFicha({ person, canEdit, areas, onClose }) {
 
           {sugerePenalidade(person) && (
             <p className="aef-vol__suggest" role="note">
-              <strong>Sugerir penalidade?</strong> Faltou {person.faltas12m} vezes sem justificar nos últimos 12 meses. Veja o histórico abaixo e decida se cabe penalidade.
+              <strong>Sugerir penalidade?</strong> {motivoAviso(person)} nos últimos 12 meses. Veja o histórico abaixo e decida se cabe penalidade.
             </p>
           )}
 
@@ -176,6 +184,26 @@ export function VoluntarioFicha({ person, canEdit, areas, onClose }) {
               </ul>
             )}
           </section>
+
+          {registros.length > 0 && (
+            <section className="aef-vol__section">
+              <h3 className="aef-vol__h3">Registros dos organizadores</h3>
+              <ul className="aef-vol__hist">
+                {registros.map(r => {
+                  const [, texto, tom] = tipoRegistro(r.tipo);
+                  return (
+                    <li key={r.id}>
+                      <div className="aef-vol__hist-main">
+                        <span className="aef-vol__hist-name">{r.descricao || texto}</span>
+                        <span className="aef-vol__muted">{r.acaoNome || "Fora de ação"}, {formatDate(r.criadoEm)}{r.autor ? `, por ${r.autor}` : ""}</span>
+                      </div>
+                      <span className="aef-vol__tag" data-tone={tom}>{texto}</span>
+                    </li>
+                  );
+                })}
+              </ul>
+            </section>
+          )}
 
           <section className="aef-vol__section">
             <h3 className="aef-vol__h3">Cadastro</h3>

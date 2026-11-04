@@ -60,6 +60,9 @@ export function AcaoDetail({ acao, onBack, onChange, equipe, mobile, user }) {
   const [showFinalizar, setShowFinalizar] = useState(false);
   const [acaoErro, setAcaoErro] = useState("");
   const [acaoBusy, setAcaoBusy] = useState(false);
+  // with coordination set, only they (or the Super Admin) finish the action
+  const coordenadores = parts.filter(p => p.coordena).map(p => p.membroId);
+  const podeFinalizar = user?.profileId === "super_admin" || (coordenadores.length ? coordenadores.includes(user?.id) : editable);
 
   useEffect(() => {
     let alive = true;
@@ -67,11 +70,6 @@ export function AcaoDetail({ acao, onBack, onChange, equipe, mobile, user }) {
     return () => { alive = false; };
   }, [acao.id, acao.status]);
 
-  const salvarAcao = async (fields) => {
-    setAcaoBusy(true); setAcaoErro("");
-    try { onChange(await updateAcao(acao.id, fields)); } catch (error) { setAcaoErro(acaoErrorMessage(error)); }
-    setAcaoBusy(false);
-  };
   const reabrir = async () => {
     if (!confirm("Reabrir esta ação? O relatório continua salvo, mas a equipe e a presença voltam a poder ser alteradas.")) return;
     setAcaoBusy(true); setAcaoErro("");
@@ -222,15 +220,13 @@ export function AcaoDetail({ acao, onBack, onChange, equipe, mobile, user }) {
 
         {editable && (
           <div className="aef-ops__detail-actions">
-            {acao.status === "planejamento" && (
-              <button type="button" className="aef-ops__btn aef-ops__btn--outline" disabled={acaoBusy} onClick={() => salvarAcao({ status: "em andamento" })}>Marcar em andamento</button>
-            )}
-            {!concluida && (
+            {!concluida && podeFinalizar && (
               <button type="button" className="aef-ops__btn aef-ops__btn--primary" disabled={acaoBusy} onClick={() => setShowFinalizar(true)}>
                 <span aria-hidden="true"><Icon name="check" size={16} strokeWidth={2.25} /></span>
                 Finalizar ação
               </button>
             )}
+            {!concluida && !podeFinalizar && <p className="aef-ops__hint" style={{ alignSelf: "center", marginTop: 0 }}>Quem finaliza é a coordenação desta ação.</p>}
             {concluida && user?.profileId === "super_admin" && (
               <button type="button" className="aef-ops__btn aef-ops__btn--outline" disabled={acaoBusy} onClick={reabrir}>Reabrir ação</button>
             )}
@@ -271,13 +267,14 @@ export function AcaoDetail({ acao, onBack, onChange, equipe, mobile, user }) {
 
       {tab === "equipe" && <AcaoEquipe acao={acao} parts={parts} setParts={setParts} equipe={equipe} editable={editable} />}
 
-      {tab === "relatorio" && <AcaoRelatorio acao={acao} parts={parts} equipe={equipe} />}
+      {tab === "relatorio" && <AcaoRelatorio acao={acao} parts={parts} equipe={equipe} user={user} />}
 
       {showFinalizar && (
         <FinalizarAcao acao={{ ...acao, pop }} parts={parts} equipe={equipe} user={user} onClose={() => setShowFinalizar(false)}
-          onDone={updated => {
+          onDone={(updated, aviso) => {
             setShowFinalizar(false);
             onChange(updated);
+            setAcaoErro(aviso || "");
             refreshResumo();
             setTab("relatorio");
           }}
@@ -925,8 +922,10 @@ export function Operacoes({ mobile, user }) {
 
   useEffect(() => {
     let alive = true;
-    Promise.all([listEquipe(), listAcoes()])
-      .then(([membros, lista]) => { if (alive) { setEquipe(membros); setAcoes(lista); } })
+    // separate loads: the team list must not depend on the actions loading
+    listEquipe().then(membros => { if (alive) setEquipe(membros); }).catch(error => { if (alive) setErro(acaoErrorMessage(error)); });
+    listAcoes()
+      .then(lista => { if (alive) setAcoes(lista); })
       .catch(error => { if (alive) setErro(acaoErrorMessage(error)); })
       .finally(() => { if (alive) setCarregando(false); });
     return () => { alive = false; };
