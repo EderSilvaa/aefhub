@@ -4,7 +4,7 @@ import { marketingDateKey, marketingDateLabel } from "@/data/marketing";
 import { RH_ATTENDANCE_SEED, RH_FEEDBACK_SEED, RH_OCCURRENCES_SEED, RH_PARTNERS, RH_STORAGE_KEYS, readRHStore } from "@/data/rh";
 import { useVoluntarios, useVoluntariosActions } from "@/data/VoluntariosContext";
 import { SEM_AREA } from "@/data/voluntarios";
-import { VolAvatar, VoluntarioFicha } from "@/modules/VoluntarioFicha";
+import { sugerePenalidade, VolAvatar, VoluntarioFicha } from "@/modules/VoluntarioFicha";
 import { RHPerfil } from "@/modules/RHPerfil";
 import { ACCESS_PROFILES } from "@/lib/access";
 import { Acessos } from "@/modules/Acessos";
@@ -37,6 +37,7 @@ export function RHPersonRow({ person, fotoUrl, onOpen }) {
       <span className="aef-rh__row-cell">{person.telefone}</span>
       <span className="aef-rh__row-count"><strong>{person.actions}</strong><span>ações</span></span>
       {person.penalizado && person.motivoPenalidade && <p className="aef-rh__row-alert">{person.motivoPenalidade}</p>}
+      {sugerePenalidade(person) && <p className="aef-rh__row-alert aef-rh__row-alert--amber">{person.faltas12m} faltas sem justificar no último ano: sugerir penalidade?</p>}
     </li>
   );
 }

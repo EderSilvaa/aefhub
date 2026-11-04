@@ -290,6 +290,7 @@
 .aef-rh__row-count strong { font-size: var(--text-lg); font-weight: 700; }
 .aef-rh__row-count span { margin-left: var(--space-2xs); font-size: var(--text-sm); color: var(--color-muted); }
 .aef-rh__row-alert { grid-column: 1 / -1; font-size: var(--text-sm); color: var(--color-accent-strong); }
+.aef-rh__row-alert--amber { color: var(--color-tone-amber-ink); }
 
 .aef-rh__status { font-size: var(--text-sm); font-weight: 600; color: var(--tone, var(--color-muted)); }
 .aef-rh__status--cap::first-letter { text-transform: uppercase; }
@@ -410,6 +411,14 @@
 .aef-vol__info dt { color: var(--color-muted); flex-shrink: 0; }
 .aef-vol__info dd { text-align: right; font-weight: 500; overflow-wrap: anywhere; }
 .aef-vol__alert { padding: var(--space-sm) var(--space-md); border-radius: var(--radius-control); background: var(--color-accent-wash); color: var(--color-accent-strong); font-size: var(--text-sm); font-weight: 500; }
+.aef-vol__suggest { padding: var(--space-sm) var(--space-md); border-radius: var(--radius-control); border-left: 3px solid var(--color-tone-amber); background: var(--color-tone-amber-wash); color: var(--color-tone-amber-ink); font-size: var(--text-sm); line-height: 1.5; }
+.aef-vol__suggest strong { display: block; font-weight: 700; }
+.aef-vol__muted { font-size: var(--text-sm); color: var(--color-muted); }
+.aef-vol__hist { list-style: none; margin: 0; padding: 0; border: var(--rule-hair) solid var(--color-rule); border-radius: var(--radius-control); overflow: hidden; }
+.aef-vol__hist li { display: flex; align-items: center; justify-content: space-between; gap: var(--space-md); padding: var(--space-xs) var(--space-md); }
+.aef-vol__hist li + li { border-top: var(--rule-hair) solid var(--color-rule); }
+.aef-vol__hist-main { display: grid; min-width: 0; }
+.aef-vol__hist-name { font-size: var(--text-sm); font-weight: 600; }
 .aef-vol__feedback { padding: var(--space-xs) var(--space-md); border-radius: var(--radius-control); background: var(--color-paper-2); font-size: var(--text-sm); color: var(--color-ink-2); }
 .aef-vol__foot { display: flex; justify-content: flex-end; gap: var(--space-xs); padding: var(--space-md) var(--space-lg); border-top: var(--rule-hair) solid var(--color-rule); }
 @media (max-width: 40rem) {

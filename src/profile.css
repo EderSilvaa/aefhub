@@ -128,3 +128,8 @@
   .aef-prof *, .aef-prof *::before, .aef-prof *::after { transition-duration: 0.01ms !important; }
   .aef-prof__btn:active { transform: none; }
 }
+
+/* Minhas ações */
+.aef-prof__muted { font-size: var(--text-sm); color: var(--color-muted); }
+.aef-prof__hist { margin: 0; padding: 0; list-style: none; }
+.aef-prof__hist .aef-prof__row { font-size: var(--text-sm); }

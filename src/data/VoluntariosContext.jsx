@@ -1,15 +1,30 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from "react";
 import { volunteers as demoVolunteers } from "@/data/rh";
 import { listVoluntarios, signedFotoUrls } from "@/data/voluntarios";
+import { listResumoVoluntarios, volId } from "@/data/acoes";
 
 const VoluntariosContext = createContext(demoVolunteers);
 const VoluntariosActionsContext = createContext(null);
+const ResumoRefreshContext = createContext(() => {});
+
+// Action history on top of each volunteer: done, absences and the last action.
+function comResumo(person, resumo) {
+  const r = resumo[volId(person)];
+  if (!r) return person.id ? { ...person, faltas: 0, faltas12m: 0, ultimaAcao: "", ultimaAcaoData: "" } : person;
+  return { ...person, actions: r.acoesFeitas, faltas: r.faltas, faltas12m: r.faltas12m, ultimaAcao: r.ultimaAcao, ultimaAcaoData: r.ultimaAcaoData };
+}
 
 // Loads the real volunteers once after sign-in; in demo mode the screens keep the sample list (read-only).
 export function VoluntariosProvider({ enabled, children }) {
   const [list, setList] = useState([]);
   const [fotoUrls, setFotoUrls] = useState({});
   const requested = useRef(new Set());
+  const [resumo, setResumo] = useState({});
+
+  const refreshResumo = useCallback(() => {
+    listResumoVoluntarios().then(setResumo).catch(() => {});
+  }, []);
+  useEffect(() => { refreshResumo(); }, [refreshResumo, enabled]);
 
   useEffect(() => {
     if (!enabled) return;
@@ -37,10 +52,15 @@ export function VoluntariosProvider({ enabled, children }) {
 
   const actions = useMemo(() => (enabled ? { replace, requestFotos, fotoUrls } : null), [enabled, replace, requestFotos, fotoUrls]);
 
+  const base = enabled ? list : demoVolunteers;
+  const value = useMemo(() => base.map(person => comResumo(person, resumo)), [base, resumo]);
+
   return (
-    <VoluntariosContext.Provider value={enabled ? list : demoVolunteers}>
+    <VoluntariosContext.Provider value={value}>
       <VoluntariosActionsContext.Provider value={actions}>
-        {children}
+        <ResumoRefreshContext.Provider value={refreshResumo}>
+          {children}
+        </ResumoRefreshContext.Provider>
       </VoluntariosActionsContext.Provider>
     </VoluntariosContext.Provider>
   );
@@ -53,4 +73,9 @@ export function useVoluntarios() {
 // null in demo mode: the screens show the volunteer but cannot save
 export function useVoluntariosActions() {
   return useContext(VoluntariosActionsContext);
+}
+
+// call after finishing an action so lists and fichas show the new history
+export function useRefreshResumo() {
+  return useContext(ResumoRefreshContext);
 }

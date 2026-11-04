@@ -2,6 +2,13 @@ import { useEffect, useRef, useState } from "react";
 import { Icon } from "@/components/Icon";
 import { useVoluntariosActions } from "@/data/VoluntariosContext";
 import { getSaude, removeFoto, saveSaude, SEM_AREA, updateVoluntario, uploadFoto, voluntarioErrorMessage } from "@/data/voluntarios";
+import { historicoVoluntario, volId } from "@/data/acoes";
+
+const PRESENCA_LABEL = { presente: ["Foi", "green"], falta: ["Faltou", "red"], justificada: ["Justificou", "amber"] };
+
+// Two absences without justification in 12 months: RH gets a nudge, the decision stays with them.
+export const FALTAS_PARA_AVISO = 2;
+export const sugerePenalidade = person => (person.faltas12m || 0) >= FALTAS_PARA_AVISO && (person.status || "") !== "penalizado" && !person.penalizado;
 
 export const STATUS_VOLUNTARIO = [
   ["novo", "Novo cadastro", "blue"],
@@ -36,6 +43,13 @@ export function VoluntarioFicha({ person, canEdit, areas, onClose }) {
   const [feedback, setFeedback] = useState("");
 
   useEffect(() => { actions?.requestFotos([person.fotoPath]); }, [actions, person.fotoPath]);
+
+  const [historico, setHistorico] = useState(null);
+  useEffect(() => {
+    let alive = true;
+    historicoVoluntario(volId(person)).then(rows => { if (alive) setHistorico(rows); }).catch(() => { if (alive) setHistorico([]); });
+    return () => { alive = false; };
+  }, [person]);
 
   useEffect(() => {
     if (!editable) return;
@@ -126,12 +140,41 @@ export function VoluntarioFicha({ person, canEdit, areas, onClose }) {
         <div className="aef-vol__body">
           {penalizado && draft.observacoes && !editable && <p className="aef-vol__alert">{draft.observacoes}</p>}
 
+          {sugerePenalidade(person) && (
+            <p className="aef-vol__suggest" role="note">
+              <strong>Sugerir penalidade?</strong> Faltou {person.faltas12m} vezes sem justificar nos últimos 12 meses. Veja o histórico abaixo e decida se cabe penalidade.
+            </p>
+          )}
+
           <section className="aef-vol__section">
             <h3 className="aef-vol__h3">Na AEF</h3>
             <dl className="aef-vol__info">
-              <div><dt>Última ação</dt><dd>Nenhuma ação registrada</dd></div>
-              <div><dt>Ações</dt><dd>{person.actions || 0}</dd></div>
+              <div><dt>Última ação</dt><dd>{person.ultimaAcao ? `${person.ultimaAcao}, ${formatDate(person.ultimaAcaoData + "T12:00")}` : "Nenhuma ação registrada"}</dd></div>
+              <div><dt>Ações feitas</dt><dd>{person.actions || 0}</dd></div>
+              <div><dt>Faltas</dt><dd>{person.faltas ? `${person.faltas}${person.faltas12m !== person.faltas ? `, ${person.faltas12m} no último ano` : ""}` : "Nenhuma"}</dd></div>
             </dl>
+          </section>
+
+          <section className="aef-vol__section">
+            <h3 className="aef-vol__h3">Histórico de ações</h3>
+            {historico === null ? <p className="aef-vol__muted">Carregando…</p> : historico.length === 0 ? (
+              <p className="aef-vol__muted">Ainda não participou de nenhuma ação pelo AEF Hub.</p>
+            ) : (
+              <ul className="aef-vol__hist">
+                {historico.map(h => {
+                  const [texto, tom] = h.status !== "concluída" ? ["Escalado", "blue"] : PRESENCA_LABEL[h.presenca] || ["Sem registro", "neutral"];
+                  return (
+                    <li key={h.acaoId}>
+                      <div className="aef-vol__hist-main">
+                        <span className="aef-vol__hist-name">{h.nome}</span>
+                        <span className="aef-vol__muted">{h.data}{h.papel === "organizador" ? ", organizador" : ""}</span>
+                      </div>
+                      <span className="aef-vol__tag" data-tone={tom}>{texto}</span>
+                    </li>
+                  );
+                })}
+              </ul>
+            )}
           </section>
 
           <section className="aef-vol__section">

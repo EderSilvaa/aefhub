@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { getModuleLabel } from "@/lib/access";
+import { historicoMembro } from "@/data/acoes";
 import { C, FONT_BODY } from "@/lib/theme";
 import "../profile.css";
 
@@ -30,11 +31,20 @@ export function Profile({ user, onClose, onLogout, onUpdateUser }) {
     setEditing(false);
   }, [user]);
 
+  // the member's own actions, from Operações (organized, took part, coming up)
+  const [historico, setHistorico] = useState(null);
+  useEffect(() => {
+    let alive = true;
+    historicoMembro(user.id).then(rows => { if (alive) setHistorico(rows); }).catch(() => { if (alive) setHistorico([]); });
+    return () => { alive = false; };
+  }, [user.id]);
+
+  const feitas = (historico || []).filter(h => h.status === "concluída" && h.presenca === "presente");
   const profileStats = [
-    { label: "Ações participadas", value: "23" },
-    { label: "Voluntários gerenciados", value: "134" },
-    { label: "Meses na ONG", value: "18" },
-    { label: "Posts criados", value: "47" },
+    { label: "Ações organizadas", value: historico ? feitas.filter(h => h.papel === "organizador").length : "…" },
+    { label: "Ações como voluntário", value: historico ? feitas.filter(h => h.papel === "voluntario").length : "…" },
+    { label: "Próximas ações", value: historico ? historico.filter(h => h.status !== "concluída").length : "…" },
+    { label: "Última ação", value: feitas[0]?.data || "Nenhuma" },
   ];
 
   const inputStyle = {
@@ -125,6 +135,24 @@ export function Profile({ user, onClose, onLogout, onUpdateUser }) {
                 )
               ))}
             </dl>
+          </section>
+
+          <section className="aef-prof__section" aria-labelledby="prof-acoes">
+            <h3 id="prof-acoes" className="aef-prof__h3">Minhas ações</h3>
+            {historico === null ? <p className="aef-prof__muted">Carregando…</p> : historico.length === 0 ? (
+              <p className="aef-prof__muted">Quando você for escalado numa ação em Operações, ela aparece aqui.</p>
+            ) : (
+              <ul className="aef-prof__info aef-prof__hist">
+                {historico.map(h => (
+                  <li key={h.acaoId} className="aef-prof__row">
+                    <span><strong>{h.nome}</strong><span className="aef-prof__muted"> {h.data}</span></span>
+                    <span className="aef-prof__muted">
+                      {h.status !== "concluída" ? "Escalado" : h.presenca === "presente" ? (h.papel === "organizador" ? "Organizou" : "Participou") : h.presenca === "justificada" ? "Justificou" : "Faltou"}
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            )}
           </section>
 
           <section className="aef-prof__section" aria-labelledby="prof-modules">

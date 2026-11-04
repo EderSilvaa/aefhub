@@ -1,7 +1,9 @@
 import { useEffect, useState } from "react";
 import { Icon } from "@/components/Icon";
-import { ACOES_MOCK, OPS_AREA_TONE, OPS_STATUS_TONE, OPS_TIPO_TONE, OPS_TEMA } from "@/data/operacoes";
-import { useVoluntarios } from "@/data/VoluntariosContext";
+import { OPS_STATUS_TONE, OPS_TIPO_TONE, OPS_TEMA } from "@/data/operacoes";
+import { useRefreshResumo, useVoluntarios } from "@/data/VoluntariosContext";
+import { acaoErrorMessage, createAcao, listAcoes, listEquipe, listParticipacoes, reabrirAcao, updateAcao } from "@/data/acoes";
+import { AcaoEquipe, AcaoRelatorio, FinalizarAcao } from "@/modules/AcaoEquipe";
 import { Inventario } from "@/modules/Inventario";
 import "../operacoes.css";
 
@@ -46,10 +48,36 @@ export function POPSection({ title, tasks, onToggle }) {
   );
 }
 
-export function AcaoDetail({ acao, onBack, mobile, user }) {
-  const volunteers = useVoluntarios();
+const podeOperar = user => !!user && (["super_admin", "rh"].includes(user.profileId) || (user.allowedModules || []).includes("operacoes"));
+
+export function AcaoDetail({ acao, onBack, onChange, equipe, mobile, user }) {
+  const refreshResumo = useRefreshResumo();
+  const concluida = acao.status === "concluída";
+  const editable = podeOperar(user);
   const [pop, setPop] = useState(acao.pop ? JSON.parse(JSON.stringify(acao.pop)) : null);
-  const [tab, setTab] = useState("pop");
+  const [tab, setTab] = useState(concluida ? "relatorio" : "pop");
+  const [parts, setParts] = useState([]);
+  const [showFinalizar, setShowFinalizar] = useState(false);
+  const [acaoErro, setAcaoErro] = useState("");
+  const [acaoBusy, setAcaoBusy] = useState(false);
+
+  useEffect(() => {
+    let alive = true;
+    listParticipacoes(acao.id).then(rows => { if (alive) setParts(rows); }).catch(error => { if (alive) setAcaoErro(acaoErrorMessage(error)); });
+    return () => { alive = false; };
+  }, [acao.id, acao.status]);
+
+  const salvarAcao = async (fields) => {
+    setAcaoBusy(true); setAcaoErro("");
+    try { onChange(await updateAcao(acao.id, fields)); } catch (error) { setAcaoErro(acaoErrorMessage(error)); }
+    setAcaoBusy(false);
+  };
+  const reabrir = async () => {
+    if (!confirm("Reabrir esta ação? O relatório continua salvo, mas a equipe e a presença voltam a poder ser alteradas.")) return;
+    setAcaoBusy(true); setAcaoErro("");
+    try { onChange(await reabrirAcao(acao.id)); setTab("pop"); refreshResumo(); } catch (error) { setAcaoErro(acaoErrorMessage(error)); }
+    setAcaoBusy(false);
+  };
   const [showSorteio, setShowSorteio] = useState(false);
   const [showPreview, setShowPreview] = useState(false);
   const [copiadoLink, setCopiadoLink] = useState(false);
@@ -127,12 +155,12 @@ export function AcaoDetail({ acao, onBack, mobile, user }) {
   const atualizarDescricao = (texto) => setInscricoes(prev => ({ ...prev, descricao: texto }));
 
   const toggleTask = (section, idx) => {
-    setPop(prev => {
-      const next = JSON.parse(JSON.stringify(prev));
-      const t = next[section][idx];
-      t.status = t.status === "concluído" ? "pendente" : "concluído";
-      return next;
-    });
+    if (concluida || !editable) return;
+    const next = JSON.parse(JSON.stringify(pop));
+    const t = next[section][idx];
+    t.status = t.status === "concluído" ? "pendente" : "concluído";
+    setPop(next);
+    updateAcao(acao.id, { pop: next }).then(onChange).catch(error => setAcaoErro(acaoErrorMessage(error)));
   };
 
   const totalTasks = pop ? Object.values(pop).flat().length : 0;
@@ -148,7 +176,7 @@ export function AcaoDetail({ acao, onBack, mobile, user }) {
     { key: "marketing", label: "Marketing" },
   ] : [];
 
-  const detailTabs = [["pop", "POP"], ["voluntarios", "Voluntários"], ["inscricoes", `Inscrições${inscricoes.inscritos.length > 0 ? ` (${inscricoes.inscritos.length})` : ""}`], ["sorteio", "Sorteio"], ["pix", "PIX da ação"]];
+  const detailTabs = [...(concluida ? [["relatorio", "Relatório final"]] : []), ["pop", "POP"], ["equipe", `Equipe (${parts.length})`], ["inscricoes", `Inscrições${inscricoes.inscritos.length > 0 ? ` (${inscricoes.inscritos.length})` : ""}`], ["sorteio", "Sorteio"], ["pix", "PIX da ação"]];
   const renderDrawList = (titulo, lista, tom, vazio) => (
     <div className="aef-ops__draw-list" data-tone={tom}>
       <div className="aef-ops__draw-head"><span>{titulo} ({lista.length})</span></div>
@@ -187,9 +215,28 @@ export function AcaoDetail({ acao, onBack, mobile, user }) {
           </div>
           <div className="aef-ops__detail-facts">
             <span>{acao.data}</span>
-            <span>{acao.voluntarios} voluntários</span>
+            <span>{parts.filter(p => p.papel === "voluntario").length} voluntários</span>
+            {acao.responsavel && <span>{acao.responsavel}</span>}
           </div>
         </div>
+
+        {editable && (
+          <div className="aef-ops__detail-actions">
+            {acao.status === "planejamento" && (
+              <button type="button" className="aef-ops__btn aef-ops__btn--outline" disabled={acaoBusy} onClick={() => salvarAcao({ status: "em andamento" })}>Marcar em andamento</button>
+            )}
+            {!concluida && (
+              <button type="button" className="aef-ops__btn aef-ops__btn--primary" disabled={acaoBusy} onClick={() => setShowFinalizar(true)}>
+                <span aria-hidden="true"><Icon name="check" size={16} strokeWidth={2.25} /></span>
+                Finalizar ação
+              </button>
+            )}
+            {concluida && user?.profileId === "super_admin" && (
+              <button type="button" className="aef-ops__btn aef-ops__btn--outline" disabled={acaoBusy} onClick={reabrir}>Reabrir ação</button>
+            )}
+          </div>
+        )}
+        {acaoErro && <p className="aef-ops__error" role="alert" style={{ marginTop: "var(--space-sm)" }}>{acaoErro}</p>}
 
         {pop && (
           <div className="aef-ops__progress" data-tone={progress === 100 ? "green" : undefined}>
@@ -222,18 +269,19 @@ export function AcaoDetail({ acao, onBack, mobile, user }) {
         </div>
       )}
 
-      {tab === "voluntarios" && (
-        <ul className="aef-ops__panel aef-ops__people">
-          {volunteers.slice(0, acao.voluntarios).map((v, i) => (
-            <li key={i} className="aef-ops__person">
-              <div className="aef-ops__person-main">
-                <div className="aef-ops__person-name">{v.name}</div>
-                <div className="aef-ops__hint" style={{ marginTop: 0 }}>{v.formation}</div>
-              </div>
-              <span className="aef-ops__tone" data-tone={OPS_AREA_TONE[v.area] || "red"}>{v.area}</span>
-            </li>
-          ))}
-        </ul>
+      {tab === "equipe" && <AcaoEquipe acao={acao} parts={parts} setParts={setParts} equipe={equipe} editable={editable} />}
+
+      {tab === "relatorio" && <AcaoRelatorio acao={acao} parts={parts} equipe={equipe} />}
+
+      {showFinalizar && (
+        <FinalizarAcao acao={{ ...acao, pop }} parts={parts} equipe={equipe} user={user} onClose={() => setShowFinalizar(false)}
+          onDone={updated => {
+            setShowFinalizar(false);
+            onChange(updated);
+            refreshResumo();
+            setTab("relatorio");
+          }}
+        />
       )}
 
       {tab === "pop" && !pop && (
@@ -867,14 +915,44 @@ export function Operacoes({ mobile, user }) {
   const [view, setView] = useState("list");
   const [selected, setSelected] = useState(null);
   const [showNovaAcao, setShowNovaAcao] = useState(false);
-  const [novaAcao, setNovaAcao] = useState({ nome: "", tipo: "Café de Rua", data: "", responsavel: "" });
-  const [acoes, setAcoes] = useState(ACOES_MOCK);
+  const NOVA = { nome: "", tipo: "Ceia de Natal", data: "", responsavelId: "" };
+  const [novaAcao, setNovaAcao] = useState(NOVA);
+  const [acoes, setAcoes] = useState([]);
+  const [equipe, setEquipe] = useState([]);
+  const [carregando, setCarregando] = useState(true);
+  const [erro, setErro] = useState("");
+  const [criando, setCriando] = useState(false);
+
+  useEffect(() => {
+    let alive = true;
+    Promise.all([listEquipe(), listAcoes()])
+      .then(([membros, lista]) => { if (alive) { setEquipe(membros); setAcoes(lista); } })
+      .catch(error => { if (alive) setErro(acaoErrorMessage(error)); })
+      .finally(() => { if (alive) setCarregando(false); });
+    return () => { alive = false; };
+  }, []);
+
+  const trocarAcao = updated => {
+    setAcoes(prev => prev.map(a => (a.id === updated.id ? updated : a)));
+    setSelected(updated);
+  };
+  const criarAcao = async () => {
+    if (!novaAcao.nome.trim() || !novaAcao.data) { setErro("Preencha o nome e a data da ação."); return; }
+    setCriando(true); setErro("");
+    try {
+      const nova = await createAcao({ ...novaAcao, responsavelId: novaAcao.responsavelId ? Number(novaAcao.responsavelId) : null });
+      setAcoes(prev => [nova, ...prev].sort((a, b) => b.dataISO.localeCompare(a.dataISO)));
+      setShowNovaAcao(false);
+      setNovaAcao(NOVA);
+    } catch (error) { setErro(acaoErrorMessage(error)); }
+    setCriando(false);
+  };
   const [aba, setAba] = useState("acoes");
 
   const TIPOS = ["Ceia de Natal", "Café de Rua", "Sopão da Noite", "Saúde", "Jurídico", "Orfanato", "Lar de Idosos", "Autismo", "Arrecadação", "Educacional", "Outro"];
 
   if (view === "detail" && selected) {
-    return <AcaoDetail acao={selected} onBack={() => { setView("list"); setSelected(null); }} mobile={mobile} user={user} />;
+    return <AcaoDetail key={selected.id} acao={selected} onChange={trocarAcao} equipe={equipe} onBack={() => { setView("list"); setSelected(null); }} mobile={mobile} user={user} />;
   }
 
   return (
@@ -882,10 +960,10 @@ export function Operacoes({ mobile, user }) {
       <div className="aef-ops__head">
         <div>
           <h1 className="aef-ops__title">Operações</h1>
-          <p className="aef-ops__desc">{aba === "acoes" ? `${acoes.length} ações registradas` : "Tudo que a ONG usa nas ações, e com quem cada coisa está"}</p>
+          <p className="aef-ops__desc">{aba === "acoes" ? (carregando ? "Carregando ações…" : `${acoes.length} ações registradas`) : "Tudo que a ONG usa nas ações, e com quem cada coisa está"}</p>
         </div>
-        {aba === "acoes" && (
-          <button type="button" className="aef-ops__btn aef-ops__btn--primary" onClick={() => setShowNovaAcao(true)}>
+        {aba === "acoes" && podeOperar(user) && (
+          <button type="button" className="aef-ops__btn aef-ops__btn--primary" onClick={() => { setErro(""); setShowNovaAcao(true); }}>
             <span aria-hidden="true"><Icon name="plus" size={16} /></span>
             Nova Ação
           </button>
@@ -912,7 +990,6 @@ export function Operacoes({ mobile, user }) {
               {[
                 { label: "Nome da ação", key: "nome", type: "text", placeholder: "Ex: Café de Rua, Abril" },
                 { label: "Data", key: "data", type: "date", placeholder: "" },
-                { label: "Responsável", key: "responsavel", type: "text", placeholder: "Nome do diretor responsável" },
               ].map(f => (
                 <div key={f.key} className="aef-ops__field">
                   <label className="aef-ops__label" htmlFor={`ops-nova-${f.key}`}>{f.label}</label>
@@ -927,13 +1004,16 @@ export function Operacoes({ mobile, user }) {
                   {TIPOS.map(t => <option key={t}>{t}</option>)}
                 </select>
               </div>
-              <button type="button" className="aef-ops__btn aef-ops__btn--primary aef-ops__btn--block" onClick={() => {
-                if (!novaAcao.nome || !novaAcao.data) return;
-                setAcoes(prev => [{ id: Date.now(), ...novaAcao, status: "planejamento", voluntarios: 0, pop: null }, ...prev]);
-                setShowNovaAcao(false);
-                setNovaAcao({ nome: "", tipo: "Café de Rua", data: "", responsavel: "" });
-              }}>
-                Criar Ação
+              <div className="aef-ops__field">
+                <label className="aef-ops__label" htmlFor="ops-nova-resp">Responsável</label>
+                <select id="ops-nova-resp" className="aef-ops__select" value={novaAcao.responsavelId} onChange={e => setNovaAcao(p => ({ ...p, responsavelId: e.target.value }))}>
+                  <option value="">Definir depois</option>
+                  {equipe.map(m => <option key={m.id} value={m.id}>{m.nome}</option>)}
+                </select>
+              </div>
+              {erro && <p className="aef-ops__error" role="alert">{erro}</p>}
+              <button type="button" className="aef-ops__btn aef-ops__btn--primary aef-ops__btn--block" disabled={criando} onClick={criarAcao}>
+                {criando ? "Criando…" : "Criar ação"}
               </button>
             </div>
           </div>
@@ -941,7 +1021,14 @@ export function Operacoes({ mobile, user }) {
       )}
 
       {/* List */}
-      {aba === "acoes" && <ul className="aef-ops__panel aef-ops__list">
+      {aba === "acoes" && erro && !showNovaAcao && <p className="aef-ops__error" role="alert" style={{ marginBottom: "var(--space-md)" }}>{erro}</p>}
+      {aba === "acoes" && !carregando && acoes.length === 0 && !erro && (
+        <div className="aef-ops__panel aef-ops__empty">
+          <p className="aef-ops__h3">Nenhuma ação ainda</p>
+          <p className="aef-ops__hint">Crie a primeira em “Nova Ação”. Cada ação finalizada vira um relatório e entra no histórico de quem participou.</p>
+        </div>
+      )}
+      {aba === "acoes" && acoes.length > 0 && <ul className="aef-ops__panel aef-ops__list">
         {acoes.map((a) => (
           <li key={a.id}>
             <button type="button" className="aef-ops__row" data-tema={OPS_TEMA[a.tipo]} onClick={() => { setSelected(a); setView("detail"); }}>
@@ -954,6 +1041,7 @@ export function Operacoes({ mobile, user }) {
                 <div className="aef-ops__meta">
                   <span className="aef-ops__meta-item"><span aria-hidden="true"><Icon name="clock" size={13} /></span>{a.data}</span>
                   <span className="aef-ops__meta-item"><span aria-hidden="true"><Icon name="users" size={13} /></span>{a.voluntarios} voluntários</span>
+                  {a.relatorio?.publico != null && <span>{a.relatorio.publico} atendidos</span>}
                   {a.responsavel && <span>{a.responsavel}</span>}
                 </div>
               </div>

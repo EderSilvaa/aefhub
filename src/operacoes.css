@@ -378,6 +378,53 @@
 .aef-inv__tl-date { color: var(--color-muted); font-variant-numeric: tabular-nums; }
 .aef-inv__tl-note { display: block; color: var(--color-muted); font-size: var(--text-xs); }
 
+/* Team, finishing and the final report */
+.aef-ops__count { margin-left: var(--space-2xs); font-weight: 500; color: var(--color-muted); font-variant-numeric: tabular-nums; }
+.aef-ops__detail-actions { display: flex; flex-wrap: wrap; gap: var(--space-xs); margin-top: var(--space-md); }
+.aef-ops__picker-wrap { border-bottom: var(--rule-hair) solid var(--color-rule); }
+.aef-ops__picker { display: grid; gap: var(--space-2xs); position: relative; }
+.aef-ops__picker-box { position: relative; }
+.aef-ops__picker-box .aef-ops__input { padding-left: 2.25rem; }
+.aef-ops__picker-icon { position: absolute; left: var(--space-sm); top: 50%; transform: translateY(-50%); display: inline-flex; color: var(--color-muted); pointer-events: none; }
+.aef-ops__picker-list { list-style: none; margin: 0; padding: 0; border: var(--rule-hair) solid var(--color-rule); border-radius: var(--radius-control); overflow: hidden; background: var(--color-surface); }
+.aef-ops__picker-list > li + li { border-top: var(--rule-hair) solid var(--color-rule); }
+.aef-ops__picker-empty { padding: var(--space-sm) var(--space-md); font-size: var(--text-sm); color: var(--color-muted); }
+.aef-ops__picker-option { display: flex; align-items: center; gap: var(--space-sm); width: 100%; min-height: 44px; padding: var(--space-xs) var(--space-md); border: 0; background: transparent; color: var(--color-ink); font: inherit; text-align: left; cursor: pointer; transition: background-color var(--dur-micro) var(--ease-out); }
+.aef-ops__picker-option:hover { background: var(--color-paper-2); }
+.aef-ops__picker-option:active { background: var(--color-paper-3); }
+.aef-ops__picker-option:focus-visible { outline: 2px solid var(--color-focus); outline-offset: -2px; transition: none; }
+.aef-ops__picker-name { font-weight: 600; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.aef-ops__picker-sub { font-size: var(--text-sm); color: var(--color-muted); white-space: nowrap; }
+.aef-ops__picker-add { margin-left: auto; display: inline-flex; color: var(--color-accent); }
+.aef-ops__equipe-empty { margin: 0; padding: var(--space-md) var(--space-lg); }
+.aef-ops__person .aef-ops__icon-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+.aef-ops__fin-bar { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--space-xs); }
+.aef-ops__presencas { list-style: none; margin: 0; padding: 0; border: var(--rule-hair) solid var(--color-rule); border-radius: var(--radius-control); }
+.aef-ops__presenca { display: flex; align-items: center; justify-content: space-between; gap: var(--space-sm); padding: var(--space-xs) var(--space-md); }
+.aef-ops__presenca + .aef-ops__presenca { border-top: var(--rule-hair) solid var(--color-rule); }
+.aef-ops__seg { display: inline-flex; flex-shrink: 0; border: var(--rule-hair) solid var(--color-rule-strong); border-radius: var(--radius-control); overflow: hidden; }
+.aef-ops__seg-btn { min-height: 36px; padding: 0 var(--space-sm); border: 0; background: var(--color-surface); color: var(--color-ink-2); font: inherit; font-size: var(--text-sm); cursor: pointer; transition: background-color var(--dur-micro) var(--ease-out); }
+.aef-ops__seg-btn + .aef-ops__seg-btn { border-left: var(--rule-hair) solid var(--color-rule-strong); }
+.aef-ops__seg-btn:hover { background: var(--color-paper-2); }
+.aef-ops__seg-btn:focus-visible { outline: 2px solid var(--color-focus); outline-offset: -2px; transition: none; }
+.aef-ops__seg-btn[aria-checked="true"] { background: var(--tone-wash); color: var(--tone); font-weight: 700; }
+
+.aef-ops__input--short { max-width: 9rem; }
+.aef-ops__fieldset { margin: 0; padding: 0; border: 0; }
+.aef-ops__servido-row { display: flex; gap: var(--space-xs); align-items: center; }
+.aef-ops__servido-row .aef-ops__input:first-child { flex: 1; min-width: 0; }
+.aef-ops__btn--start { justify-self: start; }
+.aef-ops__textarea--short { min-height: 5rem; }
+
+.aef-ops__figures--4 { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+.aef-ops__relatorio section { display: grid; gap: var(--space-xs); }
+.aef-ops__prose { margin: 0; font-size: var(--text-md); line-height: 1.6; color: var(--color-ink-2); white-space: pre-line; max-width: 70ch; }
+.aef-ops__servido { list-style: none; margin: 0; padding: 0; max-width: 32rem; }
+.aef-ops__servido li { display: flex; justify-content: space-between; gap: var(--space-md); padding: var(--space-2xs) 0; border-bottom: var(--rule-hair) solid var(--color-rule); }
+.aef-ops__servido-qtd { color: var(--color-ink-2); font-variant-numeric: tabular-nums; }
+.aef-ops__names { display: flex; flex-wrap: wrap; gap: var(--space-2xs) var(--space-lg); list-style: none; margin: 0; padding: 0; font-size: var(--text-sm); }
+
 /* Seasonal theme: Ceia de Natal. Pine and gold beside the brand red; buttons and tabs stay red. */
 .aef-ops__tema-mark { display: inline-flex; align-self: center; color: var(--color-xmas-gold); }
 .aef-ops__tema-mark svg { fill: currentColor; }
@@ -448,6 +495,11 @@
 .aef-ops__detail-head[data-tema="natal"] .aef-ops__detail-facts { color: var(--color-xmas-ink-2); }
 
 @media (max-width: 40rem) {
+  .aef-ops__figures--4 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .aef-ops__presenca { flex-direction: column; align-items: stretch; }
+  .aef-ops__seg { display: grid; grid-template-columns: repeat(3, 1fr); }
+  .aef-ops__detail-actions .aef-ops__btn { flex: 1; }
+  .aef-ops__equipe-empty { padding-inline: var(--space-md); }
   .aef-ops__head, .aef-ops__detail-head { flex-direction: column; align-items: stretch; }
   .aef-inv__figure, .aef-inv__item { padding-inline: var(--space-md); }
   .aef-inv__toolbar > .aef-ops__btn, .aef-inv__views { width: 100%; }
