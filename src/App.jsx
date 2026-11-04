@@ -4,6 +4,8 @@ import { Icon } from "@/components/Icon";
 import { AccessNotice, BottomNav, Sidebar } from "@/components/Navigation";
 import { useIsMobile } from "@/hooks/useIsMobile";
 import { buildManagedUser, buildUserSession, canAccessModule, clearUserDirectory, clearUserSession, getAllowedNavItems, getDefaultModule, getModuleLabel, getSeedUsers, normalizeEmail, persistUserDirectory, persistUserSession, restoreUserDirectory, restoreUserSession } from "@/lib/access";
+import { googleAuthEnabled, loadMember, NOT_ALLOWED_MESSAGE, signInWithGoogle, signOutGoogle, takeAuthErrorFromUrl } from "@/lib/googleAuth";
+import { supabase } from "@/lib/supabase";
 import { C, FONT_DISPLAY } from "@/lib/theme";
 import { Dashboard } from "@/modules/Dashboard";
 import { Financeiro } from "@/modules/Financeiro";
@@ -75,7 +77,9 @@ function Placeholder({ title, icon, desc }) {
 // ─── APP ─────────────────────────────────────────────────────────────────────
 export default function App() {
   const [usersDirectory, setUsersDirectory] = useState(() => restoreUserDirectory());
-  const [user, setUser] = useState(() => restoreUserSession());
+  const [user, setUser] = useState(() => (googleAuthEnabled ? null : restoreUserSession()));
+  const [authReady, setAuthReady] = useState(!googleAuthEnabled);
+  const [loginError, setLoginError] = useState("");
   const [active, setActive] = useState("dashboard");
   const [showProfile, setShowProfile] = useState(false);
   const [accessNotice, setAccessNotice] = useState("");
@@ -86,8 +90,44 @@ export default function App() {
   }, [usersDirectory]);
 
   useEffect(() => {
+    if (googleAuthEnabled) return;
     persistUserSession(user);
   }, [user]);
+
+  // Google sign-in: the Supabase session decides who is logged in, the membros table decides what they see.
+  useEffect(() => {
+    if (!googleAuthEnabled) return;
+    const urlError = takeAuthErrorFromUrl();
+    if (urlError) setLoginError(urlError);
+    let alive = true;
+    const apply = async session => {
+      if (!session) {
+        if (alive) { setUser(null); setAuthReady(true); }
+        return;
+      }
+      try {
+        const member = await loadMember(session);
+        if (!alive) return;
+        if (!member) {
+          setLoginError(NOT_ALLOWED_MESSAGE);
+          setUser(null);
+          await signOutGoogle();
+        } else {
+          setLoginError("");
+          setUser(member);
+        }
+      } catch {
+        if (alive) setLoginError("Não foi possível carregar seu acesso. Tente de novo.");
+      }
+      if (alive) setAuthReady(true);
+    };
+    supabase.auth.getSession().then(({ data }) => apply(data.session));
+    const { data: listener } = supabase.auth.onAuthStateChange((event, session) => {
+      // run outside the auth callback, as Supabase recommends for follow-up queries
+      if (event === "SIGNED_IN" || event === "SIGNED_OUT") setTimeout(() => apply(session), 0);
+    });
+    return () => { alive = false; listener.subscription.unsubscribe(); };
+  }, []);
 
   useEffect(() => {
     if (!user) return;
@@ -102,7 +142,7 @@ export default function App() {
   }, [accessNotice]);
 
   useEffect(() => {
-    if (!user) return;
+    if (!user || googleAuthEnabled) return;
     const sourceUser = usersDirectory.find(item => item.id === user.id || normalizeEmail(item.email) === normalizeEmail(user.email));
     if (!sourceUser || !sourceUser.active) {
       clearUserSession();
@@ -125,7 +165,14 @@ export default function App() {
     setShowProfile(false);
   };
 
+  const handleGoogleLogin = async () => {
+    setLoginError("");
+    const { error } = await signInWithGoogle();
+    if (error) setLoginError("Não foi possível abrir o login do Google. Tente de novo.");
+  };
+
   const handleLogout = () => {
+    if (googleAuthEnabled) signOutGoogle();
     clearUserSession();
     setShowProfile(false);
     setAccessNotice("");
@@ -176,7 +223,17 @@ export default function App() {
     setAccessNotice(`Seu perfil "${user.profileLabel}" nao tem acesso ao modulo ${getModuleLabel(moduleId)}.`);
   };
 
-  if (!user) return <Login onLogin={handleLogin} usersDirectory={usersDirectory} />;
+  if (!user) {
+    return (
+      <Login
+        onLogin={handleLogin}
+        usersDirectory={usersDirectory}
+        mode={googleAuthEnabled ? (authReady ? "google" : "loading") : "demo"}
+        onGoogle={handleGoogleLogin}
+        error={loginError}
+      />
+    );
+  }
 
   const allowedNavItems = getAllowedNavItems(user);
 

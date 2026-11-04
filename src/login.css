@@ -181,6 +181,33 @@ html, body { overflow-x: clip; }
 
 .aef-login__help { margin: 0; font-size: var(--text-sm); color: var(--color-muted); }
 
+/* Google sign-in */
+.aef-login__google {
+  height: 52px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-sm);
+  background: var(--color-surface);
+  color: var(--color-ink);
+  border: var(--rule-hair) solid var(--color-rule-strong);
+  border-radius: var(--radius-control);
+  font: inherit;
+  font-size: var(--text-md);
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color var(--dur-micro) var(--ease-out), border-color var(--dur-micro) var(--ease-out), transform var(--dur-micro) var(--ease-out);
+}
+.aef-login__google:hover { background: var(--color-paper-2); border-color: var(--color-ink-2); }
+.aef-login__google:active { transform: scale(0.98); }
+.aef-login__google:focus-visible { outline: 2px solid var(--color-focus); outline-offset: 3px; transition: none; }
+.aef-login__google:disabled { opacity: 0.6; cursor: wait; transform: none; }
+.aef-login__google-mark { flex-shrink: 0; }
+.aef-login__g-blue { fill: var(--color-google-blue); }
+.aef-login__g-red { fill: var(--color-google-red); }
+.aef-login__g-yellow { fill: var(--color-google-yellow); }
+.aef-login__g-green { fill: var(--color-google-green); }
+
 @media (max-width: 60rem) {
   .aef-login { grid-template-columns: minmax(0, 1fr); }
   .aef-login__brand { padding: var(--space-xl) var(--space-lg); gap: var(--space-lg); }
@@ -196,5 +223,5 @@ html, body { overflow-x: clip; }
 
 @media (prefers-reduced-motion: reduce) {
   .aef-login *, .aef-login *::before, .aef-login *::after { transition-duration: 0.01ms !important; }
-  .aef-login__submit:active { transform: none; }
+  .aef-login__submit:active, .aef-login__google:active { transform: none; }
 }
