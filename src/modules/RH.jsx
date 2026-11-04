@@ -5,6 +5,7 @@ import { RH_ATTENDANCE_SEED, RH_FEEDBACK_SEED, RH_OCCURRENCES_SEED, RH_PARTNERS,
 import { useVoluntarios, useVoluntariosActions } from "@/data/VoluntariosContext";
 import { SEM_AREA } from "@/data/voluntarios";
 import { VolAvatar, VoluntarioFicha } from "@/modules/VoluntarioFicha";
+import { RHPerfil } from "@/modules/RHPerfil";
 import { ACCESS_PROFILES } from "@/lib/access";
 import { Acessos } from "@/modules/Acessos";
 import "../rh.css";
@@ -291,6 +292,7 @@ export function RHOverview({ attendance, feedbacks, occurrences, onNavigate, mob
   return (
     <div>
       <RHSectionTitle title="Painel do RH" description="Indicadores de vínculo, presença e acompanhamento da rede de voluntários." />
+      <RHPerfil />
       <RHFigures items={[
         { label: "Ativos", value: active, detail: "Participaram ao menos uma vez" },
         { label: "Novos cadastros", value: newVolunteers, detail: "Aguardando integração" },

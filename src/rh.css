@@ -420,3 +420,22 @@
   .aef-vol { animation: none; }
   .aef-vol *, .aef-rh__row--open { transition-duration: 0.01ms !important; }
 }
+
+/* Perfil dos voluntários: magnitude in one hue, text in ink */
+.aef-rhp { margin-bottom: var(--space-xl); }
+.aef-rhp__h3 { margin: 0 0 var(--space-md); font-size: var(--text-md); font-weight: 600; }
+.aef-rhp__bars { list-style: none; margin: 0; padding: 0; display: grid; gap: var(--space-sm); }
+.aef-rhp__bar { display: grid; grid-template-columns: 9.5rem minmax(0, 1fr) 5.5rem; align-items: center; gap: var(--space-sm); font-size: var(--text-sm); }
+.aef-rhp__bar-name { font-weight: 500; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.aef-rhp__track { height: 10px; border-radius: 0 4px 4px 0; background: var(--color-paper-2); overflow: hidden; }
+.aef-rhp__track > span { display: block; height: 100%; border-radius: 0 4px 4px 0; background: var(--color-accent); }
+.aef-rhp__bar-value { text-align: right; font-weight: 600; font-variant-numeric: tabular-nums; }
+.aef-rhp__bar-value span { margin-left: var(--space-xs); font-weight: 400; color: var(--color-muted); }
+.aef-rhp__cols { list-style: none; margin: 0; padding: 0; display: flex; align-items: flex-end; gap: var(--space-xs); height: 12rem; overflow-x: auto; }
+.aef-rhp__col { flex: 1 0 3.5rem; height: 100%; display: flex; flex-direction: column; justify-content: flex-end; align-items: center; gap: var(--space-2xs); }
+.aef-rhp__col-bar { width: min(100%, 2.5rem); min-height: 2px; border-radius: 4px 4px 0 0; background: var(--color-accent); }
+.aef-rhp__col-value { font-size: var(--text-sm); font-weight: 600; font-variant-numeric: tabular-nums; }
+.aef-rhp__col-label { font-size: var(--text-xs); color: var(--color-muted); white-space: nowrap; }
+.aef-rhp__col:hover .aef-rhp__col-bar, .aef-rhp__bar:hover .aef-rhp__track > span { background: var(--color-accent-strong); }
+.aef-rhp__note { margin: var(--space-md) 0 0; padding: var(--space-sm) var(--space-md); border-radius: var(--radius-control); background: var(--color-paper-2); font-size: var(--text-sm); color: var(--color-ink-2); }
+@media (max-width: 40rem) { .aef-rhp__bar { grid-template-columns: 7rem minmax(0, 1fr) 4.75rem; } }
