@@ -46,6 +46,11 @@ export async function listEquipe() {
 const nomeMembro = id => equipeCache?.find(m => m.id === id)?.nome || "";
 
 // ─── Actions ─────────────────────────────────────────────────────────────────
+// Status follows the date: before the day it is planning, from the day on it is
+// under way, and only finishing it (the coordination) makes it concluded.
+const hojeISO = () => { const d = new Date(); return new Date(d.getTime() - d.getTimezoneOffset() * 60000).toISOString().slice(0, 10); };
+export const statusDaAcao = (status, dataISO) => status === "concluída" ? status : dataISO && dataISO <= hojeISO() ? "em andamento" : "planejamento";
+
 function fromRow(row) {
   const parts = row.participacoes || [];
   const vols = parts.filter(p => p.papel === "voluntario");
@@ -57,7 +62,7 @@ function fromRow(row) {
     dataISO: row.data,
     data: isoToBr(row.data),
     local: row.local || "",
-    status: row.status,
+    status: statusDaAcao(row.status, row.data),
     responsavelId: row.responsavel_id,
     responsavel: nomeMembro(row.responsavel_id),
     pop: row.pop || null,
@@ -257,7 +262,7 @@ export async function listResumoVoluntarios() {
 }
 
 const histFromRow = (p, a) => ({
-  acaoId: a.id, nome: a.nome, tipo: a.tipo, dataISO: a.data, data: isoToBr(a.data), status: a.status, papel: p.papel, presenca: p.presenca || null,
+  acaoId: a.id, nome: a.nome, tipo: a.tipo, dataISO: a.data, data: isoToBr(a.data), status: statusDaAcao(a.status, a.data), papel: p.papel, presenca: p.presenca || null,
   relatorio: a.finalizada_em ? { finalizadaEm: a.finalizada_em } : null,
 });
 const byDateDesc = (x, y) => y.dataISO.localeCompare(x.dataISO);

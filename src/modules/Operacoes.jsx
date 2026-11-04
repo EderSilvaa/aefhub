@@ -70,11 +70,6 @@ export function AcaoDetail({ acao, onBack, onChange, equipe, mobile, user }) {
     return () => { alive = false; };
   }, [acao.id, acao.status]);
 
-  const salvarAcao = async (fields) => {
-    setAcaoBusy(true); setAcaoErro("");
-    try { onChange(await updateAcao(acao.id, fields)); } catch (error) { setAcaoErro(acaoErrorMessage(error)); }
-    setAcaoBusy(false);
-  };
   const reabrir = async () => {
     if (!confirm("Reabrir esta ação? O relatório continua salvo, mas a equipe e a presença voltam a poder ser alteradas.")) return;
     setAcaoBusy(true); setAcaoErro("");
@@ -225,9 +220,6 @@ export function AcaoDetail({ acao, onBack, onChange, equipe, mobile, user }) {
 
         {editable && (
           <div className="aef-ops__detail-actions">
-            {acao.status === "planejamento" && (
-              <button type="button" className="aef-ops__btn aef-ops__btn--outline" disabled={acaoBusy} onClick={() => salvarAcao({ status: "em andamento" })}>Marcar em andamento</button>
-            )}
             {!concluida && podeFinalizar && (
               <button type="button" className="aef-ops__btn aef-ops__btn--primary" disabled={acaoBusy} onClick={() => setShowFinalizar(true)}>
                 <span aria-hidden="true"><Icon name="check" size={16} strokeWidth={2.25} /></span>
