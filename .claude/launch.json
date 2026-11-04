@@ -8,6 +8,13 @@
       "port": 5173
     },
     {
+      "name": "amor-em-foco-demo",
+      "runtimeExecutable": "npx",
+      "runtimeArgs": ["vite", "--port", "5180", "--strictPort"],
+      "env": { "VITE_SUPABASE_URL": "", "VITE_SUPABASE_ANON_KEY": "" },
+      "port": 5180
+    },
+    {
       "name": "lex-landing",
       "runtimeExecutable": "npx",
       "runtimeArgs": ["-y", "serve", "-l", "5174", "C:/Users/EDER/landingpagelex"],

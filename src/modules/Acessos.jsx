@@ -20,6 +20,9 @@ export function createAccessDraft(user) {
 }
 
 export function Acessos({ currentUser, users, onSaveUser, onToggleUserStatus, onResetUsers }) {
+  // without a reset there is no local demo directory: the list is the database's members table
+  const remote = !onResetUsers;
+  const [saving, setSaving] = useState(false);
   const [search, setSearch] = useState("");
   const [selectedId, setSelectedId] = useState(users[0]?.id || null);
   const [draft, setDraft] = useState(() => createAccessDraft(users[0]));
@@ -32,6 +35,8 @@ export function Acessos({ currentUser, users, onSaveUser, onToggleUserStatus, on
       setDraft(createAccessDraft());
       return;
     }
+    // a new user form has no selection on purpose: don't snap back to the first user
+    if (creating) return;
     const selected = users.find(item => item.id === selectedId);
     if (!selected) {
       setSelectedId(users[0].id);
@@ -101,7 +106,7 @@ export function Acessos({ currentUser, users, onSaveUser, onToggleUserStatus, on
     });
   };
 
-  const handleSave = () => {
+  const handleSave = async () => {
     if (!draft.name.trim() || !draft.email.trim()) {
       setFeedback("Preencha nome e e-mail antes de salvar.");
       return;
@@ -115,9 +120,30 @@ export function Acessos({ currentUser, users, onSaveUser, onToggleUserStatus, on
       setFeedback("Ja existe um usuario com este e-mail.");
       return;
     }
-    onSaveUser(draft);
+    const wasCreating = creating;
+    setSaving(true);
+    const result = await onSaveUser(draft);
+    setSaving(false);
+    if (result && !result.ok) {
+      setFeedback(result.message);
+      return;
+    }
     setCreating(false);
-    setFeedback("Acesso salvo com sucesso.");
+    if (result?.id) setSelectedId(result.id);
+    setFeedback(remote && wasCreating
+      ? "Acesso liberado. A pessoa já pode entrar com a conta Google deste e-mail."
+      : "Acesso salvo com sucesso.");
+  };
+
+  const handleToggle = async () => {
+    if (selectedUser.id === currentUser.id) {
+      setFeedback("Desative esta conta por outro administrador para evitar perder o acesso atual.");
+      return;
+    }
+    setSaving(true);
+    const result = await onToggleUserStatus(selectedUser.id);
+    setSaving(false);
+    if (result && !result.ok) setFeedback(result.message);
   };
 
   return (
@@ -126,16 +152,20 @@ export function Acessos({ currentUser, users, onSaveUser, onToggleUserStatus, on
         <div>
           <div style={{ fontFamily: FONT_DISPLAY, fontSize: 28, color: C.text, marginBottom: 6 }}>Central de Acessos</div>
           <div style={{ color: C.textSecondary, fontSize: 14, maxWidth: 760, lineHeight: 1.6 }}>
-            Gestao front-first de usuarios, perfis e modulos liberados. Ideal para desenhar a operacao antes da integracao com backend.
+            {remote
+              ? "Quem está nesta lista e ativo entra no AEF Hub com a conta Google do e-mail cadastrado, vendo só os módulos liberados."
+              : "Gestao front-first de usuarios, perfis e modulos liberados. Ideal para desenhar a operacao antes da integracao com backend."}
           </div>
         </div>
         <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
           <button onClick={startCreate} style={{ background: C.red, color: C.white, border: "none", borderRadius: 10, padding: "12px 16px", fontSize: 13, fontWeight: 600, cursor: "pointer" }}>
             Novo usuario
           </button>
+          {!remote && (
           <button onClick={() => { onResetUsers(); setFeedback("Diretorio restaurado para o padrao."); }} style={{ background: C.white, color: C.text, border: `1px solid ${C.border}`, borderRadius: 10, padding: "12px 16px", fontSize: 13, fontWeight: 600, cursor: "pointer" }}>
             Restaurar padrao
           </button>
+          )}
         </div>
       </div>
 
@@ -222,13 +252,8 @@ export function Acessos({ currentUser, users, onSaveUser, onToggleUserStatus, on
             </div>
             {!creating && selectedUser && (
               <button
-                onClick={() => {
-                  if (selectedUser.id === currentUser.id) {
-                    setFeedback("Desative esta conta por outro administrador para evitar perder o acesso atual.");
-                    return;
-                  }
-                  onToggleUserStatus(selectedUser.id);
-                }}
+                onClick={handleToggle}
+                disabled={saving}
                 style={{
                   background: selectedUser.active ? "rgba(148,163,184,0.12)" : "rgba(22,163,74,0.12)",
                   color: selectedUser.active ? "#475569" : "#166534",
@@ -249,7 +274,7 @@ export function Acessos({ currentUser, users, onSaveUser, onToggleUserStatus, on
               { label: "Area", key: "department", type: "text", placeholder: "Financeiro" },
               { label: "Telefone", key: "phone", type: "text", placeholder: "(91) 9 0000-0000" },
               { label: "Cidade", key: "city", type: "text", placeholder: "Belem, PA" },
-            ].map(field => (
+            ].filter(field => !(remote && field.key === "password")).map(field => (
               <div key={field.key}>
                 <div style={{ fontSize: 12, fontWeight: 600, color: C.textSecondary, marginBottom: 8 }}>{field.label}</div>
                 <input
@@ -318,8 +343,8 @@ export function Acessos({ currentUser, users, onSaveUser, onToggleUserStatus, on
           </div>
 
           <div style={{ display: "flex", gap: 10, flexWrap: "wrap", marginTop: 22 }}>
-            <button onClick={handleSave} style={{ background: C.red, color: C.white, border: "none", borderRadius: 10, padding: "12px 16px", fontSize: 13, fontWeight: 700, cursor: "pointer" }}>
-              {creating ? "Criar usuario" : "Salvar alteracoes"}
+            <button onClick={handleSave} disabled={saving} aria-busy={saving} style={{ background: C.red, color: C.white, border: "none", borderRadius: 10, padding: "12px 16px", fontSize: 13, fontWeight: 700, cursor: saving ? "wait" : "pointer", opacity: saving ? 0.6 : 1 }}>
+              {saving ? "Salvando…" : creating ? "Criar usuario" : "Salvar alteracoes"}
             </button>
             <button
               onClick={() => {

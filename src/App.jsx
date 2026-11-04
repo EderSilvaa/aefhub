@@ -4,6 +4,7 @@ import { Icon } from "@/components/Icon";
 import { AccessNotice, BottomNav, Sidebar } from "@/components/Navigation";
 import { useIsMobile } from "@/hooks/useIsMobile";
 import { buildManagedUser, buildUserSession, canAccessModule, clearUserDirectory, clearUserSession, getAllowedNavItems, getDefaultModule, getModuleLabel, getSeedUsers, normalizeEmail, persistUserDirectory, persistUserSession, restoreUserDirectory, restoreUserSession } from "@/lib/access";
+import { listMembers, memberErrorMessage, saveMember, setMemberActive } from "@/data/membros";
 import { googleAuthEnabled, loadMember, NOT_ALLOWED_MESSAGE, signInWithGoogle, signOutGoogle, takeAuthErrorFromUrl } from "@/lib/googleAuth";
 import { supabase } from "@/lib/supabase";
 import { C, FONT_DISPLAY } from "@/lib/theme";
@@ -79,6 +80,7 @@ export default function App() {
   const [usersDirectory, setUsersDirectory] = useState(() => restoreUserDirectory());
   const [user, setUser] = useState(() => (googleAuthEnabled ? null : restoreUserSession()));
   const [authReady, setAuthReady] = useState(!googleAuthEnabled);
+  const [members, setMembers] = useState([]);
   const [loginError, setLoginError] = useState("");
   const [active, setActive] = useState("dashboard");
   const [showProfile, setShowProfile] = useState(false);
@@ -128,6 +130,44 @@ export default function App() {
     });
     return () => { alive = false; listener.subscription.unsubscribe(); };
   }, []);
+
+  // Members list from the database (admins see everyone, others only themselves).
+  const userEmail = user?.email;
+  useEffect(() => {
+    if (!googleAuthEnabled || !userEmail) { setMembers([]); return; }
+    let alive = true;
+    listMembers()
+      .then(list => { if (alive) setMembers(list); })
+      .catch(() => { if (alive) setAccessNotice("Não foi possível carregar a lista de membros."); });
+    return () => { alive = false; };
+  }, [userEmail]);
+
+  const upsertMember = saved => {
+    setMembers(prev => [...prev.filter(item => item.id !== saved.id), saved].sort((a, b) => a.name.localeCompare(b.name)));
+    // editing your own access updates the open session too
+    if (normalizeEmail(saved.email) === normalizeEmail(user?.email)) setUser(buildUserSession(saved));
+  };
+
+  const handleSaveMember = async draft => {
+    try {
+      const saved = await saveMember(draft);
+      upsertMember(saved);
+      return { ok: true, id: saved.id };
+    } catch (error) {
+      return { ok: false, message: memberErrorMessage(error) };
+    }
+  };
+
+  const handleToggleMember = async memberId => {
+    const current = members.find(item => item.id === memberId);
+    if (!current) return { ok: false, message: "Membro não encontrado." };
+    try {
+      upsertMember(await setMemberActive(memberId, !current.active));
+      return { ok: true };
+    } catch (error) {
+      return { ok: false, message: memberErrorMessage(error) };
+    }
+  };
 
   useEffect(() => {
     if (!user) return;
@@ -240,7 +280,9 @@ export default function App() {
   const renderModule = () => {
     switch (active) {
       case "dashboard": return <Dashboard setActive={handleSetActive} mobile={mobile} user={user} />;
-      case "rh": return <RH mobile={mobile} user={user} users={usersDirectory} onSaveUser={handleSaveUser} onToggleUserStatus={handleToggleUserStatus} onResetUsers={handleResetUsers} />;
+      case "rh": return googleAuthEnabled
+        ? <RH mobile={mobile} user={user} users={members} onSaveUser={handleSaveMember} onToggleUserStatus={handleToggleMember} />
+        : <RH mobile={mobile} user={user} users={usersDirectory} onSaveUser={handleSaveUser} onToggleUserStatus={handleToggleUserStatus} onResetUsers={handleResetUsers} />;
       case "operacoes": return <Operacoes mobile={mobile} user={user} />;
       case "financeiro": return <Financeiro mobile={mobile} setActive={handleSetActive} />;
       case "marketing": return <Marketing mobile={mobile} user={user} />;
