@@ -2,7 +2,9 @@ import { useEffect, useState } from "react";
 import { Icon } from "@/components/Icon";
 import { marketingDateKey, marketingDateLabel } from "@/data/marketing";
 import { RH_ATTENDANCE_SEED, RH_FEEDBACK_SEED, RH_OCCURRENCES_SEED, RH_PARTNERS, RH_STORAGE_KEYS, readRHStore } from "@/data/rh";
-import { useVoluntarios } from "@/data/VoluntariosContext";
+import { useVoluntarios, useVoluntariosActions } from "@/data/VoluntariosContext";
+import { SEM_AREA } from "@/data/voluntarios";
+import { VolAvatar, VoluntarioFicha } from "@/modules/VoluntarioFicha";
 import { ACCESS_PROFILES } from "@/lib/access";
 import { Acessos } from "@/modules/Acessos";
 import "../rh.css";
@@ -10,19 +12,24 @@ import "../rh.css";
 export const RH_AREA_TONE = { "Saúde": "red", "Jurídico": "blue", "Operações": "green", "Logística": "orange", "Alimentação": "purple" };
 export const rhTone = area => RH_AREA_TONE[area] || "red";
 
-export function RHPersonRow({ person }) {
+export function RHPersonRow({ person, fotoUrl, onOpen }) {
   const status = person.penalizado
-    ? { label: "Requer atenção", tone: "red" }
+    ? { label: "Penalizado", tone: "red" }
     : person.novato
       ? { label: "Novo cadastro", tone: "blue" }
       : person.verified
         ? { label: "Verificado", tone: "green" }
         : { label: "Cadastro pendente", tone: "neutral" };
   return (
-    <li className="aef-rh__row">
-      <div className="min-w-0">
+    <li className="aef-rh__row aef-rh__row--open" role="button" tabIndex={0} aria-label={"Abrir ficha de " + person.name}
+      onClick={() => onOpen?.(person)}
+      onKeyDown={event => { if (event.key === "Enter" || event.key === " ") { event.preventDefault(); onOpen?.(person); } }}>
+      <div className="aef-rh__person">
+        <VolAvatar person={person} url={fotoUrl} />
+        <div className="min-w-0">
         <div className="aef-rh__row-name">{person.name}</div>
         <div className="aef-rh__row-sub">{person.formation || (person.cadastradoEm ? `Cadastro em ${new Date(person.cadastradoEm).toLocaleDateString("pt-BR", { month: "2-digit", year: "numeric" })}` : "")}</div>
+        </div>
       </div>
       <span className="aef-rh__status" data-tone={status.tone}>{status.label}</span>
       <span className="aef-rh__sector" data-tone={rhTone(person.area)}>{person.area}</span>
@@ -89,8 +96,13 @@ const REDE_TIPOS = {
 const VOLUNTARIO_STATUS = [["todos", "Todos"], ["novo", "Novos"], ["ativo", "Ativos"], ["inativo", "Inativos"], ["penalizado", "Penalizados"]];
 const statusDoVoluntario = person => person.status || (person.penalizado ? "penalizado" : person.novato ? "novo" : person.verified ? "ativo" : "inativo");
 
-export function RHNetwork({ mobile, members = [] }) {
+const AREAS_PADRAO = ["Operações", "Logística", "Alimentação", "Saúde", "Jurídico", "Marketing"];
+
+export function RHNetwork({ mobile, members = [], user }) {
   const volunteers = useVoluntarios();
+  const voluntariosActions = useVoluntariosActions();
+  const [openId, setOpenId] = useState(null);
+  const canEditVolunteers = ["rh", "super_admin"].includes(user?.profileId);
   const [entityType, setEntityType] = useState("voluntarios");
   const [filter, setFilter] = useState("Todos");
   const [statusFilter, setStatusFilter] = useState("todos");
@@ -126,6 +138,12 @@ export function RHNetwork({ mobile, members = [] }) {
   const current = lists[entityType];
   const filters = ["Todos", ...new Set(current.all.map(current.groupOf).filter(Boolean))];
   const shown = current.rows.slice(0, limit);
+  const fotoPaths = entityType === "voluntarios" ? shown.map(person => person.fotoPath).filter(Boolean).join("|") : "";
+  useEffect(() => {
+    if (fotoPaths) voluntariosActions?.requestFotos(fotoPaths.split("|"));
+  }, [fotoPaths, voluntariosActions]);
+  const openPerson = openId ? volunteers.find(person => (person.id || person.telefone) === openId) : null;
+  const knownAreas = [...new Set([...AREAS_PADRAO, ...volunteers.map(person => person.area).filter(area => area && area !== SEM_AREA)])].sort();
   const totalPartnerships = RH_PARTNERS.reduce((sum, partner) => sum + partner.partnerships, 0);
   const filtered = filter !== "Todos" || statusFilter !== "todos" || normalizedSearch;
 
@@ -192,7 +210,7 @@ export function RHNetwork({ mobile, members = [] }) {
             {entityType === "parceiros" && <><span>Empresa</span><span>Vínculo</span><span>Segmento</span><span>Contato</span><span>Parcerias</span></>}
           </div>
           <ul className="aef-rh__rows">
-            {entityType === "voluntarios" && shown.map(person => <RHPersonRow key={person.id || person.telefone} person={person} />)}
+            {entityType === "voluntarios" && shown.map(person => <RHPersonRow key={person.id || person.telefone} person={person} fotoUrl={voluntariosActions?.fotoUrls[person.fotoPath]} onOpen={p => setOpenId(p.id || p.telefone)} />)}
             {entityType === "membros" && shown.map(member => <RHMemberRow key={member.id} member={member} />)}
             {entityType === "parceiros" && shown.map(partner => <RHPartnerRow key={partner.id} partner={partner} />)}
           </ul>
@@ -207,6 +225,8 @@ export function RHNetwork({ mobile, members = [] }) {
           </button>
         </div>
       )}
+
+      {openPerson && <VoluntarioFicha key={openId} person={openPerson} canEdit={canEditVolunteers} areas={knownAreas} onClose={() => setOpenId(null)} />}
     </div>
   );
 }
@@ -519,7 +539,7 @@ export function RH({ mobile, user, users, onSaveUser, onToggleUserStatus, onRese
         ))}
       </nav>
       {section === "visao" && <RHOverview attendance={attendance} feedbacks={feedbacks} occurrences={occurrences} onNavigate={setSection} mobile={mobile} />}
-      {section === "rede" && <RHNetwork mobile={mobile} members={users} />}
+      {section === "rede" && <RHNetwork mobile={mobile} members={users} user={user} />}
       {section === "participacao" && <RHParticipation attendance={attendance} />}
       {section === "feedbacks" && <RHFeedbacks feedbacks={feedbacks} onAdd={addFeedback} />}
       {section === "ocorrencias" && <RHOccurrences occurrences={occurrences} onAdd={addOccurrence} canAccess={canAccessOccurrences} />}
