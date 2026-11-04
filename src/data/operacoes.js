@@ -2,6 +2,10 @@
 // ─── OPERAÇÕES ────────────────────────────────────────────────────────────────
 export const ACOES_MOCK = [
   {
+    id: 4, nome: "Ceia de Natal 2026", tipo: "Ceia de Natal", data: "24/12/2026",
+    status: "planejamento", voluntarios: 0, responsavel: "", pop: null,
+  },
+  {
     id: 1, nome: "Café de Rua", tipo: "Café de Rua", data: "26/04/2025",
     status: "em andamento", voluntarios: 12, responsavel: "Flávia Souza",
     pop: {
@@ -63,5 +67,8 @@ export const tipoCfg = {
 };
 
 export const OPS_STATUS_TONE = { "em andamento": "amber", "concluída": "green", "planejamento": "blue" };
-export const OPS_TIPO_TONE = { "Café de Rua": "orange", "Saúde": "red", "Orfanato": "purple", "Jurídico": "blue", "Social": "green" };
+export const OPS_TIPO_TONE = { "Ceia de Natal": "pine", "Café de Rua": "orange", "Saúde": "red", "Orfanato": "purple", "Jurídico": "blue", "Social": "green" };
 export const OPS_AREA_TONE = { "Saúde": "red", "Jurídico": "blue", "Operações": "green", "Logística": "orange", "Alimentação": "purple" };
+
+// Action types with a seasonal look: every action of the type gets it, on the list and in the detail.
+export const OPS_TEMA = { "Ceia de Natal": "natal" };

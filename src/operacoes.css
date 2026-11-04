@@ -42,6 +42,7 @@
 .aef-ops [data-tone="blue"] { --tone: var(--color-tone-blue); --tone-wash: var(--color-tone-blue-wash); }
 .aef-ops [data-tone="purple"] { --tone: var(--color-tone-purple); --tone-wash: var(--color-paper-2); }
 .aef-ops [data-tone="orange"] { --tone: var(--color-tone-orange); --tone-wash: var(--color-paper-2); }
+.aef-ops [data-tone="pine"] { --tone: var(--color-xmas-pine); --tone-wash: var(--color-xmas-wash); }
 .aef-ops [data-tone="neutral"] { --tone: var(--color-ink-2); --tone-wash: var(--color-paper-2); }
 .aef-ops__tone { font-size: var(--text-sm); font-weight: 600; color: var(--tone, var(--color-ink-2)); white-space: nowrap; }
 .aef-ops__cap { display: inline-block; }
@@ -377,6 +378,75 @@
 .aef-inv__tl-date { color: var(--color-muted); font-variant-numeric: tabular-nums; }
 .aef-inv__tl-note { display: block; color: var(--color-muted); font-size: var(--text-xs); }
 
+/* Seasonal theme: Ceia de Natal. Pine and gold beside the brand red; buttons and tabs stay red. */
+.aef-ops__tema-mark { display: inline-flex; align-self: center; color: var(--color-xmas-gold); }
+.aef-ops__tema-mark svg { fill: currentColor; }
+.aef-ops__row[data-tema="natal"] { background: var(--color-xmas-wash); box-shadow: inset 3px 0 0 var(--color-xmas-pine); }
+.aef-ops__row[data-tema="natal"]:hover { background: var(--color-xmas-wash-2); }
+.aef-ops__row[data-tema="natal"] .aef-ops__tema-mark { color: var(--color-xmas-gold-ink); }
+.aef-ops__detail-head[data-tema="natal"] {
+  position: relative;
+  margin-top: var(--space-lg);
+  padding: var(--space-xl) var(--space-lg) var(--space-lg);
+  border-radius: var(--radius-card);
+  color: var(--color-xmas-ink);
+  background:
+    radial-gradient(circle at 12% 30%, var(--color-xmas-snow) 0 2px, transparent 3px),
+    radial-gradient(circle at 34% 78%, var(--color-xmas-snow) 0 1.5px, transparent 2.5px),
+    radial-gradient(circle at 58% 22%, var(--color-xmas-snow) 0 2px, transparent 3px),
+    radial-gradient(circle at 76% 64%, var(--color-xmas-snow) 0 1.5px, transparent 2.5px),
+    radial-gradient(circle at 92% 18%, var(--color-xmas-snow) 0 2px, transparent 3px),
+    linear-gradient(160deg, var(--color-xmas-pine), var(--color-xmas-pine-2));
+}
+.aef-ops__detail-head[data-tema="natal"] > :not(.aef-ops__neve):not(.aef-ops__gorro):not(.aef-ops__luzes) { position: relative; z-index: 1; }
+.aef-ops__gorro { position: absolute; top: -24px; left: -16px; z-index: 2; width: 64px; height: auto; transform: rotate(-22deg); transform-origin: 40% 80%; filter: drop-shadow(0 2px 3px oklch(20% 0.02 158 / 0.35)); pointer-events: none; }
+.aef-ops__gorro-pano { fill: var(--color-accent); }
+.aef-ops__gorro-sombra { fill: var(--color-accent-strong); }
+.aef-ops__gorro-pelo { fill: var(--color-xmas-ink); }
+.aef-ops__luzes { position: absolute; top: 0; left: var(--space-md); right: var(--space-md); height: 30px; z-index: 1; pointer-events: none; }
+.aef-ops__luzes svg { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; }
+.aef-ops__luzes path { fill: none; stroke: var(--color-xmas-wire); stroke-width: 2; vector-effect: non-scaling-stroke; }
+.aef-ops__luzes i {
+  position: absolute;
+  top: 12px;
+  left: var(--x);
+  width: 8px;
+  height: 12px;
+  margin-left: -4px;
+  border-radius: 50% 50% 50% 50% / 40% 40% 60% 60%;
+  background: var(--bulb);
+  box-shadow: 0 0 10px 2px var(--bulb);
+  animation: aef-ops-pisca 3s ease-in-out var(--delay) infinite;
+}
+.aef-ops__luzes i::before { content: ""; position: absolute; top: -3px; left: 1.5px; width: 5px; height: 4px; border-radius: 1px; background: var(--color-xmas-wire); }
+.aef-ops__luzes i[data-cor="red"] { --bulb: var(--color-accent); }
+.aef-ops__luzes i[data-cor="gold"] { --bulb: var(--color-xmas-gold); }
+.aef-ops__luzes i[data-cor="green"] { --bulb: var(--color-xmas-bulb-green); }
+.aef-ops__luzes i[data-cor="blue"] { --bulb: var(--color-xmas-bulb-blue); }
+@keyframes aef-ops-pisca {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.35; box-shadow: 0 0 2px 0 var(--bulb); }
+}
+.aef-ops__neve { position: absolute; inset: 0; overflow: hidden; border-radius: inherit; pointer-events: none; }
+.aef-ops__neve i {
+  position: absolute;
+  top: -8px;
+  left: var(--x);
+  width: var(--size);
+  height: var(--size);
+  border-radius: 50%;
+  background: var(--color-xmas-ink);
+  opacity: 0.55;
+  animation: aef-ops-neve var(--dur) linear var(--delay) infinite;
+}
+@keyframes aef-ops-neve {
+  0% { transform: translate(0, 0); }
+  50% { transform: translate(10px, 90px); }
+  100% { transform: translate(-4px, 190px); }
+}
+.aef-ops__detail-head[data-tema="natal"] .aef-ops__tone { color: var(--color-xmas-ink-2); }
+.aef-ops__detail-head[data-tema="natal"] .aef-ops__detail-facts { color: var(--color-xmas-ink-2); }
+
 @media (max-width: 40rem) {
   .aef-ops__head, .aef-ops__detail-head { flex-direction: column; align-items: stretch; }
   .aef-inv__figure, .aef-inv__item { padding-inline: var(--space-md); }
@@ -398,6 +468,8 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
+  .aef-ops__neve { display: none; }
+  .aef-ops__luzes i { animation: none; }
   .aef-ops *, .aef-ops *::before, .aef-ops *::after { transition-duration: 0.01ms !important; }
   .aef-ops__btn:active, .aef-ops__check:active { transform: none; }
 }

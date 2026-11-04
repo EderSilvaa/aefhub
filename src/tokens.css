@@ -20,6 +20,7 @@
   --color-tone-blue-wash: oklch(95.5% 0.03 264); --color-tone-green-wash: oklch(95.5% 0.04 150); --color-tone-green-line: oklch(85% 0.08 150);
   --color-scrim: oklch(15% 0.01 27.7 / 0.55); --color-viewer: oklch(27% 0.006 286); --color-viewer-ink: oklch(96% 0.003 286); --color-viewer-muted: oklch(76% 0.005 286); --color-viewer-wash: oklch(34% 0.006 286);
   --color-on-accent-positive: oklch(90.5% 0.089 164.2); --color-on-accent-negative: oklch(88.5% 0.059 18.3);
+  --color-xmas-pine: oklch(37% 0.075 158); --color-xmas-pine-2: oklch(31% 0.065 158); --color-xmas-gold: oklch(83% 0.13 86); --color-xmas-ink: oklch(98% 0.01 158); --color-xmas-ink-2: oklch(87% 0.035 158); --color-xmas-wash: oklch(96.5% 0.022 158); --color-xmas-wash-2: oklch(94% 0.03 158); --color-xmas-gold-ink: oklch(68% 0.14 80); --color-xmas-line: oklch(88% 0.045 158); --color-xmas-bulb-green: oklch(80% 0.17 145); --color-xmas-bulb-blue: oklch(76% 0.12 235); --color-xmas-wire: oklch(22% 0.03 158); --color-xmas-snow: oklch(98% 0.01 158 / 0.16);
   --color-google-blue: #4285F4; --color-google-red: #EA4335; --color-google-yellow: #FBBC05; --color-google-green: #34A853;
   --font-display: "Gagalin", "Outfit", ui-sans-serif, sans-serif; --font-body: "Outfit", ui-sans-serif, system-ui, sans-serif; --font-outlier: var(--font-body);
   --radius-card: 12px; --radius-control: 10px; --radius-pill: 999px; --rule-hair: 1px; --shadow-card: none;

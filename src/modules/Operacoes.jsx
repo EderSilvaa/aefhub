@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Icon } from "@/components/Icon";
-import { ACOES_MOCK, OPS_AREA_TONE, OPS_STATUS_TONE, OPS_TIPO_TONE } from "@/data/operacoes";
+import { ACOES_MOCK, OPS_AREA_TONE, OPS_STATUS_TONE, OPS_TIPO_TONE, OPS_TEMA } from "@/data/operacoes";
 import { useVoluntarios } from "@/data/VoluntariosContext";
 import { Inventario } from "@/modules/Inventario";
 import "../operacoes.css";
@@ -176,7 +176,8 @@ export function AcaoDetail({ acao, onBack, mobile, user }) {
       </button>
 
       <header>
-        <div className="aef-ops__detail-head">
+        <div className="aef-ops__detail-head" data-tema={OPS_TEMA[acao.tipo]}>
+          {OPS_TEMA[acao.tipo] === "natal" && <NatalEnfeites />}
           <div style={{ minWidth: 0 }}>
             <h1 className="aef-ops__title">{acao.nome}</h1>
             <div className="aef-ops__labels">
@@ -830,6 +831,38 @@ export function ModalSorteio({ acao, user, onClose, mobile, inscritos: inscritos
   );
 }
 
+// Ceia de Natal banner: a Santa hat on the corner and slow snow (static for reduced motion).
+const NEVE = [
+  [6, 0, 9, 3], [14, 3.5, 11, 2], [22, 1.2, 8, 4], [31, 5, 12, 2], [39, 2.4, 10, 3], [47, 6.5, 9, 2],
+  [55, 0.8, 11, 4], [63, 4.2, 8, 2], [71, 2, 12, 3], [79, 5.6, 10, 2], [87, 1.6, 9, 4], [94, 3.8, 11, 2],
+];
+const LUZES = 14;
+const LUZ_CORES = ["red", "gold", "green", "blue"];
+const FIO = Array.from({ length: LUZES }, (_, i) => `Q ${i * 100 + 50} 24 ${i * 100 + 100} 4`).join(" ");
+function NatalEnfeites() {
+  return (
+    <>
+      <span className="aef-ops__luzes" aria-hidden="true">
+        <svg viewBox={`0 0 ${LUZES * 100} 30`} preserveAspectRatio="none" focusable="false"><path d={`M 0 4 ${FIO}`} /></svg>
+        {Array.from({ length: LUZES }, (_, i) => (
+          <i key={i} data-cor={LUZ_CORES[i % LUZ_CORES.length]} style={{ "--x": `${((i * 100 + 50) / (LUZES * 100)) * 100}%`, "--delay": `${(i * 0.7) % 3}s` }} />
+        ))}
+      </span>
+      <span className="aef-ops__neve" aria-hidden="true">
+        {NEVE.map(([x, delay, dur, size]) => (
+          <i key={x} style={{ "--x": `${x}%`, "--delay": `-${delay}s`, "--dur": `${dur}s`, "--size": `${size}px` }} />
+        ))}
+      </span>
+      <svg className="aef-ops__gorro" viewBox="0 0 64 56" aria-hidden="true" focusable="false">
+        <path className="aef-ops__gorro-pano" d="M8 40 C 10 22, 24 6, 42 5 C 53 4, 58 11, 57 19 C 51 15, 45 18, 44 24 C 45 30, 49 35, 52 40 Z" />
+        <path className="aef-ops__gorro-sombra" d="M44 24 C 45 30, 49 35, 52 40 L 40 40 C 40 33, 41 28, 44 24 Z" />
+        <rect className="aef-ops__gorro-pelo" x="3" y="37" width="54" height="13" rx="6.5" />
+        <circle className="aef-ops__gorro-pelo" cx="57" cy="20" r="6" />
+      </svg>
+    </>
+  );
+}
+
 export function Operacoes({ mobile, user }) {
   const [view, setView] = useState("list");
   const [selected, setSelected] = useState(null);
@@ -838,7 +871,7 @@ export function Operacoes({ mobile, user }) {
   const [acoes, setAcoes] = useState(ACOES_MOCK);
   const [aba, setAba] = useState("acoes");
 
-  const TIPOS = ["Café de Rua", "Sopão da Noite", "Saúde", "Jurídico", "Orfanato", "Lar de Idosos", "Autismo", "Arrecadação", "Educacional", "Outro"];
+  const TIPOS = ["Ceia de Natal", "Café de Rua", "Sopão da Noite", "Saúde", "Jurídico", "Orfanato", "Lar de Idosos", "Autismo", "Arrecadação", "Educacional", "Outro"];
 
   if (view === "detail" && selected) {
     return <AcaoDetail acao={selected} onBack={() => { setView("list"); setSelected(null); }} mobile={mobile} user={user} />;
@@ -911,9 +944,10 @@ export function Operacoes({ mobile, user }) {
       {aba === "acoes" && <ul className="aef-ops__panel aef-ops__list">
         {acoes.map((a) => (
           <li key={a.id}>
-            <button type="button" className="aef-ops__row" onClick={() => { setSelected(a); setView("detail"); }}>
+            <button type="button" className="aef-ops__row" data-tema={OPS_TEMA[a.tipo]} onClick={() => { setSelected(a); setView("detail"); }}>
               <div className="aef-ops__row-main">
                 <div className="aef-ops__row-title">
+                  {OPS_TEMA[a.tipo] === "natal" && <span className="aef-ops__tema-mark" aria-hidden="true"><Icon name="star" size={16} strokeWidth={1.75} /></span>}
                   <span>{a.nome}</span>
                   <span className="aef-ops__tone" data-tone={OPS_TIPO_TONE[a.tipo] || "neutral"}>{a.tipo}</span>
                 </div>
