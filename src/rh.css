@@ -448,3 +448,9 @@
 .aef-rhp__col:hover .aef-rhp__col-bar, .aef-rhp__bar:hover .aef-rhp__track > span { background: var(--color-accent-strong); }
 .aef-rhp__note { margin: var(--space-md) 0 0; padding: var(--space-sm) var(--space-md); border-radius: var(--radius-control); background: var(--color-paper-2); font-size: var(--text-sm); color: var(--color-ink-2); }
 @media (max-width: 40rem) { .aef-rhp__bar { grid-template-columns: 7rem minmax(0, 1fr) 4.75rem; } }
+
+/* Occurrence follow-up: status, action taken, save */
+.aef-rh__form-grid--oc { display: grid; grid-template-columns: 12rem minmax(0, 1fr) auto; gap: var(--space-sm); align-items: end; }
+@media (max-width: 40rem) {
+  .aef-rh__form-grid--oc { grid-template-columns: minmax(0, 1fr); }
+}

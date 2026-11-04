@@ -277,6 +277,8 @@
 .aef-ops__scrim { position: fixed; inset: 0; z-index: var(--z-modal); display: flex; align-items: center; justify-content: center; padding: var(--space-md); background: var(--color-scrim); }
 .aef-ops__dialog { width: 100%; max-width: 32rem; max-height: 92dvh; display: flex; flex-direction: column; overflow: hidden; background: var(--color-surface); color: var(--color-ink); border-radius: var(--radius-card); font-family: var(--font-body); }
 .aef-ops__dialog--wide { max-width: 40rem; }
+/* opened over other panels (the profile drawer) */
+.aef-ops__scrim--top { z-index: calc(var(--z-modal) + 50); }
 .aef-ops__dialog--public { max-width: 26.25rem; }
 .aef-ops__dialog-head { display: flex; align-items: flex-start; justify-content: space-between; gap: var(--space-md); padding: var(--space-md) var(--space-lg); border-bottom: var(--rule-hair) solid var(--color-rule); }
 .aef-ops__dialog-title { font-family: var(--font-display); font-weight: 400; font-size: var(--text-xl); line-height: 1.1; letter-spacing: var(--tracking-display); overflow-wrap: break-word; min-width: 0; }
@@ -425,6 +427,19 @@
 .aef-ops__servido-qtd { color: var(--color-ink-2); font-variant-numeric: tabular-nums; }
 .aef-ops__names { display: flex; flex-wrap: wrap; gap: var(--space-2xs) var(--space-lg); list-style: none; margin: 0; padding: 0; font-size: var(--text-sm); }
 
+/* Coordination, notes about volunteers, team feedback */
+.aef-ops__coord { min-height: 32px; padding: 0 var(--space-sm); border: var(--rule-hair) solid var(--color-rule-strong); border-radius: var(--radius-pill); background: var(--color-surface); color: var(--color-ink-2); font: inherit; font-size: var(--text-sm); font-weight: 600; cursor: pointer; transition: background-color var(--dur-micro) var(--ease-out), border-color var(--dur-micro) var(--ease-out); }
+.aef-ops__coord:hover { border-color: var(--color-ink-2); }
+.aef-ops__coord:focus-visible { outline: 2px solid var(--color-focus); outline-offset: 2px; transition: none; }
+.aef-ops__coord[aria-pressed="true"] { border-color: var(--color-accent); background: var(--color-accent-wash); color: var(--color-accent-strong); }
+.aef-ops__coord:disabled { opacity: 0.6; cursor: not-allowed; }
+.aef-ops__registro { display: grid; gap: var(--space-2xs); padding: var(--space-sm); border: var(--rule-hair) solid var(--color-rule); border-radius: var(--radius-control); }
+.aef-ops__registro-top { display: flex; gap: var(--space-xs); align-items: center; }
+.aef-ops__registro-top .aef-ops__select:first-child { flex: 1; min-width: 0; }
+.aef-ops__select--short { width: 10rem; flex-shrink: 0; }
+.aef-ops__feedbacks { list-style: none; margin: 0; padding: 0; display: grid; gap: var(--space-sm); }
+.aef-ops__feedbacks li { display: grid; gap: var(--space-2xs); padding-left: var(--space-sm); border-left: 3px solid var(--color-rule-strong); }
+
 /* Seasonal theme: Ceia de Natal. Pine and gold beside the brand red; buttons and tabs stay red. */
 .aef-ops__tema-mark { display: inline-flex; align-self: center; color: var(--color-xmas-gold); }
 .aef-ops__tema-mark svg { fill: currentColor; }
@@ -495,6 +510,8 @@
 .aef-ops__detail-head[data-tema="natal"] .aef-ops__detail-facts { color: var(--color-xmas-ink-2); }
 
 @media (max-width: 40rem) {
+  .aef-ops__registro-top { flex-wrap: wrap; }
+  .aef-ops__select--short { width: auto; flex: 1; }
   .aef-ops__figures--4 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .aef-ops__presenca { flex-direction: column; align-items: stretch; }
   .aef-ops__seg { display: grid; grid-template-columns: repeat(3, 1fr); }

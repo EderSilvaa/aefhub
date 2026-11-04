@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { getModuleLabel } from "@/lib/access";
-import { historicoMembro } from "@/data/acoes";
+import { feedbackAberto, historicoMembro, listFeedbacks } from "@/data/acoes";
+import { FeedbackDialog } from "@/modules/AcaoEquipe";
 import { C, FONT_BODY } from "@/lib/theme";
 import "../profile.css";
 
@@ -33,11 +34,15 @@ export function Profile({ user, onClose, onLogout, onUpdateUser }) {
 
   // the member's own actions, from Operações (organized, took part, coming up)
   const [historico, setHistorico] = useState(null);
+  const [meusFeedbacks, setMeusFeedbacks] = useState([]);
+  const [feedbackDe, setFeedbackDe] = useState(null);
   useEffect(() => {
     let alive = true;
     historicoMembro(user.id).then(rows => { if (alive) setHistorico(rows); }).catch(() => { if (alive) setHistorico([]); });
+    listFeedbacks().then(rows => { if (alive) setMeusFeedbacks(rows.filter(f => f.membroId === user.id)); }).catch(() => {});
     return () => { alive = false; };
   }, [user.id]);
+  const feedbackDoUsuario = acaoId => meusFeedbacks.find(f => f.acaoId === acaoId);
 
   const feitas = (historico || []).filter(h => h.status === "concluída" && h.presenca === "presente");
   const profileStats = [
@@ -146,14 +151,26 @@ export function Profile({ user, onClose, onLogout, onUpdateUser }) {
                 {historico.map(h => (
                   <li key={h.acaoId} className="aef-prof__row">
                     <span><strong>{h.nome}</strong><span className="aef-prof__muted"> {h.data}</span></span>
-                    <span className="aef-prof__muted">
-                      {h.status !== "concluída" ? "Escalado" : h.presenca === "presente" ? (h.papel === "organizador" ? "Organizou" : "Participou") : h.presenca === "justificada" ? "Justificou" : "Faltou"}
-                    </span>
+                    {h.papel === "organizador" && h.presenca === "presente" && feedbackAberto(h) ? (
+                      <button type="button" className="aef-prof__link" onClick={() => setFeedbackDe(h)}>
+                        {feedbackDoUsuario(h.acaoId) ? "Editar feedback" : "Dar feedback"}
+                      </button>
+                    ) : (
+                      <span className="aef-prof__muted">
+                        {h.status !== "concluída" ? "Escalado" : h.presenca === "presente" ? (h.papel === "organizador" ? "Organizou" : "Participou") : h.presenca === "justificada" ? "Justificou" : "Faltou"}
+                      </span>
+                    )}
                   </li>
                 ))}
               </ul>
             )}
           </section>
+
+          {feedbackDe && (
+            <FeedbackDialog acao={{ id: feedbackDe.acaoId, nome: feedbackDe.nome }} user={user} atual={feedbackDoUsuario(feedbackDe.acaoId)}
+              onClose={() => setFeedbackDe(null)}
+              onSaved={fb => { setMeusFeedbacks(prev => [fb, ...prev.filter(f => f.id !== fb.id)]); setFeedbackDe(null); }} />
+          )}
 
           <section className="aef-prof__section" aria-labelledby="prof-modules">
             <h3 id="prof-modules" className="aef-prof__h3">Módulos liberados</h3>

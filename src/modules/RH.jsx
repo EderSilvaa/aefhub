@@ -1,10 +1,14 @@
 import { useEffect, useState } from "react";
 import { Icon } from "@/components/Icon";
-import { marketingDateKey, marketingDateLabel } from "@/data/marketing";
-import { RH_ATTENDANCE_SEED, RH_FEEDBACK_SEED, RH_OCCURRENCES_SEED, RH_PARTNERS, RH_STORAGE_KEYS, readRHStore } from "@/data/rh";
-import { useVoluntarios, useVoluntariosActions } from "@/data/VoluntariosContext";
+import { marketingDateLabel } from "@/data/marketing";
+import { RH_PARTNERS } from "@/data/rh";
+import { useRefreshResumo, useVoluntarios, useVoluntariosActions } from "@/data/VoluntariosContext";
+import {
+  acaoErrorMessage, addOcorrencias, FEEDBACK_DIAS, feedbackAberto, listAcoes, listEquipe, listFeedbacks, listOcorrencias,
+  TIPOS_REGISTRO, tipoRegistro, updateOcorrencia, volId,
+} from "@/data/acoes";
 import { SEM_AREA } from "@/data/voluntarios";
-import { sugerePenalidade, VolAvatar, VoluntarioFicha } from "@/modules/VoluntarioFicha";
+import { motivoAviso, sugerePenalidade, VolAvatar, VoluntarioFicha } from "@/modules/VoluntarioFicha";
 import { RHPerfil } from "@/modules/RHPerfil";
 import { ACCESS_PROFILES } from "@/lib/access";
 import { Acessos } from "@/modules/Acessos";
@@ -37,7 +41,7 @@ export function RHPersonRow({ person, fotoUrl, onOpen }) {
       <span className="aef-rh__row-cell">{person.telefone}</span>
       <span className="aef-rh__row-count"><strong>{person.actions}</strong><span>ações</span></span>
       {person.penalizado && person.motivoPenalidade && <p className="aef-rh__row-alert">{person.motivoPenalidade}</p>}
-      {sugerePenalidade(person) && <p className="aef-rh__row-alert aef-rh__row-alert--amber">{person.faltas12m} faltas sem justificar no último ano: sugerir penalidade?</p>}
+      {sugerePenalidade(person) && <p className="aef-rh__row-alert aef-rh__row-alert--amber">{motivoAviso(person)} no último ano: sugerir penalidade?</p>}
     </li>
   );
 }
@@ -233,18 +237,6 @@ export function RHNetwork({ mobile, members = [], user }) {
   );
 }
 
-export const RH_CRITERIA = {
-  organizador: ["pontualidade", "comprometimento", "equipe", "comunicacao", "postura", "orientacoes", "proatividade"],
-  voluntario: ["acolhimento", "organizacao", "clareza", "suporte"],
-};
-
-export const RH_CRITERIA_LABELS = {
-  pontualidade: "Pontualidade", comprometimento: "Comprometimento", equipe: "Trabalho em equipe",
-  comunicacao: "Comunicação", postura: "Postura", orientacoes: "Cumprimento das orientações",
-  proatividade: "Proatividade", acolhimento: "Acolhimento", organizacao: "Organização da ação",
-  clareza: "Clareza das orientações", suporte: "Suporte da equipe",
-};
-
 export function RHSectionTitle({ title, description, action, flag }) {
   return (
     <div className="aef-rh__head">
@@ -274,7 +266,7 @@ export function RHFigures({ items }) {
   );
 }
 
-export function RHOverview({ attendance, feedbacks, occurrences, onNavigate, mobile }) {
+export function RHOverview({ attendance, feedbackPending, openOccurrences, onNavigate, mobile }) {
   const volunteers = useVoluntarios();
   const active = volunteers.filter(person => person.actions > 0).length;
   const inactive = volunteers.filter(person => person.actions === 0).length;
@@ -283,9 +275,6 @@ export function RHOverview({ attendance, feedbacks, occurrences, onNavigate, mob
   const confirmed = attendance.reduce((sum, item) => sum + item.confirmed, 0);
   const absences = attendance.reduce((sum, item) => sum + item.absent, 0);
   const attendanceRate = confirmed ? Math.round((present / confirmed) * 100) : 0;
-  const openOccurrences = occurrences.filter(item => item.status !== "encerrada").length;
-  const organizerFeedbacks = feedbacks.filter(item => item.type === "organizador");
-  const feedbackPending = Math.max(0, attendance.length - organizerFeedbacks.length);
   const sectorData = Object.entries(volunteers.reduce((acc, person) => ({ ...acc, [person.area]: (acc[person.area] || 0) + person.actions }), {})).sort((a, b) => b[1] - a[1]);
   const maxSector = Math.max(...sectorData.map(([, value]) => value), 1);
   const topPeople = [...volunteers].sort((a, b) => b.actions - a.actions).slice(0, 5);
@@ -307,9 +296,10 @@ export function RHOverview({ attendance, feedbacks, occurrences, onNavigate, mob
             <div><h2 className="aef-rh__h2">Frequência por ação</h2><p className="aef-rh__hint">Presenças sobre confirmações</p></div>
             <button type="button" className="aef-rh__btn aef-rh__btn--link" onClick={() => onNavigate("participacao")}>Ver participação</button>
           </div>
+          {attendance.length === 0 && <p className="aef-rh__hint">Aparece aqui quando a primeira ação for finalizada em Operações.</p>}
           <ul className="aef-rh__bars">
             {attendance.slice(0, 4).map(item => {
-              const rate = Math.round((item.present / item.confirmed) * 100);
+              const rate = item.confirmed ? Math.round((item.present / item.confirmed) * 100) : 0;
               return (
                 <li key={item.id} className="aef-rh__bar-row">
                   <span className="aef-rh__bar-label">{item.action}</span>
@@ -371,20 +361,25 @@ export function RHParticipation({ attendance }) {
   const totalAbsent = attendance.reduce((sum, item) => sum + item.absent, 0);
   return (
     <div>
-      <RHSectionTitle title="Participação e frequência" description="Presença, falta e justificativa registradas por ação, incluindo o organizador." />
+      <RHSectionTitle title="Participação e frequência" description="Presença dos voluntários em cada ação finalizada em Operações, e se a organização estava lá." />
       <RHFigures items={[
         { label: "Presenças", value: totalPresent, tone: "green" },
         { label: "Faltas", value: totalAbsent, tone: "red" },
         { label: "Justificadas", value: attendance.reduce((s, i) => s + i.justified, 0), tone: "amber" },
       ]} />
+      {attendance.length === 0 ? (
+        <div className="aef-rh__panel aef-rh__empty">
+          <p className="aef-rh__desc">Nenhuma ação finalizada ainda. Ao finalizar uma ação em Operações, a presença de cada pessoa aparece aqui.</p>
+        </div>
+      ) : (
       <div className="aef-rh__panel aef-rh__table-wrap">
         <table className="aef-rh__table">
           <thead>
-            <tr><th scope="col">Ação</th><th scope="col">Setor</th><th scope="col">Organização</th><th scope="col" className="num">Presentes</th><th scope="col" className="num">Faltas</th><th scope="col" className="num">Justificadas</th><th scope="col">Frequência</th><th scope="col">Organizador presente</th></tr>
+            <tr><th scope="col">Ação</th><th scope="col">Setor</th><th scope="col">Coordenação</th><th scope="col" className="num">Presentes</th><th scope="col" className="num">Faltas</th><th scope="col" className="num">Justificadas</th><th scope="col">Frequência</th><th scope="col">Organizador presente</th></tr>
           </thead>
           <tbody>
             {attendance.map(item => {
-              const rate = Math.round((item.present / item.confirmed) * 100);
+              const rate = item.confirmed ? Math.round((item.present / item.confirmed) * 100) : 0;
               return (
                 <tr key={item.id}>
                   <td><div className="aef-rh__table-action">{item.action}</div><div className="aef-rh__table-sub">{marketingDateLabel(item.date)}</div></td>
@@ -401,71 +396,123 @@ export function RHParticipation({ attendance }) {
           </tbody>
         </table>
       </div>
+      )}
     </div>
   );
 }
 
-export function RHFeedbacks({ feedbacks, onAdd }) {
+// Feedback is given by organizers inside the action, up to 7 days after; highlights come from the notes.
+export function RHFeedbacks({ feedbacks, acoes, ocorrencias, pendentes }) {
   const volunteers = useVoluntarios();
-  const [showForm, setShowForm] = useState(false);
-  const [draft, setDraft] = useState({ type: "organizador", action: RH_ATTENDANCE_SEED[0].action, volunteer: volunteers[0]?.name || "", note: "", scores: {} });
-  const criteria = RH_CRITERIA[draft.type];
-  const submit = event => { event.preventDefault(); const scores = Object.fromEntries(criteria.map(key => [key, Number(draft.scores[key] || 4)])); onAdd({ ...draft, scores }); setDraft(prev => ({ ...prev, note: "", scores: {} })); setShowForm(false); };
-  const organizerScores = feedbacks.filter(item => item.type === "organizador").flatMap(item => Object.values(item.scores));
-  const average = organizerScores.length ? (organizerScores.reduce((a, b) => a + b, 0) / organizerScores.length).toFixed(1) : "—";
+  const nomeVol = id => volunteers.find(v => volId(v) === id)?.name || "Voluntário";
+  const nomeAcao = id => acoes.find(a => a.id === id)?.nome || "Ação";
+  const destaques = ocorrencias.filter(o => o.tipo === "destaque");
   return (
     <div>
-      <RHSectionTitle title="Feedbacks pós-ação" description="Avaliação do organizador e percepção do próprio voluntário sobre a experiência." action={<button type="button" aria-expanded={showForm} onClick={() => setShowForm(value => !value)} className="aef-rh__btn aef-rh__btn--primary"><span aria-hidden="true"><Icon name="plus" size={14} /></span>Nova avaliação</button>} />
+      <RHSectionTitle title="Feedbacks pós-ação" description={`O que a equipe contou de cada ação. Os organizadores dão o feedback na própria ação, até ${FEEDBACK_DIAS} dias depois.`} />
       <RHFigures items={[
-        { label: "Avaliações", value: feedbacks.length },
-        { label: "Média geral", value: average },
-        { label: "Do voluntário", value: feedbacks.filter(item => item.type === "voluntario").length },
+        { label: "Feedbacks recebidos", value: feedbacks.length },
+        { label: "Pendentes", value: pendentes, detail: "Organizadores com feedback em aberto", tone: pendentes ? "amber" : undefined },
+        { label: "Destaques", value: destaques.length, detail: "Voluntários que mandaram bem", tone: "green" },
       ]} />
-      {showForm && (
-        <form onSubmit={submit} className="aef-rh__panel aef-rh__panel--pad aef-rh__form">
-          <div className="aef-rh__form-grid aef-rh__form-grid--3">
-            <div className="aef-rh__field"><label className="aef-rh__label" htmlFor="rh-fb-tipo">Tipo</label><select id="rh-fb-tipo" value={draft.type} onChange={event => setDraft(prev => ({ ...prev, type: event.target.value, scores: {} }))} className="aef-rh__select"><option value="organizador">Organizador avalia</option><option value="voluntario">Voluntário avalia a ação</option></select></div>
-            <div className="aef-rh__field"><label className="aef-rh__label" htmlFor="rh-fb-acao">Ação</label><select id="rh-fb-acao" value={draft.action} onChange={event => setDraft(prev => ({ ...prev, action: event.target.value }))} className="aef-rh__select">{RH_ATTENDANCE_SEED.map(item => <option key={item.id}>{item.action}</option>)}</select></div>
-            <div className="aef-rh__field"><label className="aef-rh__label" htmlFor="rh-fb-voluntario">Voluntário</label><select id="rh-fb-voluntario" value={draft.volunteer} onChange={event => setDraft(prev => ({ ...prev, volunteer: event.target.value }))} className="aef-rh__select">{volunteers.map(item => <option key={item.id || item.telefone}>{item.name}</option>)}</select></div>
-          </div>
-          <div className="aef-rh__form-grid aef-rh__form-grid--2 aef-rh__form-section">
-            {criteria.map(key => (
-              <label key={key} className="aef-rh__score">
-                <span className="aef-rh__score-head"><span>{RH_CRITERIA_LABELS[key]}</span><span>{draft.scores[key] || 4}/5</span></span>
-                <input type="range" min="1" max="5" value={draft.scores[key] || 4} onChange={event => setDraft(prev => ({ ...prev, scores: { ...prev.scores, [key]: Number(event.target.value) } }))} className="aef-rh__range" />
-              </label>
-            ))}
-          </div>
-          <div className="aef-rh__field aef-rh__form-section"><label className="aef-rh__label" htmlFor="rh-fb-obs">Observação</label><textarea id="rh-fb-obs" value={draft.note} onChange={event => setDraft(prev => ({ ...prev, note: event.target.value }))} placeholder="Contexto útil para desenvolvimento e acompanhamento…" className="aef-rh__textarea" /></div>
-          <div className="aef-rh__form-actions"><button type="button" onClick={() => setShowForm(false)} className="aef-rh__btn aef-rh__btn--outline">Cancelar</button><button type="submit" className="aef-rh__btn aef-rh__btn--primary">Salvar avaliação</button></div>
-        </form>
+      {feedbacks.length === 0 && destaques.length === 0 ? (
+        <div className="aef-rh__panel aef-rh__empty">
+          <h2 className="aef-rh__h2">Nenhum feedback ainda</h2>
+          <p className="aef-rh__desc">Quando uma ação for finalizada, os organizadores contam como foi e registram destaques. Tudo aparece aqui.</p>
+        </div>
+      ) : (
+        <div className="aef-rh__grid aef-rh__grid--half">
+          <section>
+            <h2 className="aef-rh__h2" style={{ marginBottom: "var(--space-sm)" }}>Da equipe</h2>
+            {feedbacks.length === 0 ? <p className="aef-rh__hint">Nenhum feedback de organizador ainda.</p> : (
+              <ul className="aef-rh__panel aef-rh__records">
+                {feedbacks.map(item => (
+                  <li key={item.id} className="aef-rh__record">
+                    <div className="aef-rh__record-name">{nomeAcao(item.acaoId)}</div>
+                    <div className="aef-rh__meta"><span>{item.autor || "Organizador"}</span><span>{new Date(item.criadoEm).toLocaleDateString("pt-BR")}</span></div>
+                    <p className="aef-rh__record-text">{item.texto}</p>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </section>
+          <section>
+            <h2 className="aef-rh__h2" style={{ marginBottom: "var(--space-sm)" }}>Destaques</h2>
+            {destaques.length === 0 ? <p className="aef-rh__hint">Nenhum destaque registrado ainda.</p> : (
+              <ul className="aef-rh__panel aef-rh__records">
+                {destaques.map(item => (
+                  <li key={item.id} className="aef-rh__record">
+                    <div className="aef-rh__record-name">{nomeVol(item.voluntarioId)}</div>
+                    <div className="aef-rh__meta"><span>{item.acaoNome || "Sem ação"}</span><span>por {item.autor || "Organizador"}</span></div>
+                    {item.descricao && <p className="aef-rh__record-text">{item.descricao}</p>}
+                  </li>
+                ))}
+              </ul>
+            )}
+          </section>
+        </div>
       )}
-      <ul className="aef-rh__panel aef-rh__records">
-        {feedbacks.map(item => {
-          const values = Object.values(item.scores);
-          const avg = (values.reduce((a, b) => a + b, 0) / values.length).toFixed(1);
-          return (
-            <li key={item.id} className="aef-rh__record">
-              <div className="aef-rh__record-head">
-                <div>
-                  <div className="aef-rh__record-name">{item.volunteer}</div>
-                  <div className="aef-rh__meta"><span>{item.action}</span><span>{marketingDateLabel(item.date)}</span><span>por {item.evaluator}</span></div>
-                </div>
-                <span className="aef-rh__status" data-tone={item.type === "voluntario" ? "blue" : "neutral"}>{item.type === "voluntario" ? "Experiência da ação" : `Média ${avg}`}</span>
-              </div>
-              {item.note && <p className="aef-rh__record-text">{item.note}</p>}
-            </li>
-          );
-        })}
-      </ul>
     </div>
   );
 }
 
-export function RHOccurrences({ occurrences, onAdd, canAccess }) {
+const OC_STATUS = [["aberta", "Aberta", "red"], ["acompanhamento", "Acompanhamento", "amber"], ["encerrada", "Encerrada", "green"]];
+
+function RHOccurrenceRecord({ item, nome, reincidencia, onSave }) {
+  const [draft, setDraft] = useState({ status: item.status, providencia: item.providencia });
+  const [busy, setBusy] = useState(false);
+  const [erro, setErro] = useState("");
+  const [, label, tone] = tipoRegistro(item.tipo);
+  const mudou = draft.status !== item.status || draft.providencia.trim() !== item.providencia;
+  const salvar = async () => {
+    setBusy(true); setErro("");
+    try { await onSave(item.id, { status: draft.status, providencia: draft.providencia.trim() || null }); }
+    catch (error) { setErro(acaoErrorMessage(error)); }
+    setBusy(false);
+  };
+  return (
+    <li className="aef-rh__record">
+      <div className="aef-rh__record-head">
+        <div>
+          <div className="aef-rh__record-name">{nome}</div>
+          <div className="aef-rh__meta">
+            <span className="aef-rh__status" data-tone={tone}>{label}</span>
+            <span>{item.acaoNome || "Fora de ação"}</span>
+            <span>{new Date(item.criadoEm).toLocaleDateString("pt-BR")}</span>
+          </div>
+        </div>
+        <span className="aef-rh__status" data-tone={OC_STATUS.find(([id]) => id === item.status)?.[2]}>{OC_STATUS.find(([id]) => id === item.status)?.[1]}</span>
+      </div>
+      {item.descricao && <p className="aef-rh__record-text">{item.descricao}</p>}
+      <dl className="aef-rh__details">
+        <div><dt>Registrado por:</dt><dd>{item.autor || "Organizador"}</dd></div>
+        <div><dt>Reincidência:</dt><dd>{reincidencia} {reincidencia === 1 ? "registro" : "registros"} desta pessoa</dd></div>
+      </dl>
+      <div className="aef-rh__form-grid aef-rh__form-grid--oc aef-rh__form-section">
+        <div className="aef-rh__field">
+          <label className="aef-rh__label" htmlFor={`rh-oc-st-${item.id}`}>Situação</label>
+          <select id={`rh-oc-st-${item.id}`} className="aef-rh__select" value={draft.status} onChange={e => setDraft(d => ({ ...d, status: e.target.value }))}>
+            {OC_STATUS.map(([id, text]) => <option key={id} value={id}>{text}</option>)}
+          </select>
+        </div>
+        <div className="aef-rh__field">
+          <label className="aef-rh__label" htmlFor={`rh-oc-pv-${item.id}`}>Providência</label>
+          <input id={`rh-oc-pv-${item.id}`} className="aef-rh__input" value={draft.providencia} placeholder="Conversa, advertência, penalidade…" onChange={e => setDraft(d => ({ ...d, providencia: e.target.value }))} />
+        </div>
+        {mudou && <button type="button" className="aef-rh__btn aef-rh__btn--primary aef-rh__oc-save" disabled={busy} onClick={salvar}>{busy ? "Salvando…" : "Salvar"}</button>}
+      </div>
+      {erro && <p className="aef-rh__row-alert">{erro}</p>}
+    </li>
+  );
+}
+
+export function RHOccurrences({ ocorrencias, acoes, canAccess, onAdd, onUpdate }) {
   const volunteers = useVoluntarios();
   const [showForm, setShowForm] = useState(false);
-  const [draft, setDraft] = useState({ volunteer: volunteers[0]?.name || "", action: RH_ATTENDANCE_SEED[0].action, type: "Ausência sem aviso", description: "", actionTaken: "", status: "aberta", recurrence: 1 });
+  const [filtro, setFiltro] = useState("abertas");
+  const [draft, setDraft] = useState({ voluntarioId: "", acaoId: "", tipo: "atraso", descricao: "" });
+  const [busy, setBusy] = useState(false);
+  const [erro, setErro] = useState("");
   if (!canAccess) return (
     <div className="aef-rh__panel aef-rh__empty">
       <span className="aef-rh__empty-icon" aria-hidden="true"><Icon name="lock" size={22} /></span>
@@ -473,63 +520,107 @@ export function RHOccurrences({ occurrences, onAdd, canAccess }) {
       <p className="aef-rh__desc">Ocorrências contêm informações confidenciais e só podem ser consultadas por perfis de RH e Super Admin.</p>
     </div>
   );
-  const submit = event => { event.preventDefault(); if (!draft.description.trim()) return; onAdd(draft); setDraft(prev => ({ ...prev, description: "", actionTaken: "" })); setShowForm(false); };
-  const statusTone = { aberta: "red", acompanhamento: "amber", encerrada: "green" };
+  const nomeVol = id => volunteers.find(v => volId(v) === id)?.name || "Voluntário";
+  const negativas = ocorrencias.filter(o => o.tipo !== "destaque");
+  const porPessoa = negativas.reduce((acc, o) => ({ ...acc, [o.voluntarioId]: (acc[o.voluntarioId] || 0) + 1 }), {});
+  const visiveis = negativas.filter(o => (filtro === "abertas" ? o.status !== "encerrada" : filtro === "encerradas" ? o.status === "encerrada" : true));
+  const ordenados = [...volunteers].sort((a, b) => a.name.localeCompare(b.name));
+  const submit = async event => {
+    event.preventDefault();
+    if (!draft.voluntarioId) { setErro("Escolha o voluntário."); return; }
+    setBusy(true); setErro("");
+    try {
+      await onAdd({ ...draft, acaoId: draft.acaoId || null });
+      setDraft({ voluntarioId: "", acaoId: "", tipo: "atraso", descricao: "" });
+      setShowForm(false);
+    } catch (error) { setErro(acaoErrorMessage(error)); }
+    setBusy(false);
+  };
   return (
     <div>
-      <RHSectionTitle flag="Confidencial" title="Registro de ocorrências" description="Acompanhamento restrito de condutas, providências e reincidências." action={<button type="button" aria-expanded={showForm} onClick={() => setShowForm(value => !value)} className="aef-rh__btn aef-rh__btn--primary"><span aria-hidden="true"><Icon name="plus" size={14} /></span>Registrar</button>} />
+      <RHSectionTitle flag="Confidencial" title="Registro de ocorrências" description="O que os organizadores registraram nas ações e o que o RH registrou direto. O voluntário não vê." action={<button type="button" aria-expanded={showForm} onClick={() => setShowForm(value => !value)} className="aef-rh__btn aef-rh__btn--primary"><span aria-hidden="true"><Icon name="plus" size={14} /></span>Registrar</button>} />
       <RHFigures items={[
-        { label: "Em aberto", value: occurrences.filter(item => item.status === "aberta").length, tone: "red" },
-        { label: "Acompanhamento", value: occurrences.filter(item => item.status === "acompanhamento").length, tone: "amber" },
-        { label: "Encerradas", value: occurrences.filter(item => item.status === "encerrada").length, tone: "green" },
+        { label: "Em aberto", value: negativas.filter(item => item.status === "aberta").length, tone: "red" },
+        { label: "Acompanhamento", value: negativas.filter(item => item.status === "acompanhamento").length, tone: "amber" },
+        { label: "Encerradas", value: negativas.filter(item => item.status === "encerrada").length, tone: "green" },
       ]} />
       {showForm && (
         <form onSubmit={submit} className="aef-rh__panel aef-rh__panel--pad aef-rh__form">
           <div className="aef-rh__form-grid aef-rh__form-grid--3">
-            <div className="aef-rh__field"><label className="aef-rh__label" htmlFor="rh-oc-voluntario">Voluntário</label><select id="rh-oc-voluntario" value={draft.volunteer} onChange={event => setDraft(prev => ({ ...prev, volunteer: event.target.value }))} className="aef-rh__select">{volunteers.map(item => <option key={item.id || item.telefone}>{item.name}</option>)}</select></div>
-            <div className="aef-rh__field"><label className="aef-rh__label" htmlFor="rh-oc-acao">Ação</label><select id="rh-oc-acao" value={draft.action} onChange={event => setDraft(prev => ({ ...prev, action: event.target.value }))} className="aef-rh__select">{RH_ATTENDANCE_SEED.map(item => <option key={item.id}>{item.action}</option>)}</select></div>
-            <div className="aef-rh__field"><label className="aef-rh__label" htmlFor="rh-oc-tipo">Tipo</label><input id="rh-oc-tipo" value={draft.type} onChange={event => setDraft(prev => ({ ...prev, type: event.target.value }))} className="aef-rh__input" /></div>
+            <div className="aef-rh__field"><label className="aef-rh__label" htmlFor="rh-oc-voluntario">Voluntário</label><select id="rh-oc-voluntario" value={draft.voluntarioId} onChange={event => setDraft(prev => ({ ...prev, voluntarioId: event.target.value }))} className="aef-rh__select"><option value="">Escolha</option>{ordenados.map(item => <option key={volId(item)} value={volId(item)}>{item.name}</option>)}</select></div>
+            <div className="aef-rh__field"><label className="aef-rh__label" htmlFor="rh-oc-acao">Ação</label><select id="rh-oc-acao" value={draft.acaoId} onChange={event => setDraft(prev => ({ ...prev, acaoId: event.target.value }))} className="aef-rh__select"><option value="">Fora de ação</option>{acoes.map(item => <option key={item.id} value={item.id}>{item.nome}</option>)}</select></div>
+            <div className="aef-rh__field"><label className="aef-rh__label" htmlFor="rh-oc-tipo">Tipo</label><select id="rh-oc-tipo" value={draft.tipo} onChange={event => setDraft(prev => ({ ...prev, tipo: event.target.value }))} className="aef-rh__select">{TIPOS_REGISTRO.map(([id, label]) => <option key={id} value={id}>{label}</option>)}</select></div>
           </div>
-          <div className="aef-rh__field aef-rh__form-section"><label className="aef-rh__label" htmlFor="rh-oc-descricao">Descrição</label><textarea id="rh-oc-descricao" required value={draft.description} onChange={event => setDraft(prev => ({ ...prev, description: event.target.value }))} className="aef-rh__textarea" /></div>
-          <div className="aef-rh__field aef-rh__form-section"><label className="aef-rh__label" htmlFor="rh-oc-providencia">Providência tomada</label><textarea id="rh-oc-providencia" value={draft.actionTaken} onChange={event => setDraft(prev => ({ ...prev, actionTaken: event.target.value }))} className="aef-rh__textarea" /></div>
-          <div className="aef-rh__form-actions"><button type="button" onClick={() => setShowForm(false)} className="aef-rh__btn aef-rh__btn--outline">Cancelar</button><button type="submit" className="aef-rh__btn aef-rh__btn--primary">Salvar ocorrência</button></div>
+          <div className="aef-rh__field aef-rh__form-section"><label className="aef-rh__label" htmlFor="rh-oc-descricao">O que aconteceu</label><textarea id="rh-oc-descricao" value={draft.descricao} onChange={event => setDraft(prev => ({ ...prev, descricao: event.target.value }))} className="aef-rh__textarea" /></div>
+          {erro && <p className="aef-rh__row-alert">{erro}</p>}
+          <div className="aef-rh__form-actions"><button type="button" onClick={() => setShowForm(false)} className="aef-rh__btn aef-rh__btn--outline">Cancelar</button><button type="submit" disabled={busy} className="aef-rh__btn aef-rh__btn--primary">{busy ? "Salvando…" : "Salvar ocorrência"}</button></div>
         </form>
       )}
-      <ul className="aef-rh__panel aef-rh__records">
-        {occurrences.map(item => (
-          <li key={item.id} className="aef-rh__record">
-            <div className="aef-rh__record-head">
-              <div>
-                <div className="aef-rh__record-name">{item.volunteer}</div>
-                <div className="aef-rh__meta"><span>{item.type}</span><span>{item.action}</span><span>{marketingDateLabel(item.date)}</span></div>
-              </div>
-              <span className="aef-rh__status aef-rh__status--cap" data-tone={statusTone[item.status] || "neutral"}>{item.status}</span>
-            </div>
-            <p className="aef-rh__record-text">{item.description}</p>
-            <dl className="aef-rh__details">
-              <div><dt>Registrado por:</dt><dd>{item.registeredBy}</dd></div>
-              <div><dt>Reincidência:</dt><dd>{item.recurrence} registro(s)</dd></div>
-              <div className="aef-rh__details-wide"><dt>Providência:</dt><dd>{item.actionTaken || "Aguardando definição"}</dd></div>
-            </dl>
-          </li>
+      <div className="aef-rh__chips" role="group" aria-label="Filtrar ocorrências" style={{ marginBottom: "var(--space-sm)" }}>
+        {[["abertas", "Em aberto"], ["encerradas", "Encerradas"], ["todas", "Todas"]].map(([id, label]) => (
+          <button key={id} type="button" className="aef-rh__chip" aria-pressed={filtro === id} onClick={() => setFiltro(id)}>{label}</button>
         ))}
-      </ul>
+      </div>
+      {visiveis.length === 0 ? (
+        <div className="aef-rh__panel aef-rh__empty">
+          <p className="aef-rh__desc">{negativas.length === 0 ? "Nenhuma ocorrência registrada. Organizadores registram atrasos e comportamento ao finalizar ou no feedback da ação." : "Nada neste filtro."}</p>
+        </div>
+      ) : (
+        <ul className="aef-rh__panel aef-rh__records">
+          {visiveis.map(item => (
+            <RHOccurrenceRecord key={item.id} item={item} nome={nomeVol(item.voluntarioId)} reincidencia={porPessoa[item.voluntarioId]} onSave={onUpdate} />
+          ))}
+        </ul>
+      )}
     </div>
   );
 }
 
+// Attendance per finished action, from Operações.
+const frequenciaDasAcoes = (acoes, equipe) => acoes.filter(a => a.status === "concluída" && a.relatorio).map(a => {
+  const f = a.frequencia;
+  const coord = a.coordenacao.map(id => equipe.find(m => m.id === id)?.nome).filter(Boolean);
+  return {
+    id: a.id, action: a.nome, date: a.dataISO, sector: a.tipo,
+    organizer: coord.join(", ") || a.responsavel || "Não definido",
+    present: f.presentes, absent: f.faltas, justified: f.justificadas, confirmed: f.presentes + f.faltas + f.justificadas,
+    organizerPresent: f.organizadorPresente,
+  };
+});
+
 export function RH({ mobile, user, users, onSaveUser, onToggleUserStatus, onResetUsers }) {
+  const refreshResumo = useRefreshResumo();
   const [section, setSection] = useState("visao");
-  const [attendance, setAttendance] = useState(() => readRHStore(RH_STORAGE_KEYS.attendance, RH_ATTENDANCE_SEED));
-  const [feedbacks, setFeedbacks] = useState(() => readRHStore(RH_STORAGE_KEYS.feedbacks, RH_FEEDBACK_SEED));
-  const [occurrences, setOccurrences] = useState(() => readRHStore(RH_STORAGE_KEYS.occurrences, RH_OCCURRENCES_SEED));
-  useEffect(() => localStorage.setItem(RH_STORAGE_KEYS.attendance, JSON.stringify(attendance)), [attendance]);
-  useEffect(() => localStorage.setItem(RH_STORAGE_KEYS.feedbacks, JSON.stringify(feedbacks)), [feedbacks]);
-  useEffect(() => localStorage.setItem(RH_STORAGE_KEYS.occurrences, JSON.stringify(occurrences)), [occurrences]);
+  const [acoes, setAcoes] = useState([]);
+  const [equipe, setEquipe] = useState([]);
+  const [feedbacks, setFeedbacks] = useState([]);
+  const [ocorrencias, setOcorrencias] = useState([]);
   const canAccessOccurrences = ["rh", "super_admin"].includes(user?.profileId);
   const canManageAccess = ["rh", "super_admin"].includes(user?.profileId);
-  const addFeedback = draft => setFeedbacks(prev => [{ id: Date.now(), ...draft, evaluator: draft.type === "voluntario" ? draft.volunteer : user?.name || "Organizador", date: marketingDateKey(new Date()) }, ...prev]);
-  const addOccurrence = draft => setOccurrences(prev => [{ id: Date.now(), ...draft, registeredBy: user?.name || "RH", date: marketingDateKey(new Date()) }, ...prev]);
+
+  useEffect(() => {
+    let alive = true;
+    Promise.all([listEquipe(), listAcoes(), listFeedbacks(), canAccessOccurrences ? listOcorrencias() : Promise.resolve([])])
+      .then(([membros, lista, fbs, ocs]) => { if (alive) { setEquipe(membros); setAcoes(lista); setFeedbacks(fbs); setOcorrencias(ocs); } })
+      .catch(() => {});
+    return () => { alive = false; };
+  }, [canAccessOccurrences]);
+
+  const attendance = frequenciaDasAcoes(acoes, equipe);
+  const feedbackPending = acoes.filter(feedbackAberto)
+    .reduce((sum, a) => sum + Math.max(0, a.organizadores - feedbacks.filter(f => f.acaoId === a.id).length), 0);
+  const openOccurrences = ocorrencias.filter(o => o.tipo !== "destaque" && o.status !== "encerrada").length;
+
+  const addOccurrence = async draft => {
+    const [nova] = await addOcorrencias([draft], user?.id);
+    setOcorrencias(prev => [nova, ...prev]);
+    refreshResumo();
+  };
+  const updateOccurrence = async (id, fields) => {
+    const updated = await updateOcorrencia(id, fields);
+    setOcorrencias(prev => prev.map(o => (o.id === id ? updated : o)));
+  };
+
   const sections = [["visao", "Visão geral"], ["rede", "Rede"], ["participacao", "Participação"], ["feedbacks", "Feedbacks"], ["ocorrencias", "Ocorrências"], ...(canManageAccess ? [["acessos", "Membros & acessos"]] : [])];
   return (
     <div className="aef-rh">
@@ -541,11 +632,11 @@ export function RH({ mobile, user, users, onSaveUser, onToggleUserStatus, onRese
           </button>
         ))}
       </nav>
-      {section === "visao" && <RHOverview attendance={attendance} feedbacks={feedbacks} occurrences={occurrences} onNavigate={setSection} mobile={mobile} />}
+      {section === "visao" && <RHOverview attendance={attendance} feedbackPending={feedbackPending} openOccurrences={openOccurrences} onNavigate={setSection} mobile={mobile} />}
       {section === "rede" && <RHNetwork mobile={mobile} members={users} user={user} />}
       {section === "participacao" && <RHParticipation attendance={attendance} />}
-      {section === "feedbacks" && <RHFeedbacks feedbacks={feedbacks} onAdd={addFeedback} />}
-      {section === "ocorrencias" && <RHOccurrences occurrences={occurrences} onAdd={addOccurrence} canAccess={canAccessOccurrences} />}
+      {section === "feedbacks" && <RHFeedbacks feedbacks={feedbacks} acoes={acoes} ocorrencias={ocorrencias} pendentes={feedbackPending} />}
+      {section === "ocorrencias" && <RHOccurrences ocorrencias={ocorrencias} acoes={acoes} canAccess={canAccessOccurrences} onAdd={addOccurrence} onUpdate={updateOccurrence} />}
       {section === "acessos" && canManageAccess && <Acessos currentUser={user} users={users} onSaveUser={onSaveUser} onToggleUserStatus={onToggleUserStatus} onResetUsers={onResetUsers} />}
     </div>
   );

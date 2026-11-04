@@ -1,6 +1,7 @@
 import { supabase } from "@/lib/supabase";
 import { DEMO_USERS } from "@/lib/access";
 import { ACOES_MOCK } from "@/data/operacoes";
+import { volunteers as demoVolunteers } from "@/data/rh";
 
 // Actions, who took part in each one, and the final report.
 // Same functions in both modes: Supabase when configured, an in-memory store in demo mode.
@@ -18,8 +19,14 @@ const demo = supabase ? null : {
     publico_atendido: null, servido: null, resumo: null, ocorrencias: null, finalizada_em: null, finalizada_por: null,
   })),
   participacoes: [],
+  feedbacks: [],
+  ocorrencias: [],
 };
-const demoRow = a => ({ ...copy(a), participacoes: demo.participacoes.filter(p => p.acao_id === a.id).map(p => ({ papel: p.papel })) });
+const PART_RESUMO = ["papel", "presenca", "coordena", "membro_id"];
+const demoRow = a => ({
+  ...copy(a),
+  participacoes: demo.participacoes.filter(p => p.acao_id === a.id).map(p => Object.fromEntries(PART_RESUMO.map(k => [k, p[k]]))),
+});
 const demoFail = (message, code = "P0001") => Object.assign(new Error(message), { code });
 
 // ─── Team names (members of the organization) ────────────────────────────────
@@ -41,6 +48,8 @@ const nomeMembro = id => equipeCache?.find(m => m.id === id)?.nome || "";
 // ─── Actions ─────────────────────────────────────────────────────────────────
 function fromRow(row) {
   const parts = row.participacoes || [];
+  const vols = parts.filter(p => p.papel === "voluntario");
+  const orgs = parts.filter(p => p.papel === "organizador");
   return {
     id: row.id,
     nome: row.nome,
@@ -53,7 +62,15 @@ function fromRow(row) {
     responsavel: nomeMembro(row.responsavel_id),
     pop: row.pop || null,
     voluntarios: parts.filter(p => p.papel === "voluntario").length,
-    organizadores: parts.filter(p => p.papel === "organizador").length,
+    organizadores: orgs.length,
+    coordenacao: orgs.filter(p => p.coordena).map(p => p.membro_id),
+    organizadoresIds: orgs.map(p => p.membro_id),
+    frequencia: {
+      presentes: vols.filter(p => p.presenca === "presente").length,
+      faltas: vols.filter(p => p.presenca === "falta").length,
+      justificadas: vols.filter(p => p.presenca === "justificada").length,
+      organizadorPresente: orgs.some(p => p.presenca === "presente"),
+    },
     relatorio: row.finalizada_em ? {
       publico: row.publico_atendido,
       servido: row.servido || [],
@@ -65,7 +82,7 @@ function fromRow(row) {
   };
 }
 
-const ACAO_SELECT = "*, participacoes(papel)";
+const ACAO_SELECT = `*, participacoes(${PART_RESUMO.join(", ")})`;
 
 export async function listAcoes() {
   if (!equipeCache) await listEquipe();
@@ -111,6 +128,7 @@ export async function updateAcao(id, fields) {
 const partFromRow = p => ({
   id: p.id,
   papel: p.papel,
+  coordena: !!p.coordena,
   presenca: p.presenca || null,
   observacao: p.observacao || "",
   voluntarioId: p.voluntario_id || null,
@@ -130,11 +148,23 @@ export async function addParticipacao(acaoId, { voluntarioId = null, membroId = 
   if (demo) {
     const dup = demo.participacoes.some(p => p.acao_id === acaoId && ((voluntarioId && p.voluntario_id === voluntarioId) || (membroId && p.membro_id === membroId)));
     if (dup) throw demoFail("dup", "23505");
-    const row = { id: demo.seq++, presenca: null, observacao: null, ...fields };
+    const row = { id: demo.seq++, presenca: null, observacao: null, coordena: false, ...fields };
     demo.participacoes.push(row);
     return partFromRow(row);
   }
   const { data, error } = await supabase.from("participacoes").insert(fields).select().single();
+  if (error) throw error;
+  return partFromRow(data);
+}
+
+// Organizers: coordination (the 2 to 4 who lead and decide) or support.
+export async function setCoordena(id, coordena) {
+  if (demo) {
+    const row = demo.participacoes.find(p => p.id === id);
+    row.coordena = coordena;
+    return partFromRow(row);
+  }
+  const { data, error } = await supabase.from("participacoes").update({ coordena }).eq("id", id).select().single();
   if (error) throw error;
   return partFromRow(data);
 }
@@ -155,6 +185,9 @@ export async function finalizarAcao(acaoId, presencas, relatorio, userId) {
   if (demo) {
     const row = demo.acoes.find(a => a.id === acaoId);
     if (row.status === "concluída") throw demoFail("Esta ação já foi finalizada.");
+    const coord = demo.participacoes.filter(p => p.acao_id === acaoId && p.coordena).map(p => p.membro_id);
+    const superAdmin = DEMO_USERS.find(u => u.id === userId)?.profileId === "super_admin";
+    if (coord.length && !coord.includes(userId) && !superAdmin) throw demoFail("Só quem coordena a ação pode finalizar.", "42501");
     presencas.forEach(x => {
       const p = demo.participacoes.find(item => item.id === x.id && item.acao_id === acaoId);
       if (p) Object.assign(p, { presenca: x.presenca, observacao: x.observacao || null });
@@ -225,6 +258,7 @@ export async function listResumoVoluntarios() {
 
 const histFromRow = (p, a) => ({
   acaoId: a.id, nome: a.nome, tipo: a.tipo, dataISO: a.data, data: isoToBr(a.data), status: a.status, papel: p.papel, presenca: p.presenca || null,
+  relatorio: a.finalizada_em ? { finalizadaEm: a.finalizada_em } : null,
 });
 const byDateDesc = (x, y) => y.dataISO.localeCompare(x.dataISO);
 
@@ -233,13 +267,114 @@ async function historico(column, id) {
     return demo.participacoes.filter(p => p[column] === id)
       .map(p => histFromRow(p, demo.acoes.find(a => a.id === p.acao_id))).sort(byDateDesc);
   }
-  const { data, error } = await supabase.from("participacoes").select("papel, presenca, acoes(id, nome, tipo, data, status)").eq(column, id);
+  const { data, error } = await supabase.from("participacoes").select("papel, presenca, acoes(id, nome, tipo, data, status, finalizada_em)").eq(column, id);
   if (error) throw error;
   return data.filter(p => p.acoes).map(p => histFromRow(p, p.acoes)).sort(byDateDesc);
 }
 
 export const historicoVoluntario = id => historico("voluntario_id", id);
 export const historicoMembro = id => historico("membro_id", id);
+
+// ─── After the action: organizers' feedback and notes about volunteers ───────
+export const FEEDBACK_DIAS = 7;
+export const feedbackAberto = acao => acao.status === "concluída" && !!acao.relatorio
+  && Date.now() - new Date(acao.relatorio.finalizadaEm).getTime() < FEEDBACK_DIAS * 86400000;
+
+const fbFromRow = f => ({ id: f.id, acaoId: f.acao_id, membroId: f.membro_id, autor: nomeMembro(f.membro_id), texto: f.texto, criadoEm: f.criado_em });
+
+export async function listFeedbacks(acaoId = null) {
+  if (!equipeCache) await listEquipe();
+  if (demo) return demo.feedbacks.filter(f => !acaoId || f.acao_id === acaoId).map(fbFromRow);
+  let query = supabase.from("feedbacks_acao").select("*").order("criado_em", { ascending: false });
+  if (acaoId) query = query.eq("acao_id", acaoId);
+  const { data, error } = await query;
+  if (error) throw error;
+  return data.map(fbFromRow);
+}
+
+// one per organizer and action; saving again replaces the text
+export async function saveFeedback(acaoId, texto, userId) {
+  const clean = texto.trim();
+  if (demo) {
+    let row = demo.feedbacks.find(f => f.acao_id === acaoId && f.membro_id === userId);
+    if (!row) { row = { id: demo.seq++, acao_id: acaoId, membro_id: userId, criado_em: new Date().toISOString() }; demo.feedbacks.unshift(row); }
+    row.texto = clean;
+    return fbFromRow(row);
+  }
+  const { data, error } = await supabase.from("feedbacks_acao")
+    .upsert({ acao_id: acaoId, membro_id: userId, texto: clean }, { onConflict: "acao_id,membro_id" }).select().single();
+  if (error) throw error;
+  return fbFromRow(data);
+}
+
+export const TIPOS_REGISTRO = [
+  ["atraso", "Atraso", "amber"],
+  ["comportamento", "Comportamento", "red"],
+  ["saiu_antes", "Saiu antes", "amber"],
+  ["outro", "Outro", "neutral"],
+  ["destaque", "Destaque", "green"],
+];
+export const tipoRegistro = id => TIPOS_REGISTRO.find(([key]) => key === id) || TIPOS_REGISTRO[3];
+export const registroNegativo = tipo => tipo !== "destaque";
+
+const ocFromRow = o => ({
+  id: o.id, voluntarioId: o.voluntario_id, acaoId: o.acao_id, acaoNome: o.acoes?.nome || "", tipo: o.tipo, descricao: o.descricao || "",
+  status: o.status, providencia: o.providencia || "", autor: nomeMembro(o.autor_id), criadoEm: o.criado_em,
+});
+
+export async function listOcorrencias(voluntarioId = null) {
+  if (!equipeCache) await listEquipe();
+  if (demo) {
+    return demo.ocorrencias.filter(o => !voluntarioId || o.voluntario_id === voluntarioId)
+      .map(o => ocFromRow({ ...o, acoes: demo.acoes.find(a => a.id === o.acao_id) }));
+  }
+  let query = supabase.from("ocorrencias").select("*, acoes(nome)").order("criado_em", { ascending: false });
+  if (voluntarioId) query = query.eq("voluntario_id", voluntarioId);
+  const { data, error } = await query;
+  if (error) throw error;
+  return data.map(ocFromRow);
+}
+
+// registros: [{ voluntarioId, acaoId, tipo, descricao }]; highlights start closed, the rest open for RH
+export async function addOcorrencias(registros, userId) {
+  if (!registros.length) return [];
+  const rows = registros.map(r => ({
+    voluntario_id: r.voluntarioId, acao_id: r.acaoId || null, tipo: r.tipo, descricao: r.descricao?.trim() || null,
+    status: r.tipo === "destaque" ? "encerrada" : "aberta",
+  }));
+  if (demo) {
+    const now = new Date().toISOString();
+    const added = rows.map(r => ({ id: demo.seq++, providencia: null, autor_id: userId, criado_em: now, ...r }));
+    demo.ocorrencias.unshift(...added);
+    return added.map(o => ocFromRow({ ...o, acoes: demo.acoes.find(a => a.id === o.acao_id) }));
+  }
+  const { data, error } = await supabase.from("ocorrencias").insert(rows).select("*, acoes(nome)");
+  if (error) throw error;
+  return data.map(ocFromRow);
+}
+
+export async function updateOcorrencia(id, fields) {
+  if (demo) {
+    const row = demo.ocorrencias.find(o => o.id === id);
+    Object.assign(row, fields);
+    return ocFromRow({ ...row, acoes: demo.acoes.find(a => a.id === row.acao_id) });
+  }
+  const { data, error } = await supabase.from("ocorrencias").update(fields).eq("id", id).select("*, acoes(nome)").single();
+  if (error) throw error;
+  return ocFromRow(data);
+}
+
+// Volunteers of one action, for organizers who cannot read the whole base.
+export async function voluntariosDaAcao(acaoId) {
+  if (demo) {
+    return demo.participacoes.filter(p => p.acao_id === acaoId && p.voluntario_id).map(p => ({
+      id: p.voluntario_id, nome: demoVolunteers.find(v => (v.id || v.telefone) === p.voluntario_id)?.name || "Voluntário",
+    }));
+  }
+  const { data, error } = await supabase.rpc("voluntarios_da_acao", { p_acao: acaoId });
+  if (error) throw error;
+  return data;
+}
 
 export function acaoErrorMessage(error) {
   if (error?.code === "42501" || error?.code === "PGRST116") return "Seu perfil não pode alterar esta ação.";
