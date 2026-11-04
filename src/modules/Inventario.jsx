@@ -1,7 +1,8 @@
 import { useEffect, useState } from "react";
 import { Icon } from "@/components/Icon";
 import { marketingDateKey } from "@/data/marketing";
-import { readRHStore, volunteers } from "@/data/rh";
+import { readRHStore } from "@/data/rh";
+import { useVoluntarios } from "@/data/VoluntariosContext";
 import { DEMO_USERS, getInitials } from "@/lib/access";
 
 // ─── INVENTÁRIO ───────────────────────────────────────────────────────────────
@@ -452,6 +453,7 @@ export function InvDetalhe({ item, onClose, onTransferir, onSaida, onTriar, onEs
 }
 
 export function Inventario({ user, acoes = [] }) {
+  const volunteers = useVoluntarios();
   const [itens, setItens] = useState(() => readRHStore(INV_STORAGE_KEY, INV_SEED));
   useEffect(() => { try { localStorage.setItem(INV_STORAGE_KEY, JSON.stringify(itens)); } catch {} }, [itens]);
   const [vista, setVista] = useState("pessoas");

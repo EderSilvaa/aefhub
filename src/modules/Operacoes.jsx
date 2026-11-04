@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { Icon } from "@/components/Icon";
 import { ACOES_MOCK, OPS_AREA_TONE, OPS_STATUS_TONE, OPS_TIPO_TONE } from "@/data/operacoes";
-import { volunteers } from "@/data/rh";
+import { useVoluntarios } from "@/data/VoluntariosContext";
 import { Inventario } from "@/modules/Inventario";
 import "../operacoes.css";
 
@@ -47,6 +47,7 @@ export function POPSection({ title, tasks, onToggle }) {
 }
 
 export function AcaoDetail({ acao, onBack, mobile, user }) {
+  const volunteers = useVoluntarios();
   const [pop, setPop] = useState(acao.pop ? JSON.parse(JSON.stringify(acao.pop)) : null);
   const [tab, setTab] = useState("pop");
   const [showSorteio, setShowSorteio] = useState(false);
@@ -619,6 +620,7 @@ export function shuffle(arr) {
 }
 
 export function ModalSorteio({ acao, user, onClose, mobile, inscritos: inscritosFonte }) {
+  const volunteers = useVoluntarios();
   const storageKey = `aef_sorteio_${acao.id}`;
   const stored = (() => {
     try { return JSON.parse(localStorage.getItem(storageKey) || "null"); } catch { return null; }

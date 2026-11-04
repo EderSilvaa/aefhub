@@ -1,7 +1,8 @@
 import { useEffect, useState } from "react";
 import { Icon } from "@/components/Icon";
 import { marketingDateKey, marketingDateLabel } from "@/data/marketing";
-import { RH_ATTENDANCE_SEED, RH_FEEDBACK_SEED, RH_OCCURRENCES_SEED, RH_PARTNERS, RH_STORAGE_KEYS, readRHStore, volunteers } from "@/data/rh";
+import { RH_ATTENDANCE_SEED, RH_FEEDBACK_SEED, RH_OCCURRENCES_SEED, RH_PARTNERS, RH_STORAGE_KEYS, readRHStore } from "@/data/rh";
+import { useVoluntarios } from "@/data/VoluntariosContext";
 import { ACCESS_PROFILES } from "@/lib/access";
 import { Acessos } from "@/modules/Acessos";
 import "../rh.css";
@@ -21,7 +22,7 @@ export function RHPersonRow({ person }) {
     <li className="aef-rh__row">
       <div className="min-w-0">
         <div className="aef-rh__row-name">{person.name}</div>
-        <div className="aef-rh__row-sub">{person.formation}</div>
+        <div className="aef-rh__row-sub">{person.formation || (person.cadastradoEm ? `Cadastro em ${new Date(person.cadastradoEm).toLocaleDateString("pt-BR", { month: "2-digit", year: "numeric" })}` : "")}</div>
       </div>
       <span className="aef-rh__status" data-tone={status.tone}>{status.label}</span>
       <span className="aef-rh__sector" data-tone={rhTone(person.area)}>{person.area}</span>
@@ -79,30 +80,58 @@ export function RHMemberRow({ member }) {
   );
 }
 
+const REDE_PAGE = 30;
+const REDE_TIPOS = {
+  voluntarios: { label: "Voluntários", busca: "Buscar voluntário por nome, área ou formação…", vazio: "Nenhum voluntário encontrado" },
+  membros: { label: "Membros", busca: "Buscar membro por nome, e-mail ou cargo…", vazio: "Nenhum membro encontrado" },
+  parceiros: { label: "Empresas e parceiros", busca: "Buscar empresa, segmento ou contato…", vazio: "Nenhuma empresa encontrada" },
+};
+const VOLUNTARIO_STATUS = [["todos", "Todos"], ["novo", "Novos"], ["ativo", "Ativos"], ["inativo", "Inativos"], ["penalizado", "Penalizados"]];
+const statusDoVoluntario = person => person.status || (person.penalizado ? "penalizado" : person.novato ? "novo" : person.verified ? "ativo" : "inativo");
+
 export function RHNetwork({ mobile, members = [] }) {
-  const [entityType, setEntityType] = useState("todos");
+  const volunteers = useVoluntarios();
+  const [entityType, setEntityType] = useState("voluntarios");
   const [filter, setFilter] = useState("Todos");
+  const [statusFilter, setStatusFilter] = useState("todos");
   const [search, setSearch] = useState("");
-  const filters = ["Todos", ...new Set([...volunteers.map(item => item.area), ...RH_PARTNERS.map(item => item.segment), ...members.map(item => item.department).filter(Boolean)])];
+  const [limit, setLimit] = useState(REDE_PAGE);
   const normalizedSearch = search.trim().toLowerCase();
-  const filteredPeople = volunteers.filter(person =>
-    !["empresas", "membros"].includes(entityType) &&
-    (filter === "Todos" || person.area === filter) &&
-    (!normalizedSearch || [person.name, person.area, person.formation, person.telefone].some(value => value.toLowerCase().includes(normalizedSearch)))
-  );
-  const filteredPartners = RH_PARTNERS.filter(partner =>
-    !["pessoas", "membros"].includes(entityType) &&
-    (filter === "Todos" || partner.segment === filter) &&
-    (!normalizedSearch || [partner.name, partner.segment, partner.contribution, partner.contact].some(value => value.toLowerCase().includes(normalizedSearch)))
-  );
-  const filteredMembers = members.filter(member =>
-    !["pessoas", "empresas"].includes(entityType) &&
-    (filter === "Todos" || member.department === filter) &&
-    (!normalizedSearch || [member.name, member.email, member.position, member.department, ACCESS_PROFILES[member.profileId]?.label].filter(Boolean).some(value => value.toLowerCase().includes(normalizedSearch)))
-  );
-  const totalResults = filteredPeople.length + filteredPartners.length + filteredMembers.length;
+  const matches = values => !normalizedSearch || values.filter(Boolean).some(value => String(value).toLowerCase().includes(normalizedSearch));
+
+  const lists = {
+    voluntarios: {
+      all: volunteers,
+      groupOf: person => person.area,
+      rows: volunteers.filter(person =>
+        (filter === "Todos" || person.area === filter) &&
+        (statusFilter === "todos" || statusDoVoluntario(person) === statusFilter) &&
+        matches([person.name, person.area, person.formation, person.telefone])),
+    },
+    membros: {
+      all: members,
+      groupOf: member => member.department,
+      rows: members.filter(member =>
+        (filter === "Todos" || member.department === filter) &&
+        matches([member.name, member.email, member.position, member.department, ACCESS_PROFILES[member.profileId]?.label])),
+    },
+    parceiros: {
+      all: RH_PARTNERS,
+      groupOf: partner => partner.segment,
+      rows: RH_PARTNERS.filter(partner =>
+        (filter === "Todos" || partner.segment === filter) &&
+        matches([partner.name, partner.segment, partner.contribution, partner.contact])),
+    },
+  };
+  const current = lists[entityType];
+  const filters = ["Todos", ...new Set(current.all.map(current.groupOf).filter(Boolean))];
+  const shown = current.rows.slice(0, limit);
   const totalPartnerships = RH_PARTNERS.reduce((sum, partner) => sum + partner.partnerships, 0);
-  const entityTypes = [["todos", "Todos"], ["pessoas", "Pessoas"], ["empresas", "Empresas"], ["membros", "Membros"]];
+  const filtered = filter !== "Todos" || statusFilter !== "todos" || normalizedSearch;
+
+  const changeType = value => { setEntityType(value); setFilter("Todos"); setStatusFilter("todos"); setSearch(""); setLimit(REDE_PAGE); };
+  const changeFilter = value => { setFilter(value); setLimit(REDE_PAGE); };
+  const clearFilters = () => { setFilter("Todos"); setStatusFilter("todos"); setSearch(""); setLimit(REDE_PAGE); };
 
   return (
     <div>
@@ -114,65 +143,68 @@ export function RHNetwork({ mobile, members = [] }) {
         <button type="button" aria-label="Novo cadastro" className="aef-rh__btn aef-rh__btn--primary"><span aria-hidden="true"><Icon name="plus" size={15} /></span>{!mobile && "Novo cadastro"}</button>
       </div>
 
-      <ul className="aef-rh__figures aef-rh__figures--4">
-        {[
-          ["Pessoas", volunteers.length],
-          ["Empresas e parceiros", RH_PARTNERS.length],
-          ["Membros da organização", members.length],
-          ["Parcerias realizadas", totalPartnerships],
-        ].map(([label, value]) => (
-          <li key={label} className="aef-rh__figure"><span className="aef-rh__figure-label">{label}</span><span className="aef-rh__figure-value">{value}</span></li>
+      <nav className="aef-rh__segments aef-rh__segments--wide" aria-label="Tipo de vínculo">
+        {Object.entries(REDE_TIPOS).map(([value, cfg]) => (
+          <button key={value} type="button" className="aef-rh__segment" aria-pressed={entityType === value} onClick={() => changeType(value)}>
+            {cfg.label}<span className="aef-rh__segment-count">{lists[value].all.length}</span>
+          </button>
         ))}
-      </ul>
+      </nav>
 
       <div className="aef-rh__panel aef-rh__toolbar">
-        <div className="aef-rh__toolbar-top">
-          <div className="aef-rh__segments" role="group" aria-label="Tipo de vínculo">
-            {entityTypes.map(([value, label]) => (
-              <button key={value} type="button" className="aef-rh__segment" aria-pressed={entityType === value} onClick={() => { setEntityType(value); setFilter("Todos"); }}>{label}</button>
-            ))}
-          </div>
-          <div className="aef-rh__search">
-            <span className="aef-rh__search-icon" aria-hidden="true"><Icon name="search" size={15} /></span>
-            <input className="aef-rh__input" type="search" aria-label="Buscar na rede" value={search} onChange={event => setSearch(event.target.value)} placeholder="Buscar pessoa, empresa, área ou atuação…" />
-          </div>
+        <div className="aef-rh__search">
+          <span className="aef-rh__search-icon" aria-hidden="true"><Icon name="search" size={15} /></span>
+          <input className="aef-rh__input" type="search" aria-label={REDE_TIPOS[entityType].busca} value={search} onChange={event => { setSearch(event.target.value); setLimit(REDE_PAGE); }} placeholder={REDE_TIPOS[entityType].busca} />
         </div>
-        <div className="aef-rh__chips" role="group" aria-label="Filtrar por área">
-          {filters.map(item => <button key={item} type="button" className="aef-rh__chip" aria-pressed={filter === item} onClick={() => setFilter(item)}>{item}</button>)}
-        </div>
+        {entityType === "voluntarios" && (
+          <div className="aef-rh__chips" role="group" aria-label="Filtrar por status">
+            <span className="aef-rh__chips-label" aria-hidden="true">Status</span>
+            {VOLUNTARIO_STATUS.map(([value, label]) => <button key={value} type="button" className="aef-rh__chip" aria-pressed={statusFilter === value} onClick={() => { setStatusFilter(value); setLimit(REDE_PAGE); }}>{label}</button>)}
+          </div>
+        )}
+        {filters.length > 2 && (
+          <div className="aef-rh__chips" role="group" aria-label={entityType === "parceiros" ? "Filtrar por segmento" : entityType === "membros" ? "Filtrar por departamento" : "Filtrar por área"}>
+            <span className="aef-rh__chips-label" aria-hidden="true">{entityType === "parceiros" ? "Segmento" : entityType === "membros" ? "Departamento" : "Área"}</span>
+            {filters.map(item => <button key={item} type="button" className="aef-rh__chip" aria-pressed={filter === item} onClick={() => changeFilter(item)}>{item}</button>)}
+          </div>
+        )}
       </div>
 
       <div className="aef-rh__results" aria-live="polite">
-        <span>{totalResults} registro(s) encontrado(s)</span>
-        {filter !== "Todos" && <button type="button" className="aef-rh__btn aef-rh__btn--link" onClick={() => setFilter("Todos")}>Limpar filtro</button>}
+        <span>
+          {current.rows.length === current.all.length ? `${current.all.length} ${REDE_TIPOS[entityType].label.toLowerCase()}` : `${current.rows.length} de ${current.all.length} ${REDE_TIPOS[entityType].label.toLowerCase()}`}
+          {entityType === "parceiros" && `, ${totalPartnerships} parcerias realizadas`}
+        </span>
+        {filtered && <button type="button" className="aef-rh__btn aef-rh__btn--link" onClick={clearFilters}>Limpar filtros</button>}
       </div>
 
-      {filteredPartners.length > 0 && (
-        <section className="aef-rh__group">
-          <div className="aef-rh__group-head"><h2 className="aef-rh__h2">Empresas e parceiros</h2><p className="aef-rh__hint">Instituições que apoiam ações, estrutura e alcance.</p></div>
-          <ul className="aef-rh__panel aef-rh__rows">{filteredPartners.map(partner => <RHPartnerRow key={partner.id} partner={partner} />)}</ul>
-        </section>
-      )}
-
-      {filteredMembers.length > 0 && (
-        <section className="aef-rh__group">
-          <div className="aef-rh__group-head"><h2 className="aef-rh__h2">Membros da organização</h2><p className="aef-rh__hint">Equipe interna com identidade institucional e acesso ao AEF Hub.</p></div>
-          <ul className="aef-rh__panel aef-rh__rows">{filteredMembers.map(member => <RHMemberRow key={member.id} member={member} />)}</ul>
-        </section>
-      )}
-
-      {filteredPeople.length > 0 && (
-        <section className="aef-rh__group">
-          <div className="aef-rh__group-head"><h2 className="aef-rh__h2">Pessoas da rede</h2><p className="aef-rh__hint">Voluntários e profissionais que participaram da trajetória.</p></div>
-          <ul className="aef-rh__panel aef-rh__rows">{filteredPeople.map(person => <RHPersonRow key={person.telefone} person={person} />)}</ul>
-        </section>
-      )}
-
-      {totalResults === 0 && (
+      {current.rows.length === 0 ? (
         <div className="aef-rh__panel aef-rh__empty">
           <span className="aef-rh__empty-icon" aria-hidden="true"><Icon name="search" size={22} /></span>
-          <h2 className="aef-rh__h2">Nenhum vínculo encontrado</h2>
-          <p className="aef-rh__desc">Tente outro nome, área ou tipo de relacionamento.</p>
+          <h2 className="aef-rh__h2">{REDE_TIPOS[entityType].vazio}</h2>
+          <p className="aef-rh__desc">Tente outro nome ou limpe os filtros.</p>
+        </div>
+      ) : (
+        <div className="aef-rh__panel">
+          <div className="aef-rh__cols" aria-hidden="true">
+            {entityType === "voluntarios" && <><span>Nome</span><span>Status</span><span>Área</span><span>Contato</span><span>Ações</span></>}
+            {entityType === "membros" && <><span>Nome</span><span>Perfil e acesso</span><span>Departamento</span><span>E-mail</span><span>Áreas</span></>}
+            {entityType === "parceiros" && <><span>Empresa</span><span>Vínculo</span><span>Segmento</span><span>Contato</span><span>Parcerias</span></>}
+          </div>
+          <ul className="aef-rh__rows">
+            {entityType === "voluntarios" && shown.map(person => <RHPersonRow key={person.id || person.telefone} person={person} />)}
+            {entityType === "membros" && shown.map(member => <RHMemberRow key={member.id} member={member} />)}
+            {entityType === "parceiros" && shown.map(partner => <RHPartnerRow key={partner.id} partner={partner} />)}
+          </ul>
+        </div>
+      )}
+
+      {current.rows.length > shown.length && (
+        <div className="aef-rh__more">
+          <span>Mostrando {shown.length} de {current.rows.length}</span>
+          <button type="button" className="aef-rh__btn aef-rh__btn--outline" onClick={() => setLimit(value => value + REDE_PAGE)}>
+            Mostrar mais {Math.min(REDE_PAGE, current.rows.length - shown.length)}
+          </button>
         </div>
       )}
     </div>
@@ -221,6 +253,7 @@ export function RHFigures({ items }) {
 }
 
 export function RHOverview({ attendance, feedbacks, occurrences, onNavigate, mobile }) {
+  const volunteers = useVoluntarios();
   const active = volunteers.filter(person => person.actions > 0).length;
   const inactive = volunteers.filter(person => person.actions === 0).length;
   const newVolunteers = volunteers.filter(person => person.novato).length;
@@ -296,7 +329,7 @@ export function RHOverview({ attendance, feedbacks, occurrences, onNavigate, mob
           <h2 className="aef-rh__h2" style={{ marginBottom: "var(--space-xs)" }}>Maior participação</h2>
           <ol className="aef-rh__rank">
             {topPeople.map((person, index) => (
-              <li key={person.telefone}>
+              <li key={person.id || person.telefone}>
                 <span className="aef-rh__rank-pos">{index + 1}</span>
                 <div className="min-w-0"><div className="aef-rh__rank-name">{person.name}</div><div className="aef-rh__sector" data-tone={rhTone(person.area)}>{person.area}</div></div>
                 <span className="aef-rh__rank-count">{person.actions} ações</span>
@@ -350,8 +383,9 @@ export function RHParticipation({ attendance }) {
 }
 
 export function RHFeedbacks({ feedbacks, onAdd }) {
+  const volunteers = useVoluntarios();
   const [showForm, setShowForm] = useState(false);
-  const [draft, setDraft] = useState({ type: "organizador", action: RH_ATTENDANCE_SEED[0].action, volunteer: volunteers[0].name, note: "", scores: {} });
+  const [draft, setDraft] = useState({ type: "organizador", action: RH_ATTENDANCE_SEED[0].action, volunteer: volunteers[0]?.name || "", note: "", scores: {} });
   const criteria = RH_CRITERIA[draft.type];
   const submit = event => { event.preventDefault(); const scores = Object.fromEntries(criteria.map(key => [key, Number(draft.scores[key] || 4)])); onAdd({ ...draft, scores }); setDraft(prev => ({ ...prev, note: "", scores: {} })); setShowForm(false); };
   const organizerScores = feedbacks.filter(item => item.type === "organizador").flatMap(item => Object.values(item.scores));
@@ -369,7 +403,7 @@ export function RHFeedbacks({ feedbacks, onAdd }) {
           <div className="aef-rh__form-grid aef-rh__form-grid--3">
             <div className="aef-rh__field"><label className="aef-rh__label" htmlFor="rh-fb-tipo">Tipo</label><select id="rh-fb-tipo" value={draft.type} onChange={event => setDraft(prev => ({ ...prev, type: event.target.value, scores: {} }))} className="aef-rh__select"><option value="organizador">Organizador avalia</option><option value="voluntario">Voluntário avalia a ação</option></select></div>
             <div className="aef-rh__field"><label className="aef-rh__label" htmlFor="rh-fb-acao">Ação</label><select id="rh-fb-acao" value={draft.action} onChange={event => setDraft(prev => ({ ...prev, action: event.target.value }))} className="aef-rh__select">{RH_ATTENDANCE_SEED.map(item => <option key={item.id}>{item.action}</option>)}</select></div>
-            <div className="aef-rh__field"><label className="aef-rh__label" htmlFor="rh-fb-voluntario">Voluntário</label><select id="rh-fb-voluntario" value={draft.volunteer} onChange={event => setDraft(prev => ({ ...prev, volunteer: event.target.value }))} className="aef-rh__select">{volunteers.map(item => <option key={item.telefone}>{item.name}</option>)}</select></div>
+            <div className="aef-rh__field"><label className="aef-rh__label" htmlFor="rh-fb-voluntario">Voluntário</label><select id="rh-fb-voluntario" value={draft.volunteer} onChange={event => setDraft(prev => ({ ...prev, volunteer: event.target.value }))} className="aef-rh__select">{volunteers.map(item => <option key={item.id || item.telefone}>{item.name}</option>)}</select></div>
           </div>
           <div className="aef-rh__form-grid aef-rh__form-grid--2 aef-rh__form-section">
             {criteria.map(key => (
@@ -406,8 +440,9 @@ export function RHFeedbacks({ feedbacks, onAdd }) {
 }
 
 export function RHOccurrences({ occurrences, onAdd, canAccess }) {
+  const volunteers = useVoluntarios();
   const [showForm, setShowForm] = useState(false);
-  const [draft, setDraft] = useState({ volunteer: volunteers[0].name, action: RH_ATTENDANCE_SEED[0].action, type: "Ausência sem aviso", description: "", actionTaken: "", status: "aberta", recurrence: 1 });
+  const [draft, setDraft] = useState({ volunteer: volunteers[0]?.name || "", action: RH_ATTENDANCE_SEED[0].action, type: "Ausência sem aviso", description: "", actionTaken: "", status: "aberta", recurrence: 1 });
   if (!canAccess) return (
     <div className="aef-rh__panel aef-rh__empty">
       <span className="aef-rh__empty-icon" aria-hidden="true"><Icon name="lock" size={22} /></span>
@@ -428,7 +463,7 @@ export function RHOccurrences({ occurrences, onAdd, canAccess }) {
       {showForm && (
         <form onSubmit={submit} className="aef-rh__panel aef-rh__panel--pad aef-rh__form">
           <div className="aef-rh__form-grid aef-rh__form-grid--3">
-            <div className="aef-rh__field"><label className="aef-rh__label" htmlFor="rh-oc-voluntario">Voluntário</label><select id="rh-oc-voluntario" value={draft.volunteer} onChange={event => setDraft(prev => ({ ...prev, volunteer: event.target.value }))} className="aef-rh__select">{volunteers.map(item => <option key={item.telefone}>{item.name}</option>)}</select></div>
+            <div className="aef-rh__field"><label className="aef-rh__label" htmlFor="rh-oc-voluntario">Voluntário</label><select id="rh-oc-voluntario" value={draft.volunteer} onChange={event => setDraft(prev => ({ ...prev, volunteer: event.target.value }))} className="aef-rh__select">{volunteers.map(item => <option key={item.id || item.telefone}>{item.name}</option>)}</select></div>
             <div className="aef-rh__field"><label className="aef-rh__label" htmlFor="rh-oc-acao">Ação</label><select id="rh-oc-acao" value={draft.action} onChange={event => setDraft(prev => ({ ...prev, action: event.target.value }))} className="aef-rh__select">{RH_ATTENDANCE_SEED.map(item => <option key={item.id}>{item.action}</option>)}</select></div>
             <div className="aef-rh__field"><label className="aef-rh__label" htmlFor="rh-oc-tipo">Tipo</label><input id="rh-oc-tipo" value={draft.type} onChange={event => setDraft(prev => ({ ...prev, type: event.target.value }))} className="aef-rh__input" /></div>
           </div>

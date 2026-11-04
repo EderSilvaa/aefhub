@@ -5,6 +5,7 @@ import { AccessNotice, BottomNav, Sidebar } from "@/components/Navigation";
 import { useIsMobile } from "@/hooks/useIsMobile";
 import { buildManagedUser, buildUserSession, canAccessModule, clearUserDirectory, clearUserSession, getAllowedNavItems, getDefaultModule, getModuleLabel, getSeedUsers, normalizeEmail, persistUserDirectory, persistUserSession, restoreUserDirectory, restoreUserSession } from "@/lib/access";
 import { listMembers, memberErrorMessage, saveMember, setMemberActive } from "@/data/membros";
+import { VoluntariosProvider } from "@/data/VoluntariosContext";
 import { googleAuthEnabled, loadMember, NOT_ALLOWED_MESSAGE, signInWithGoogle, signOutGoogle, takeAuthErrorFromUrl } from "@/lib/googleAuth";
 import { supabase } from "@/lib/supabase";
 import { C, FONT_DISPLAY } from "@/lib/theme";
@@ -292,6 +293,7 @@ export default function App() {
   };
 
   return (
+    <VoluntariosProvider enabled={googleAuthEnabled}>
     <div className="aef-shell">
       {showProfile && <Profile user={user} onClose={() => setShowProfile(false)} onLogout={handleLogout} onUpdateUser={handleUserUpdate} />}
       {!mobile && <Sidebar active={active} setActive={handleSetActive} user={user} onOpenProfile={() => setShowProfile(true)} navItems={allowedNavItems} />}
@@ -314,5 +316,6 @@ export default function App() {
       </main>
       {mobile && <BottomNav active={active} setActive={handleSetActive} navItems={allowedNavItems} />}
     </div>
+    </VoluntariosProvider>
   );
 }
